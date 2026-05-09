@@ -1,0 +1,60 @@
+# dependencies
+node_modules/
+
+# env files
+.env
+.env.local
+.env.production
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# next.js
+.next/
+out/
+
+# build
+build/
+dist/
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# Python virtual environments
+venv/
+.venv/
+env/
+
+# adams-agents generated output
+adams-agents/projects/
+adams-agents/research/
+
+# audio files (never commit binary audio)
+*.mp3
+*.wav
+*.ogg
+*.flac
+*.m4a
+*.aac
+
+# credentials / secrets
+*credentials*.json
+*.backup
+*.pickle
+token.pickle
+
+# Python
+__pycache__/
+*.pyc
+*.so
+*.dylib

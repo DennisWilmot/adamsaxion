@@ -1,0 +1,350 @@
+?# LLM CONTENT GENERATION RULES FOR ECONOMIC LESSONS PLATFORM
+
+## OVERVIEW
+These rules define the exact formats required for generating content for the interactive economics education platform. All formatting must be followed precisely as the system parsers are strict.
+
+---
+
+## 1. LESSON MARKDOWN FILE STRUCTURE
+
+### Frontmatter Format (MANDATORY - EXACT SYNTAX)
+```yaml
+---
+title: "Lesson 1: Introduction to Intermediate Microeconomics: Supply, Demand, and Market Forces"
+excerpt: "Learn the fundamental principles of microeconomics through Zimbabwe's 2007 economic crisis and discover how scarcity, incentives, and market forces shape our world."
+category: "Microeconomics"
+readingTime: 35
+publishedAt: "2024-08-26"
+xp: 160
+level: 3
+rating: 4.8
+isUnlocked: true
+lessonNumber: 1
+---
+```
+
+### Section Format (MANDATORY - EXACT SYNTAX)
+```markdown
+```SECTION_1```
+# 📘 SECTION 1: The World is Collapsing. You're in Charge.
+
+Content here...
+
+{{quiz:zimbabwe-crisis-choice}}
+```
+
+### Quiz Embedding (MANDATORY - EXACT SYNTAX)
+```markdown
+{{quiz:quiz-id-here}}
+```
+
+---
+
+## 2. INLINE QUIZ STRUCTURE (quiz-data.ts)
+
+### Quiz Object Format (MANDATORY - EXACT STRUCTURE)
+```javascript
+{
+  id: 'zimbabwe-crisis-choice',
+  questionKey: 'zimbabwe-crisis-choice',
+  questionText: 'You control Zimbabwe\'s remaining resources. The government has enough foreign currency to fully address ONE of these crises this month. Which do you choose?',
+  options: [
+    'Import food and medical supplies. Thousands of people are malnourished, and hospitals are turning away dying patients. These are basic human needs—people will die without food and medicine. The economy doesn\'t matter if your citizens are dead. You can worry about long-term growth later; survival comes first.',
+    'Import fuel and industrial equipment. Without gasoline, trucks can\'t deliver any food that exists. Without electricity, factories can\'t produce goods or employ workers. Fix the infrastructure first and everything else becomes possible. Short-term hunger is terrible, but economic collapse means permanent poverty for everyone.'
+  ],
+  correctAnswer: 0,
+  correctExplanation: 'Both choices involve difficult trade-offs. Option A prioritizes immediate human survival, while Option B focuses on long-term economic recovery. This illustrates the fundamental economic problem of scarcity - you cannot have both, so you must choose based on your values and assessment of the situation.',
+  quizType: 'TYPE_1_INTUITION',
+  xpReward: 5
+}
+```
+
+### Quiz Types (MUST USE EXACT VALUES)
+- `TYPE_1_INTUITION` - Business/strategy scenarios (usually 2 detailed options)
+- `TYPE_2_IN_LESSON` - Concept recognition questions (3-4 options)
+- `TYPE_3A_EASY_RECALL` - Basic recall (3-4 options)
+- `TYPE_3B_HARD_ANALYSIS` - Complex analysis (usually 2 detailed options)
+
+### XP Reward Values (MUST USE THESE EXACT VALUES)
+- 5, 10, 15, 20, or 25
+
+---
+
+## 3. MASTERY QUIZ STRUCTURE (lesson-quiz-data.ts)
+
+### Section Format (MANDATORY - EXACT STRUCTURE)
+```javascript
+"section-1": {
+  "id": "section-1",
+  "title": "The World is Collapsing. You're in Charge.",
+  "timeLimit": 15,
+  "totalXP": 85,
+  "passingScore": 70,
+  "questions": [
+    // Array of question objects
+  ]
+}
+```
+
+### Mastery Question Format (MANDATORY - EXACT STRUCTURE)
+```javascript
+{
+  "id": "s1q1",
+  "question": "What is the economic definition of scarcity?",
+  "options": [
+    "When poor people cannot afford basic necessities",
+    "The fundamental problem where unlimited wants meet limited resources",
+    "A temporary shortage of a particular good or service",
+    "When supply is less than demand in a market"
+  ],
+  "correctAnswer": 1,
+  "xpValue": 10,
+  "xpPenalty": 5,
+  "explanation": "Scarcity is the fundamental economic problem where unlimited human wants meet limited resources. This exists everywhere, even in rich countries."
+}
+```
+
+---
+
+## 4. FILE NAMING CONVENTIONS
+
+### Lesson Markdown Files
+Format: `lesson-{number}-{descriptive-slug}.md`
+Example: `lesson-1-supply-and-demand-fundamentals.md`
+
+### Quiz IDs
+- Inline quizzes: `descriptive-kebab-case` (e.g., `zimbabwe-crisis-choice`)
+- Mastery questions: `s{sectionNumber}q{questionNumber}` (e.g., `s1q1`)
+
+---
+
+## 5. REQUIRED FIELDS & DATA TYPES
+
+### Frontmatter Fields (ALL REQUIRED)
+```yaml
+title: "string"           # Complete title with proper capitalization
+excerpt: "string"         # Under 150 characters
+category: "string"        # Category name
+readingTime: number       # Reading time in minutes
+publishedAt: "string"     # ISO date format: "2024-01-15"
+xp: number                # Total XP for lesson
+level: number             # Difficulty level (1-5)
+rating: number            # Rating (0.0-5.0)
+isUnlocked: boolean       # true/false
+lessonNumber: number      # Sequential lesson number
+```
+
+### Inline Quiz Fields (ALL REQUIRED)
+```javascript
+id: "string"              // Same as quiz ID in markdown
+questionKey: "string"     // Always same as id
+questionText: "string"    // Question ending with ?
+options: ["string"]       // Array of option strings
+correctAnswer: number     // Index (0-based)
+correctExplanation: "string" // Detailed explanation
+quizType: "string"        // One of the 4 exact types above
+xpReward: number          // 5, 10, 15, 20, or 25
+```
+
+### Mastery Section Fields (ALL REQUIRED)
+```javascript
+id: "string"              // Format: "section-X"
+title: "string"           // Section title
+timeLimit: number         // Minutes (15-40 typical)
+totalXP: number           // Sum of question XP values
+passingScore: number      // Percentage (60-80 typical)
+questions: [object]       // Array of question objects
+```
+
+### Mastery Question Fields (ALL REQUIRED)
+```javascript
+id: "string"              // Format: "sXqY"
+question: "string"        // Question text
+options: ["string"]       // ALWAYS exactly 4 options
+correctAnswer: number     // Index 0-3
+xpValue: number           // XP for correct answer
+xpPenalty: number         // XP penalty (usually xpValue/2)
+explanation: "string"     // Explanation text
+```
+
+---
+
+## 6. SYNTAX VALIDATION RULES
+
+### ✅ CORRECT FORMATS
+
+#### Quotes
+```javascript
+id: "correct-string"      // ✅ Double quotes for strings
+xpReward: 5               // ✅ No quotes for numbers
+```
+
+#### Arrays
+```javascript
+options: ["opt1", "opt2"]  // ✅ Square brackets, comma-separated
+```
+
+#### Objects
+```javascript
+{                         // ✅ Curly braces
+  id: "test",
+  question: "test"        // ✅ Comma after each property
+}
+```
+
+#### Frontmatter
+```yaml
+---                       # ✅ Opening marker
+title: "Test"
+---                       # ✅ Closing marker
+```
+
+### ❌ COMMON ERRORS TO AVOID
+
+#### Wrong Quotes
+```javascript
+id: 'wrong-quotes'        // ❌ Single quotes
+id: wrong-no-quotes       // ❌ No quotes
+```
+
+#### Missing Commas
+```javascript
+{
+  id: "test"              // ❌ Missing comma
+  question: "test"
+}
+```
+
+#### Wrong Array Syntax
+```javascript
+options: ["a" "b"]        // ❌ Missing comma
+options: "a", "b"         // ❌ Not an array
+```
+
+#### Wrong Quiz Embedding
+```markdown
+{{quiz incorrect}}        // ❌ Space instead of colon
+{quiz:wrong}              // ❌ Single braces
+quiz:wrong                // ❌ No braces
+```
+
+#### Wrong Frontmatter
+```yaml
+---                       # ❌ Missing closing ---
+title: "Wrong"
+```
+
+---
+
+## 7. COMPLETE EXAMPLES
+
+### Example 1: Full Lesson Structure
+```yaml
+---
+title: "Lesson 2: Understanding Market Forces"
+excerpt: "Explore how supply and demand interact to determine prices and allocate resources."
+category: "Microeconomics"
+readingTime: 30
+publishedAt: "2024-01-20"
+xp: 140
+level: 2
+rating: 4.6
+isUnlocked: true
+lessonNumber: 2
+---
+
+```SECTION_1```
+# 📘 SECTION 1: The Power of Markets
+
+Markets are incredible coordination mechanisms...
+
+{{quiz:market-coordination-example}}
+
+### The Invisible Hand
+Adam Smith described how...
+
+{{quiz:invisible-hand-definition}}
+```
+
+### Example 2: Inline Quiz Array
+```javascript
+'lesson-2-market-forces': [
+  {
+    id: 'market-coordination-example',
+    questionKey: 'market-coordination-example',
+    questionText: 'How do markets coordinate the actions of millions of people without central planning?',
+    options: [
+      'Through government regulations and planning committees',
+      'Through the price system that signals scarcity and abundance',
+      'Through tradition and cultural norms',
+      'Through random chance and luck'
+    ],
+    correctAnswer: 1,
+    correctExplanation: 'The price system serves as a communication network, signaling to producers where resources are needed and to consumers where to find goods.',
+    quizType: 'TYPE_2_IN_LESSON',
+    xpReward: 10
+  }
+]
+```
+
+### Example 3: Mastery Quiz Section
+```javascript
+"lesson-2-market-forces": {
+  "sections": {
+    "section-1": {
+      "id": "section-1",
+      "title": "Market Coordination Mechanisms",
+      "timeLimit": 18,
+      "totalXP": 90,
+      "passingScore": 75,
+      "questions": [
+        {
+          "id": "s1q1",
+          "question": "What is the primary function of market prices?",
+          "options": [
+            "To maximize government revenue",
+            "To coordinate economic activity and signal resource scarcity",
+            "To redistribute wealth from rich to poor",
+            "To control inflation and unemployment"
+          ],
+          "correctAnswer": 1,
+          "xpValue": 12,
+          "xpPenalty": 6,
+          "explanation": "Prices serve as signals that coordinate the actions of producers and consumers without central planning."
+        }
+      ]
+    }
+  }
+}
+```
+
+---
+
+## 8. VALIDATION CHECKLIST
+
+### Before Submission - Markdown Files
+- [ ] Frontmatter has all 11 required fields
+- [ ] Frontmatter enclosed in `---` markers
+- [ ] Sections start with `{{SECTION_X}}` format
+- [ ] Quiz placeholders use `{{quiz:id}}` format
+- [ ] File named `lesson-{number}-{slug}.md`
+
+### Before Submission - Quiz Data Files
+- [ ] All quiz objects have all 8 required fields
+- [ ] Quiz IDs match between markdown and data files
+- [ ] Options arrays have appropriate number of items
+- [ ] Correct answer indices are valid
+- [ ] Quiz types use exact allowed values
+- [ ] XP rewards use allowed values (5, 10, 15, 20, 25)
+
+### Before Submission - Mastery Quiz Files
+- [ ] Section IDs follow `section-X` format
+- [ ] Question IDs follow `sXqY` format
+- [ ] All questions have exactly 4 options
+- [ ] Total XP equals sum of question XP values
+- [ ] Time limits are reasonable (15-40 minutes)
+- [ ] Passing scores are reasonable (60-80%)
+
+---
+
+**CRITICAL**: Follow these rules exactly. The platform parsers are strict and will reject any content that doesn't match these specifications. Use the examples above as templates for your content generation.

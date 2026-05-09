@@ -1,0 +1,86 @@
+# Adams Agents CLI Operations
+# Purpose: Quick command reference and recommended sequences for common workflows.
+# Usage: Copy/paste commands into your terminal from the repo root.
+
+# 0) Setup (first time)
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# 1) Help and Version
+python3 cli.py --help
+python3 cli.py --version
+
+# 2) Create a new project
+# Required: --topic, --context; Optional: --voice-id, --speed
+python3 cli.py create --topic "Every Major Topic in Econometrics Explained" --context "Undergrad-friendly overview with examples"
+
+# 3) List projects
+python3 cli.py list
+
+# 4) Show a project (by ID or topic)
+python3 cli.py show "Every Major Topic in Econometrics Explained"
+# or
+python3 cli.py show <project_id>
+
+# 5) Search projects
+python3 cli.py search econometrics
+
+# 6) Generate outline (by ID or topic)
+python3 cli.py generate_outline "Every Major Topic in Econometrics Explained"
+# or
+python3 cli.py generate_outline <project_id>
+
+# 7) Generate script (requires outline)
+python3 cli.py generate_script "Every Major Topic in Econometrics Explained"
+# or
+python3 cli.py generate_script <project_id>
+
+# 8) (Optional) Cleanup script for audio (manual)
+python3 cli.py cleanup_script "Every Major Topic in Econometrics Explained"
+
+# 9) Generate audio (requires script)
+# Optional: --speaking-rate (defaults to GOOGLE_TTS_VOICE_SETTINGS.speaking_rate)
+# Note: Auto-cleans and chunks the script using Gemini when available
+python3 cli.py generate_audio "Every Major Topic in Econometrics Explained" --speaking-rate 1.0
+
+# 10) Validate content (checks outline/script quality)
+python3 cli.py validate "Every Major Topic in Econometrics Explained"
+
+# 11) Upload project to Google Drive
+# Prereqs: GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in environment
+# Optional: --root-folder-id to use an existing Drive folder
+python3 cli.py upload_to_drive "Every Major Topic in Econometrics Explained"
+# or with custom root folder
+python3 cli.py upload_to_drive "Every Major Topic in Econometrics Explained" --root-folder-id <FOLDER_ID>
+
+# 12) List available Google Drive root-level folders
+python3 cli.py list_drive_folders
+
+# 13) Overall system status summary
+python3 cli.py status
+
+
+# Recommended end-to-end workflow (happy path)
+# A) Create
+python3 cli.py create --topic "Every Major Topic in Econometrics Explained" --context "Undergrad-friendly overview with examples"
+# B) Outline
+python3 cli.py generate_outline "Every Major Topic in Econometrics Explained"
+# C) Script
+python3 cli.py generate_script "Every Major Topic in Econometrics Explained"
+# D) Audio (auto cleanup + chunking to Google TTS Puck)
+python3 cli.py generate_audio "Every Major Topic in Econometrics Explained" --speaking-rate 1.0
+# E) Validate (optional but recommended)
+python3 cli.py validate "Every Major Topic in Econometrics Explained"
+# F) Upload to Google Drive (requires OAuth client env vars)
+python3 cli.py upload_to_drive "Every Major Topic in Econometrics Explained"
+
+
+# Notes & Environment
+# - Ensure required API keys and configs are set (.env or environment):
+#   OPENAI_API_KEY, GOOGLE_GEMINI_API_KEY, GOOGLE_CLOUD_PROJECT_ID,
+#   GOOGLE_SERVICE_ACCOUNT_KEY (JSON string or path), GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+# - Audio generation uses Google Cloud TTS voice: Puck (en-US-Chirp3-HD-Puck)
+# - Chunk sizing targets ~90 seconds per chunk (~225 words; max ~250)
+# - Files saved under projects/<project_id>/ with audio in projects/<project_id>/audio/
+# - Cleaned script is saved as projects/<project_id>/script_cleaned.txt

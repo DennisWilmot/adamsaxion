@@ -1,0 +1,1415 @@
+{
+  "id": "lesson-1-supply-and-demand-fundamentals",
+  "title": "Lesson 1: Introduction to Intermediate Microeconomics: Supply, Demand, and Market Forces",
+  "category": "Microeconomics",
+  "difficulty": "Intermediate",
+  "estimatedMinutes": 35,
+  "description": "Learn the fundamental principles of microeconomics through Zimbabwe's 2007 economic crisis and discover how scarcity, incentives, and market forces shape our world.",
+  "thumbnail": "/thumbnails/lesson-1.png",
+  "sections": [
+    {
+      "id": "section-1",
+      "title": "The World is Collapsing. You're in Charge.",
+      "subsections": [
+        {
+          "id": "section-1-sub-1",
+          "title": "December 2007, Harare, Zimbabwe",
+          "content": "# 📘 SECTION 1: The World is Collapsing. You're in Charge.\n\n### December 2007, Harare, Zimbabwe\n\nYou wake to pounding on your front door. Three black sedans idle in your driveway, their engines running in the pre-dawn darkness. Presidential guards.\n\n\"The President wants to see you. Now.\"\n\nTwenty minutes later, you sit across from Robert Mugabe in his private study. The room is silent except for the ticking of an antique clock. On his desk lie newspaper headlines: \"BREAD SHORTAGES WORSEN,\" \"FUEL QUEUES STRETCH FOR MILES,\" \"HOSPITALS RUN OUT OF MEDICINE.\"\n\nYou are Dr. Gideon Gono, Governor of Zimbabwe's central bank. But today's crisis isn't really about banking—it's about something more fundamental. Your country simply doesn't have enough of what people desperately need.\n\nMugabe spreads three reports across his desk:\n\n**Food Production:** Zimbabwe's commercial farms, once the region's breadbasket, now produce 60% less grain than five years ago. Supermarket shelves sit empty.\n\n**Fuel Supply:** The country's foreign currency reserves can't cover oil imports. Gas stations have fuel maybe two days per week.\n\n**Medical Supplies:** Hospitals lack basic medicines. Doctors perform surgeries without anesthesia.\n\n\"Every choice we make means someone suffers,\" Mugabe says grimly. \"We have limited government resources. Limited foreign currency. Limited time before people revolt.\"\n\nHe leans forward. \"You understand economics, Governor. Help me decide how to use what little we have left.\"",
+          "quiz": {
+            "id": "zimbabwe-crisis-choice",
+            "question": "You control Zimbabwe's remaining resources. The government has enough foreign currency to fully address ONE of these crises this month. Which do you choose?",
+            "options": [
+              "Import food and medical supplies. Thousands of people are malnourished, and hospitals are turning away dying patients. These are basic human needs—people will die without food and medicine. The economy doesn't matter if your citizens are dead. You can worry about long-term growth later; survival comes first.",
+              "Import fuel and industrial equipment. Without gasoline, trucks can't deliver any food that exists. Without electricity, factories can't produce goods or employ workers. Fix the infrastructure first and everything else becomes possible. Short-term hunger is terrible, but economic collapse means permanent poverty for everyone."
+            ],
+            "correctAnswer": 0,
+            "difficulty": "medium",
+            "xpReward": 15,
+            "xpPenalties": [
+              5,
+              8
+            ],
+            "explanation": "Both choices involve difficult trade-offs. Option A prioritizes immediate human survival, while Option B focuses on long-term economic recovery. This illustrates the fundamental economic problem of scarcity - you cannot have both, so you must choose based on your values and assessment of the situation."
+          }
+        },
+        {
+          "id": "section-1-sub-2",
+          "title": "The Fundamental Problem: Scarcity",
+          "content": "### The Fundamental Problem: Scarcity\n\nWhat you just experienced is **scarcity**—the most basic concept in all of economics.\n\n**Scarcity** is the fundamental economic problem where human wants are unlimited but resources to satisfy those wants are limited. Every society, rich or poor, faces scarcity because we can never have everything we want.\n\nNotice this isn't about poverty. Even Bill Gates faces scarcity—he has limited time and must choose how to spend it. Even the United States faces scarcity—the government has limited budget and must choose between military spending and social programs.\n\nZimbabwe in 2007 faced extreme scarcity, but the principle affects every decision you make:\n- Should you study economics tonight or watch Netflix? (You can't do both simultaneously)\n- Should your university spend its budget on new dorms or better professors? (The money only goes so far)\n- Should Jamaica use its limited farmland to grow bananas for export or rice for local consumption? (The same acre can't do both)",
+          "quiz": {
+            "id": "scarcity-definition",
+            "question": "What economic term describes the situation where unlimited wants meet limited resources?",
+            "options": [
+              "Shortage",
+              "Scarcity",
+              "Poverty",
+              "Recession"
+            ],
+            "correctAnswer": 1,
+            "difficulty": "hard",
+            "xpReward": 25,
+            "xpPenalties": [
+              10,
+              15
+            ],
+            "explanation": "Scarcity is the fundamental economic problem where human wants are unlimited but resources to satisfy those wants are limited. This exists everywhere, even in rich countries - Bill Gates faces scarcity of time, and the US government faces scarcity of budget."
+          }
+        },
+        {
+          "id": "section-1-sub-3",
+          "title": "The Cost of Every Choice: Opportunity Cost",
+          "content": "### The Cost of Every Choice: Opportunity Cost\n\nBack in Zimbabwe, let's say you chose Option A (food and medicine). What did that choice actually cost?\n\nIt didn't just cost the dollars spent on food imports. It cost the **opportunity**—the trucks that could have been delivering existing food, the factories that could have been producing goods, the economic growth that reliable fuel supply enables.\n\n**Opportunity cost** is the value of the next-best alternative that must be given up when making a choice. It's what economists mean when they say \"there's no such thing as a free lunch\"—even free things cost you the time and alternatives you sacrifice to get them.\n\nThis concept is crucial because it reveals the true cost of any decision. The opportunity cost of your college education isn't just tuition—it's also the salary you could have earned by working those four years instead.",
+          "quiz": {
+            "id": "opportunity-cost-example",
+            "question": "You have $100 and three options: buy textbooks ($100), go to a concert ($100), or save the money. You choose the concert. What's your opportunity cost?",
+            "options": [
+              "$100",
+              "The textbooks (your second-best choice)",
+              "The textbooks plus the $100 in savings",
+              "Everything you could have bought with $100"
+            ],
+            "correctAnswer": 1,
+            "difficulty": "hard",
+            "xpReward": 25,
+            "xpPenalties": [
+              10,
+              15
+            ],
+            "explanation": "Opportunity cost is your next-best alternative, not everything you gave up. If textbooks were your second choice, that's what the concert really \"cost\" you."
+          }
+        },
+        {
+          "id": "section-1-sub-4",
+          "title": "Real-World Scarcity: Why Some Things Cost More",
+          "content": "### Real-World Scarcity: Why Some Things Cost More\n\nZimbabwe's crisis was extreme, but scarcity shapes prices everywhere. Consider why some things cost more than others:\n\n**Concert tickets for Burna Boy in Lagos:** Limited stadium seats, massive demand from fans across West Africa. Price: $200.\n\n**The same concert streamed online:** Unlimited digital \"seats,\" same demand. Price: $15.\n\n**Water in Kingston:** Abundant supply, essential demand. Price: Nearly free.\n\n**Water in the Sahara Desert:** Scarce supply, same essential demand. Price: Priceless.\n\nThe pattern? When something people want is limited, its price rises. When it's abundant, price falls.",
+          "quiz": {
+            "id": "price-gouging-analysis",
+            "question": "During COVID-19, hand sanitizer prices spiked from $2 to $50 per bottle in some places. People called this \"price gouging.\" But what economic principle was actually operating?",
+            "options": [
+              "Greedy store owners were exploiting a crisis to maximize profits at customers' expense. This was pure exploitation with no economic justification. The government should have arrested these price gougers and forced them to sell at normal prices.",
+              "Demand for sanitizer skyrocketed while supply remained limited. Higher prices encouraged people to buy only what they needed (rather than hoarding) and motivated more companies to produce sanitizer quickly. The \"gouging\" was actually the market solving the shortage."
+            ],
+            "correctAnswer": 1,
+            "difficulty": "medium",
+            "xpReward": 15,
+            "xpPenalties": [
+              5,
+              8
+            ],
+            "explanation": "Higher prices during shortages serve important economic functions: they discourage hoarding, encourage conservation, and provide incentives for increased production. While price gouging may seem unfair, it often helps allocate scarce resources more efficiently during crises."
+          }
+        },
+        {
+          "id": "section-1-sub-5",
+          "title": "People Respond to Incentives",
+          "content": "### People Respond to Incentives\n\nHere's what actually happened with Zimbabwe's choices:\n\nThe government tried to help everyone at once. They printed money to buy food AND fuel AND medicine. This created a new problem: when people have money to buy everything they want, but stores have limited goods to sell, prices explode upward.\n\nBy 2008, a single egg cost 50 billion Zimbabwe dollars.\n\nBut here's the fascinating part: people adapted. They started using US dollars instead. They created informal markets. They found creative solutions because the incentives pushed them to.",
+          "quiz": {
+            "id": "currency-substitution-reasoning",
+            "question": "When Zimbabwe's currency became worthless, people spontaneously started using US dollars for transactions. Why didn't the government just ban this practice?",
+            "options": [
+              "They tried to ban it, but enforcement was impossible. When millions of people simultaneously decide a currency is worthless, no police force can force them to accept it. People will find ways around any ban—black markets, barter, cryptocurrencies. Government power has limits when it conflicts with economic reality.",
+              "The government actually wanted people to use US dollars because it solved their inflation problem. They just couldn't admit it publicly because it would show their economic policies had failed. Sometimes the best policy is to let people make their own choices rather than fighting market forces."
+            ],
+            "correctAnswer": 0,
+            "difficulty": "medium",
+            "xpReward": 15,
+            "xpPenalties": [
+              5,
+              8
+            ],
+            "explanation": "When market forces are strong enough, government bans become unenforceable. People will find ways around restrictions through black markets, barter, or alternative currencies. This demonstrates the limits of government power when it conflicts with economic reality and human behavior."
+          }
+        },
+        {
+          "id": "section-1-sub-6",
+          "title": "Looking Ahead: The Tools to Understand Any Market",
+          "content": "### Looking Ahead: The Tools to Understand Any Market\n\nZimbabwe's crisis illustrates the fundamental forces we'll explore throughout this course:\n\n  1. **Scarcity forces choices** (Section 2: We'll see how this creates demand curves)\n  2. **People respond to incentives** (Section 3: We'll learn how this creates supply curves)  \n  3. **Markets find balance** (Section 4: We'll discover how supply meets demand)\n  4. **Some markets respond quickly, others slowly** (Section 5: We'll master elasticity)\n  5. **Government policies have unintended consequences** (Section 6: We'll analyze policy failures and successes)",
+          "quiz": {
+            "id": "course-foundation-concept",
+            "question": "Based on Zimbabwe's experience, what do you think is the most important concept for understanding how economies work?",
+            "options": [
+              "Scarcity—everything else follows from limited resources",
+              "Incentives—people's responses drive all economic outcomes",
+              "Markets—the process of balancing supply and demand",
+              "Government policy—regulations and spending shape everything"
+            ],
+            "correctAnswer": 0,
+            "difficulty": "hard",
+            "xpReward": 25,
+            "xpPenalties": [
+              10,
+              15
+            ],
+            "explanation": "Scarcity is the foundation of all economics. Zimbabwe's crisis fundamentally stemmed from having limited resources (food, fuel, medicine) but unlimited human needs. This scarcity forced impossible choices and created the economic crisis. While other factors matter, scarcity is the root cause."
+          }
+        },
+        {
+          "id": "section-1-sub-7",
+          "title": "The Transition: From Crisis to Daily Life",
+          "content": "### The Transition: From Crisis to Daily Life\n\nZimbabwe faced extreme scarcity, but you encounter the same economic principles every day:\n\n- Why does surge pricing appear when you need an Uber most urgently?\n- Why do concert tickets sell out instantly while books can sit in stores for months?\n- Why does your favorite restaurant have a two-hour wait on Friday nights but empty tables on Tuesday afternoons?\n\n**Next:** In Section 2, we'll discover how Zimbabwe's life-or-death choices reflect the same forces that determine whether you can get a table at Devon House or why iPhone launches create massive lines. The principles that governed Dr. Gono's impossible decisions also explain your grocery store, your job market, and your rent payment."
+        }
+      ]
+    },
+    {
+      "id": "section-2",
+      "title": "From Crisis to Corner Store - Understanding Demand",
+      "subsections": [
+        {
+          "id": "section-2-sub-1",
+          "title": "The Same Forces, Different Scale",
+          "content": "# 🌍 SECTION 2: From Crisis to Corner Store - Understanding Demand\n\n### The Same Forces, Different Scale\n\nZimbabwe's crisis was extreme, but walk through any Kingston neighborhood and you'll see the same economic forces at work:\n\n**Devon House on Sunday afternoon:** Cars backed up for blocks. Two-hour wait for ice cream. Families willing to pay premium prices and sacrifice their entire afternoon for a scoop.\n\n**The same Devon House on Tuesday at 2 PM:** Empty parking lot. No wait. Staff standing idle.\n\n**iPhone 15 launch day in New Cross:** Hundreds queue overnight outside Digicel. Store sells out by noon. Some people offering $300 above retail price.\n\n**iPhone 14 six months later:** Sitting on shelves. Sales associates trying to convince customers to buy.\n\nWhat's happening? The same principle that forced Zimbabwe to choose between food and fuel: **people want things, but there's only so much available at any given time and price.**\n\n### You're A&R Director at a Major Record Label\n\nLet's make this personal. You're the A&R director at Universal Music Group's Caribbean division. You've just signed a promising young dancehall artist from Spanish Town - incredible talent, fresh sound, social media buzz building organically. \n\nYour team has two release strategies on the table:",
+          "quiz": {
+            "id": "record-label-strategy",
+            "question": "How do you launch this artist's debut album?",
+            "options": [
+              "Release 2,000 limited vinyl copies at $75 each through select record shops in Kingston, London, and New York. You're Universal - you have the luxury of patience and deep pockets. Build an exclusive cult following first, create scarcity and mystique. When you eventually go mainstream, you'll have a devoted fanbase willing to pay premium prices for everything this artist releases. Think how The Weeknd or Frank Ocean built enormous value from small, passionate beginnings.",
+              "Press 25,000 CDs at $18 each and push for immediate streaming/radio play across all platforms. You're Universal - you manage 200+ artists and have massive distribution infrastructure already built. You need to recoup recording costs fast and move to your next project. Your playlist connections and radio relationships can drive mass adoption quickly, but the attention window in today's market closes within weeks if you don't strike immediately."
+            ],
+            "correctAnswer": 0,
+            "difficulty": "medium",
+            "xpReward": 15,
+            "xpPenalties": [
+              5,
+              8
+            ],
+            "explanation": "Each strategy reflects different assumptions about how success happens in the music industry."
+          }
+        },
+        {
+          "id": "section-2-sub-2",
+          "title": "The Economics Behind Your Choice: Demand",
+          "content": "### The Economics Behind Your Choice: Demand\n\nWhat you just wrestled with is the foundation of **demand**—one of economics' most powerful concepts.\n\n**Demand** is the relationship between the price of a good and the quantity that consumers are willing and able to purchase during a specific time period, holding all other factors constant.\n\nNotice three crucial parts:\n\n1. **Willing AND able** - Wanting something isn't enough; you need purchasing power\n2. **Specific time period** - Demand changes daily, seasonally, over years  \n3. **All other factors constant** - Income, preferences, substitutes remain unchanged\n\nYour record label choice involved demand strategy: Option A targeted consumers willing to pay high prices for exclusivity. Option B targeted consumers who want immediate access at lower prices. Different points on the same demand curve.",
+          "quiz": {
+            "id": "demand-concept-recognition",
+            "question": "Which scenario represents demand rather than just desire?",
+            "options": [
+              "A student wishes textbooks were cheaper but still buys them at current prices",
+              "A homeless person wants to buy a luxury car",
+              "Everyone desires world peace",
+              "Teenagers say they want concert tickets but won't pay more than $20"
+            ],
+            "correctAnswer": 0,
+            "difficulty": "hard",
+            "xpReward": 25,
+            "xpPenalties": [
+              10,
+              15
+            ],
+            "explanation": "Demand requires both willingness and ability to pay. The student demonstrates both by actually purchasing despite wishing for lower prices."
+          }
+        },
+        {
+          "id": "section-2-sub-3",
+          "title": "The Law of Demand: Economics' Iron Rule",
+          "content": "### The Law of Demand: Economics' Iron Rule\n\nHere's the most reliable pattern in all economics: **As price increases, quantity demanded decreases** (and vice versa), assuming everything else stays the same.\n\nWhy does this always hold?\n\n**Individual Level:**\n- Higher prices reduce your purchasing power (you can buy less with same income)\n- Higher prices make substitute goods relatively more attractive\n- Higher prices create stronger incentives to do without or delay purchase\n\n**Market Level:**\n- Some customers get priced out entirely as costs rise\n- Remaining customers reduce their quantities purchased\n- Lower prices attract new customers who were previously priced out\n\n**Real Example:** When Netflix raised subscription prices from $8.99 to $15.99 between 2014-2022, they lost subscribers in multiple quarters despite offering more content. Higher price → lower quantity demanded, exactly as theory predicts.",
+          "quiz": {
+            "id": "law-of-demand-application",
+            "question": "Gas prices in Kingston rise from $150 to $220 per liter due to global supply disruptions. What does the law of demand predict?",
+            "options": [
+              "People buy the same amount since gas is essential for transportation",
+              "People reduce driving, carpool more, or switch to public transport",
+              "People buy more gas now to avoid even higher future prices",
+              "Demand increases because higher prices signal higher quality"
+            ],
+            "correctAnswer": 1,
+            "difficulty": "hard",
+            "xpReward": 25,
+            "xpPenalties": [
+              10,
+              15
+            ],
+            "explanation": "Even for necessities like gasoline, higher prices reduce quantity demanded. People find ways to economize: combine trips, work from home more, take the bus, or postpone non-essential driving."
+          }
+        },
+        {
+          "id": "section-2-sub-4",
+          "title": "Beyond Price: What Shifts Entire Demand Curves",
+          "content": "### Beyond Price: What Shifts Entire Demand Curves\n\nPrice changes move us along a demand curve. But other factors shift the entire curve—changing how much people want at every price level.\n\n**1. Consumer Income**\n- **Normal goods:** Higher income increases demand (restaurant meals, new cars, private tutoring)\n- **Inferior goods:** Higher income decreases demand (instant noodles, used cars, public transport)\n\n**2. Prices of Related Goods**\n- **Substitutes:** If Coca-Cola prices rise, Pepsi demand increases\n- **Complements:** If gasoline prices rise, SUV demand decreases\n\n**3. Consumer Preferences and Trends**\n- Celebrity endorsements can spike demand overnight\n- Health studies linking coffee to longevity boost coffee demand\n- Fashion trends shift demand between clothing styles\n\n**4. Future Price Expectations**\n- Expect smartphone prices to drop next month → current demand falls\n- Expect hurricane to disrupt food supply → current demand surges\n\n**5. Number of Consumers in Market**\n- University enrollment grows → demand for nearby housing increases\n- Tourism to Jamaica rises → demand for local crafts increases",
+          "quiz": {
+            "id": "demand-shift-analysis",
+            "question": "COVID-19 forces Jamaica to implement work-from-home policies in March 2020. What happens to demand for business attire at Kingston clothing stores?",
+            "options": [
+              "Demand increases because people want to maintain professionalism on video calls and preserve normalcy during uncertainty. Professional appearance becomes even more important as a confidence signal when everything else feels chaotic.",
+              "Demand decreases because comfort becomes the priority when working from home. Consumer preferences shift toward casual wear, and business attire becomes unnecessary for daily work life."
+            ],
+            "correctAnswer": 1,
+            "difficulty": "medium",
+            "xpReward": 15,
+            "xpPenalties": [
+              5,
+              8
+            ],
+            "explanation": "This represents a preference shift and reduced necessity. When work-from-home eliminates the need for business attire, the entire demand curve shifts leftward."
+          }
+        },
+        {
+          "id": "section-2-sub-5",
+          "title": "Demand Elasticity: How Much Do People Really Care About Price?",
+          "content": "### Demand Elasticity: How Much Do People Really Care About Price?\n\nNot all goods respond equally to price changes. This responsiveness is called **price elasticity of demand**.\n\n**Elastic Demand** (responsive to price):\n- Luxury items (jewelry, expensive restaurants)\n- Goods with many substitutes (brand-name snacks)\n- Non-necessities that can be postponed (vacation travel)\n\n**Inelastic Demand** (not very responsive to price):\n- Necessities (food, shelter, basic transportation)\n- Goods with few substitutes (prescription medicine, electricity)\n- Addictive substances (cigarettes, alcohol)",
+          "quiz": {
+            "id": "elasticity-understanding",
+            "question": "You're setting prices for a new luxury resort in Montego Bay. Your business consultant offers two strategies:",
+            "options": [
+              "Price rooms at $800/night to position as ultra-exclusive destination. You'll get fewer guests, but each pays premium rates. Wealthy travelers actually prefer higher prices as status symbols—they want to stay where others can't afford. Lower occupancy means better service ratios and word-of-mouth from satisfied high-end customers.",
+              "Price rooms at $400/night to maximize occupancy and total revenue. You'll attract more guests including upper-middle-class travelers, filling more rooms consistently. Higher volume generates more restaurant, spa, and activity revenue per guest. Steady cash flow lets you invest in improvements and marketing."
+            ],
+            "correctAnswer": 0,
+            "difficulty": "medium",
+            "xpReward": 15,
+            "xpPenalties": [
+              5,
+              8
+            ],
+            "explanation": "This choice reveals your assumptions about luxury demand elasticity and consumer psychology."
+          }
+        },
+        {
+          "id": "section-2-sub-6",
+          "title": "Market Demand: Adding Up Individual Choices",
+          "content": "### Market Demand: Adding Up Individual Choices\n\nYour personal demand for resort stays might be:\n- At $200/night: You'd book 3 nights\n- At $400/night: You'd book 1 night  \n- At $800/night: You'd book 0 nights\n\nBut **market demand** horizontally sums thousands of individual demand curves:\n- At $200/night: 5,000 room-nights demanded (from all potential guests)\n- At $400/night: 2,000 room-nights demanded\n- At $800/night: 500 room-nights demanded",
+          "quiz": {
+            "id": "market-demand-calculation",
+            "question": "Three friends plan to buy festival tickets: Alex: Buys 2 tickets if price ≤ $60, 1 ticket if $60 < price ≤ $100, 0 tickets if price > $100. Maya: Buys 1 ticket if price ≤ $80, 0 tickets if price > $80. Jordan: Buys 3 tickets if price ≤ $50, 1 ticket if $50 < price ≤ $90, 0 tickets if price > $90. What is total market demand at a price of $70?",
+            "options": [
+              "2 tickets",
+              "3 tickets",
+              "4 tickets",
+              "5 tickets"
+            ],
+            "correctAnswer": 2,
+            "difficulty": "hard",
+            "xpReward": 25,
+            "xpPenalties": [
+              10,
+              15
+            ],
+            "explanation": "At $70: Alex buys 1 ticket ($60 < $70 ≤ $100), Maya buys 1 ticket ($70 ≤ $80), Jordan buys 1 ticket ($50 < $70 ≤ $90). Total = 3 tickets."
+          }
+        },
+        {
+          "id": "section-2-sub-7",
+          "title": "Real-World Application: Concert Economics",
+          "content": "### Real-World Application: Concert Economics\n\nLet's see demand theory work in practice. Chronixx announces a concert at Emancipation Park. Capacity: 4,000 people.\n\n**At $30 tickets:** 12,000 people want to attend (massive shortage!)\n**At $60 tickets:** 6,000 people want to attend (still shortage)  \n**At $100 tickets:** 4,000 people want to attend (perfect equilibrium)\n**At $150 tickets:** 2,000 people want to attend (surplus, empty seats)\n\nThis illustrates the demand curve: as price rises, quantity demanded falls in a predictable pattern.",
+          "quiz": {
+            "id": "concert-economics-ethics",
+            "question": "Scalpers buy Chronixx tickets at $100 and resell them for $250. Angry fans demand government intervention to stop \"price gouging.\" You're advising the Minister of Entertainment. What do you recommend?",
+            "options": [
+              "Ban ticket resales above face value and arrest scalpers. Music should be accessible to real fans, not just wealthy speculators. Scalping creates no social value—it just extracts money from people who genuinely love the artist. Government should protect consumers from predatory pricing practices.",
+              "Allow free resale markets to operate. If people voluntarily pay $250, tickets were originally underpriced at $100. Scalpers help allocate tickets to those who value them most highly, and high resale prices signal artists to raise their original pricing. Market interference creates black markets and worse outcomes."
+            ],
+            "correctAnswer": 1,
+            "difficulty": "medium",
+            "xpReward": 15,
+            "xpPenalties": [
+              5,
+              8
+            ],
+            "explanation": "This touches the fundamental tension between fairness and economic efficiency."
+          }
+        },
+        {
+          "id": "section-2-sub-8",
+          "title": "Connecting Back to Zimbabwe's Crisis",
+          "content": "### Connecting Back to Zimbabwe's Crisis\n\nRemember Dr. Gono's impossible choice? Now you understand it through demand theory:\n\nZimbabwe faced **perfectly inelastic demand** for essentials:\n- **Food demand:** People need calories regardless of price (inelastic)\n- **Medicine demand:** Patients need treatment regardless of cost (inelastic)  \n- **Fuel demand:** Economic activity requires energy (relatively inelastic)\n\nBut **purchasing power** was collapsing due to hyperinflation. People desperately wanted these goods but increasingly couldn't afford them at any price.\n\nThis created the political crisis: when demand is inelastic but income is falling, you get social unrest rather than orderly market adjustment.",
+          "quiz": {
+            "id": "zimbabwe-demand-analysis",
+            "question": "Based on demand theory, why was Zimbabwe's situation so politically explosive compared to normal economic recessions?",
+            "options": [
+              "The goods people needed most (food, medicine, fuel) had inelastic demand, so people couldn't reduce consumption when prices rose",
+              "Hyperinflation destroyed people's ability to pay even as their need for essentials remained constant",
+              "No substitute goods were available for basic necessities",
+              "All of the above created a perfect storm"
+            ],
+            "correctAnswer": 3,
+            "difficulty": "hard",
+            "xpReward": 25,
+            "xpPenalties": [
+              10,
+              15
+            ],
+            "explanation": "When essential goods have inelastic demand (A), people can't afford them due to income collapse (B), and no alternatives exist (C), normal market mechanisms break down and political solutions become necessary."
+          }
+        },
+        {
+          "id": "section-2-sub-9",
+          "title": "Looking Ahead: The Other Half of Every Market",
+          "content": "### Looking Ahead: The Other Half of Every Market\n\nUnderstanding demand explains why people want different quantities at different prices. But who decides what gets produced and at what cost? Why were shelves empty in Zimbabwe but fully stocked in Jamaica during the same period?\n\n**Next:** In Section 3, we'll explore supply—how producers decide what to make, how much to produce, and what prices to charge. You'll discover why some markets have abundance while others face chronic shortages, and how supply responds to the demand patterns we just analyzed."
+        }
+      ]
+    },
+    {
+      "id": "section-3",
+      "title": "Supply - How Producers Decide",
+      "subsections": [
+        {
+          "id": "section-3-sub-1",
+          "title": "From Demand to Supply: The Other Side of Every Market",
+          "content": "# 🏭 SECTION 3: Supply - How Producers Decide\n\n### From Demand to Supply: The Other Side of Every Market\n\nYou now understand why consumers want different quantities at different prices. But who decides what actually gets produced? Why do some markets have abundance while others face chronic shortages?\n\nLook around Kingston today:\n- **Patties:** Available everywhere, multiple vendors, consistent supply\n- **Premium coffee:** Limited supply, high prices, frequent stockouts  \n- **Housing:** Chronic shortage despite obvious demand\n- **Smartphones:** Abundant supply, prices falling over time\n\nThe pattern isn't random. It reflects **supply decisions**—how producers choose what to make, how much to produce, and what prices to charge.\n\n### You Own Blue Mountain Coffee Estate\n\nLet's put you in control of production. You've inherited 500 acres of prime Blue Mountain coffee land in the John Crow Mountains. This is some of the world's most sought-after coffee terroir—perfect altitude, rainfall, and soil conditions.\n\nYour estate manager presents two production strategies:",
+          "quiz": {
+            "id": "coffee-production-strategy",
+            "question": "How do you run your Blue Mountain coffee operation?",
+            "options": [
+              "Focus on ultra-premium production: 20,000 pounds annually of meticulously hand-picked, single-origin beans sold to high-end roasters in Tokyo, New York, and London at $45/pound. You have 500 acres of the world's most prized coffee land—why dilute the brand? Japanese buyers already pay premium for authentic Blue Mountain. Limited quantity maintains mystique and maximizes profit per pound.",
+              "Scale up for volume: 100,000 pounds annually using mechanical harvesting and broader grade standards, selling to specialty coffee chains at $12/pound. You have massive fixed costs (land, equipment, labor) that need covering regardless of production level. Higher volume spreads these costs across more units and captures more of the growing specialty coffee market before competitors enter."
+            ],
+            "correctAnswer": 0,
+            "difficulty": "medium",
+            "xpReward": 15,
+            "xpPenalties": [
+              5,
+              8
+            ],
+            "explanation": "Each strategy reflects different assumptions about costs, markets, and business sustainability."
+          }
+        },
+        {
+          "id": "section-3-sub-2",
+          "title": "The Economics Behind Production: Supply",
+          "content": "### The Economics Behind Production: Supply\n\nWhat you just wrestled with is **supply**—the other half of every market equation.\n\n**Supply** is the relationship between the price of a good and the quantity that producers are willing and able to offer for sale during a specific time period, holding all other factors constant.\n\nNotice the parallel to demand, but from the producer's perspective:\n\n1. **Willing AND able** - Producers must have both incentive and capacity to produce\n2. **Specific time period** - Supply can change daily, seasonally, or over years\n3. **All other factors constant** - Input costs, technology, regulations remain unchanged\n\nYour coffee estate choice involved supply strategy: Option A focused on high-price, low-quantity supply. Option B targeted high-quantity supply at lower prices. Different points on your potential supply curve.",
+          "quiz": {
+            "id": "supply-concept-recognition",
+            "question": "Which scenario represents supply rather than just production capacity?",
+            "options": [
+              "A factory has machines capable of producing 1,000 widgets per day",
+              "A farmer grows tomatoes but only sells them if prices exceed $3/pound",
+              "A restaurant has enough ingredients to serve 200 meals",
+              "A writer has ideas for five different novels"
+            ],
+            "correctAnswer": 1,
+            "difficulty": "hard",
+            "xpReward": 25,
+            "xpPenalties": [
+              10,
+              15
+            ],
+            "explanation": "Supply requires both ability and willingness to sell at specific prices. The farmer demonstrates both—they can produce tomatoes AND will only supply them to market above their minimum acceptable price."
+          }
+        },
+        {
+          "id": "section-3-sub-3",
+          "title": "The Law of Supply: Higher Prices, More Production",
+          "content": "### The Law of Supply: Higher Prices, More Production\n\nHere's supply theory's fundamental principle: **As price increases, quantity supplied increases** (and vice versa), assuming everything else stays the same.\n\nWhy does this relationship hold?\n\n**Individual Producer Level:**\n- Higher prices increase profit margins, making production more attractive\n- Higher prices can cover previously unprofitable production costs\n- Higher prices justify investing in expanded capacity or efficiency improvements\n\n**Market Level:**\n- Higher prices attract new producers who weren't previously profitable\n- Existing producers expand output when margins improve\n- Some producers who exited during low prices return to the market\n\n**Real Example:** When oil prices spiked from $40 to $100 per barrel in 2021-2022, U.S. shale producers dramatically increased drilling activity. Higher prices made previously uneconomical wells profitable again.",
+          "quiz": {
+            "id": "supply-law-application",
+            "question": "Global aluminum prices rise from $1,800 to $2,500 per ton due to increased demand from electric vehicle manufacturers. What does the law of supply predict?",
+            "options": [
+              "Aluminum producers will reduce output to maintain higher prices",
+              "Aluminum producers will increase output to capture higher profits",
+              "Production will stay the same since capacity is fixed",
+              "New aluminum producers will exit the market"
+            ],
+            "correctAnswer": 1,
+            "difficulty": "hard",
+            "xpReward": 25,
+            "xpPenalties": [
+              10,
+              15
+            ],
+            "explanation": "Higher prices increase profit margins, incentivizing existing producers to expand output and potentially attracting new producers to enter the market."
+          }
+        },
+        {
+          "id": "section-3-sub-4",
+          "title": "What Shifts Supply? When the Whole Curve Moves",
+          "content": "### What Shifts Supply? When the Whole Curve Moves\n\nPrice changes move us along the supply curve. But other factors shift the entire curve—changing how much producers want to supply at every price level.\n\n**1. Input Costs**\n- **Rising costs:** Shift supply curve leftward (less supplied at each price)\n- **Falling costs:** Shift supply curve rightward (more supplied at each price)\n\n**2. Technology and Productivity**\n- Better technology increases efficiency, shifting supply rightward\n- Automation reduces labor costs, enabling higher supply at lower prices\n\n**3. Number of Producers**\n- More firms entering market increases total supply\n- Firms exiting market decreases total supply\n\n**4. Government Regulations**\n- Environmental restrictions can reduce supply\n- Subsidies can increase supply\n- Licensing requirements affect number of suppliers\n\n**5. Future Price Expectations**\n- Expecting higher future prices might reduce current supply (hold inventory)\n- Expecting lower future prices might increase current supply (sell now)\n\n**6. Prices of Related Goods in Production**\n- If corn prices rise, farmers might switch from soybeans to corn (corn supply increases, soybean supply decreases)",
+          "quiz": {
+            "id": "supply-shift-analysis",
+            "question": "The Jamaican government announces new environmental regulations requiring all coffee farms to implement costly water treatment systems. What happens to coffee supply in Jamaica?",
+            "options": [
+              "Supply increases because regulations improve coffee quality and reputation, allowing farmers to charge premium prices. Higher quality standards attract more investment in coffee production as Jamaica positions itself as a premium origin.",
+              "Supply decreases because compliance costs make coffee farming less profitable. Some smaller farms exit the industry entirely, while remaining farms reduce production to maintain profitability margins in the face of higher regulatory costs."
+            ],
+            "correctAnswer": 1,
+            "difficulty": "medium",
+            "xpReward": 15,
+            "xpPenalties": [
+              5,
+              8
+            ],
+            "explanation": "New regulations increase production costs (input cost increase), shifting the supply curve leftward. Some producers may exit if compliance costs exceed their profit margins."
+          }
+        },
+        {
+          "id": "section-3-sub-5",
+          "title": "Supply Elasticity: How Quickly Can Producers Respond?",
+          "content": "### Supply Elasticity: How Quickly Can Producers Respond?\n\nJust like demand, supply responds differently across markets. **Price elasticity of supply** measures how much quantity supplied changes when price changes.\n\n**Elastic Supply:** Producers can quickly increase/decrease output\n- Software development, consulting services, ride-sharing\n\n**Inelastic Supply:** Producers cannot easily change output  \n- Oil drilling, agricultural products, specialty manufacturing\n\n**Factors Affecting Supply Elasticity:**\n\n1. **Time Period**\n   - Short-run: often inelastic (fixed capacity)\n   - Long-run: more elastic (can build new facilities)\n\n2. **Storage Possibility**\n   - Storable goods → more elastic supply\n   - Perishable goods → less elastic supply\n\n3. **Availability of Inputs**\n   - Common inputs → more elastic\n   - Specialized inputs → less elastic",
+          "quiz": {
+            "id": "supply-elasticity-analysis",
+            "question": "Gold prices surge 40% due to inflation fears. Two mining companies have different responses: Company A (Small operation): Increases output 5% by adding overtime shifts. Company B (Major operation): Increases output 25% by reopening mothballed mines. What explains this difference?",
+            "options": [
+              "Company A has inelastic supply due to capacity constraints; Company B has elastic supply due to unused capacity and resources",
+              "Company A is being cautious; Company B is being reckless with rapid expansion",
+              "Gold mining supply is always inelastic regardless of company size",
+              "Company B must have lower production costs than Company A"
+            ],
+            "correctAnswer": 0,
+            "difficulty": "hard",
+            "xpReward": 25,
+            "xpPenalties": [
+              10,
+              15
+            ],
+            "explanation": "Supply elasticity varies by producer capabilities. Company A faces binding capacity constraints (inelastic), while Company B has dormant resources that can be quickly activated (elastic supply)."
+          }
+        },
+        {
+          "id": "section-3-sub-6",
+          "title": "Fixed vs. Variable Costs: The Producer's Dilemma",
+          "content": "### Fixed vs. Variable Costs: The Producer's Dilemma\n\nUnderstanding why producers make certain decisions requires grasping their cost structure.\n\n**Fixed Costs:** Expenses that don't change with production level\n- Rent, insurance, equipment purchases\n- Must be paid whether you produce 0 units or 1,000 units\n\n**Variable Costs:** Expenses that change with production level  \n- Raw materials, hourly labor, shipping\n- Increase directly with each additional unit produced\n\nThis explains many seemingly puzzling producer behaviors:\n\n**Why airlines offer last-minute discount flights:** The plane is flying anyway (fixed cost already committed). Any passenger paying more than the variable cost (meal, fuel for extra weight) contributes to covering fixed costs.\n\n**Why farmers continue producing even when prices fall:** They've already planted the crops (fixed cost). As long as harvest price exceeds variable costs (labor, fuel, storage), it makes sense to complete the harvest.",
+          "quiz": {
+            "id": "cost-structure-application",
+            "question": "Your textile factory has fixed costs of $50,000/month (rent, equipment) and variable costs of $15 per shirt (materials, labor). You can produce up to 5,000 shirts monthly. Current market price is $18/shirt. Should you operate?",
+            "options": [
+              "No - you're only making $3 profit per shirt, which isn't enough to cover fixed costs",
+              "Yes - each shirt contributes $3 toward fixed costs, reducing losses",
+              "Only if you can sell all 5,000 shirts to fully cover fixed costs",
+              "Shut down and wait for higher prices"
+            ],
+            "correctAnswer": 1,
+            "difficulty": "hard",
+            "xpReward": 25,
+            "xpPenalties": [
+              10,
+              15
+            ],
+            "explanation": "As long as price ($18) exceeds variable cost ($15), each unit sold contributes to covering fixed costs. At 5,000 shirts: Revenue = $90,000, Variable costs = $75,000, Contribution toward fixed costs = $15,000. You still lose $35,000, but that's better than losing the full $50,000 in fixed costs by shutting down."
+          }
+        },
+        {
+          "id": "section-3-sub-7",
+          "title": "Market Supply: Adding Up All Producers",
+          "content": "### Market Supply: Adding Up All Producers\n\nYour coffee estate's supply curve shows your production at different prices. But **market supply** horizontally sums all producers' supply curves:\n\n**Individual Level:**\n- At $20/pound: You supply 15,000 pounds\n- At $30/pound: You supply 25,000 pounds  \n- At $45/pound: You supply 35,000 pounds\n\n**Market Level (all Blue Mountain producers):**\n- At $20/pound: 500,000 pounds supplied (from all estates)\n- At $30/pound: 750,000 pounds supplied\n- At $45/pound: 1,000,000 pounds supplied\n\nNew producers enter at higher prices, and existing producers expand capacity.",
+          "quiz": {
+            "id": "market-supply-calculation",
+            "question": "Three food trucks operate near UWI Mona: Jerk Chicken: Supplies 100 meals if price ≥ $800, 150 meals if price ≥ $1000, 0 meals if price < $800. Curry Goat: Supplies 50 meals if price ≥ $900, 100 meals if price ≥ $1100, 0 meals if price < $900. Ackee & Saltfish: Supplies 80 meals if price ≥ $700, 120 meals if price ≥ $950, 0 meals if price < $700. What is total market supply at $950 per meal?",
+            "options": [
+              "250 meals",
+              "270 meals",
+              "300 meals",
+              "370 meals"
+            ],
+            "correctAnswer": 1,
+            "difficulty": "hard",
+            "xpReward": 25,
+            "xpPenalties": [
+              10,
+              15
+            ],
+            "explanation": "At $950: Jerk Chicken supplies 100 meals ($800 ≤ $950 < $1000), Curry Goat supplies 50 meals ($900 ≤ $950 < $1100), Ackee & Saltfish supplies 120 meals ($950 ≥ $950). Total = 100 + 50 + 120 = 270 meals."
+          }
+        },
+        {
+          "id": "section-3-sub-8",
+          "title": "Real-World Supply Shocks",
+          "content": "### Real-World Supply Shocks\n\nSupply disruptions reveal how markets actually work. Consider recent examples:\n\n**Semiconductor Shortage (2020-2022):** COVID disrupted chip factory operations while demand for electronics surged. Auto manufacturers couldn't get chips, reducing car supply dramatically. Prices rose, and some consumers waited months for vehicles.\n\n**Suez Canal Blockage (2021):** One container ship blocked global shipping for six days. Supply chains backed up worldwide, affecting everything from furniture to coffee. Shows how supply constraints in one location ripple globally.",
+          "quiz": {
+            "id": "supply-shock-policy",
+            "question": "Hurricane Ivan damages Jamaica's main port, reducing import capacity by 60% for three months. You're advising the Prime Minister on emergency policy. Two approaches are proposed:",
+            "options": [
+              "Implement price controls on essential goods to prevent \"price gouging\" during the crisis. Fix prices for rice, cooking oil, and medicine at pre-hurricane levels. This protects consumers from exploitation when they're most vulnerable and maintains social stability during recovery.",
+              "Allow prices to rise freely while streamlining emergency import procedures through other ports. Higher prices will encourage conservation, reduce hoarding, and incentivize rapid development of alternative supply chains. Price signals will guide resources to where they're needed most urgently."
+            ],
+            "correctAnswer": 1,
+            "difficulty": "medium",
+            "xpReward": 15,
+            "xpPenalties": [
+              5,
+              8
+            ],
+            "explanation": "Both approaches aim to help Jamaicans during crisis, but reflect different theories about how markets work under extreme supply constraints."
+          }
+        },
+        {
+          "id": "section-3-sub-9",
+          "title": "Connecting Back to Zimbabwe: Supply-Side Collapse",
+          "content": "### Connecting Back to Zimbabwe: Supply-Side Collapse  \n\nRemember Zimbabwe's crisis? Now you understand the supply side of their catastrophe:\n\n**Agricultural Supply Collapse:** Land redistribution disrupted commercial farming. Experienced farmers left, taking knowledge and equipment. Food supply plummeted even as demand remained constant.\n\n**Industrial Supply Breakdown:** Hyperinflation made it impossible to plan production or maintain supply chains. Factories couldn't afford imported raw materials. Manufacturing supply collapsed.\n\n**Service Supply Exit:** Doctors, teachers, and skilled workers emigrated when real wages became worthless. Human capital supply—the foundation of any economy—disappeared.\n\nDr. Gono faced **demand for everything** but **supply of nothing**. No amount of printed money could solve a supply-side collapse.",
+          "quiz": {
+            "id": "zimbabwe-supply-analysis",
+            "question": "Based on supply theory, what was the fundamental difference between Zimbabwe's crisis and a normal recession?",
+            "options": [
+              "Zimbabwe faced demand collapse while supply remained stable",
+              "Zimbabwe faced supply collapse while demand remained desperate",
+              "Both supply and demand fell proportionally, maintaining equilibrium",
+              "Government intervention prevented normal market adjustments"
+            ],
+            "correctAnswer": 1,
+            "difficulty": "hard",
+            "xpReward": 25,
+            "xpPenalties": [
+              10,
+              15
+            ],
+            "explanation": "Zimbabwe's unique tragedy: people desperately needed goods (inelastic demand persisted) but production systems had collapsed (supply curve shifted dramatically leftward). This created shortages at any price, explaining why printing money couldn't solve the crisis."
+          }
+        },
+        {
+          "id": "section-3-sub-10",
+          "title": "Looking Ahead: When Supply Meets Demand",
+          "content": "### Looking Ahead: When Supply Meets Demand\n\nYou now understand both sides of every market:\n- **Demand:** Why consumers want different quantities at different prices\n- **Supply:** Why producers offer different quantities at different prices\n\nBut where do actual market prices come from? Why do some markets clear smoothly while others have persistent surpluses or shortages?\n\n**Next:** In Section 4, we'll discover **equilibrium**—the powerful process where supply and demand interact to determine prices and quantities in real markets. You'll learn why markets tend toward balance, when this process breaks down, and how to predict the effects of changes in market conditions."
+        }
+      ]
+    },
+    {
+      "id": "section-4",
+      "title": "Market Equilibrium - Where Supply Meets Demand",
+      "subsections": [
+        {
+          "id": "section-4-sub-1",
+          "title": "The Invisible Hand at Work",
+          "content": "# ⚖️ SECTION 4: Market Equilibrium - Where Supply Meets Demand\n\n### The Invisible Hand at Work\n\nYou now understand both sides of every market: consumers demand different quantities at different prices, and producers supply different quantities at different prices. But how do actual market prices get determined? Why do some markets clear smoothly while others have persistent shortages or surpluses?\n\nWalk through any American city and you'll see equilibrium forces at work:\n\n**Apple Store iPhone launch:** Long lines, sold out by noon, scalpers selling outside for double the retail price.\n\n**Barnes & Noble clearance section:** Books sitting for months, prices dropping from $29.99 to $9.99 to $2.99.\n\n**Uber during rush hour:** Surge pricing kicks in, prices rise from $15 to $45 for the same route, wait times stay manageable.\n\n**Gas stations after hurricane warning:** Prices spike immediately, long lines form, some stations run out entirely.\n\nThe pattern reveals a powerful invisible process: markets constantly adjust toward a balance point where quantity demanded equals quantity supplied.\n\n### You're Managing Coachella Festival Tickets\n\nLet's put you in charge of price discovery. You're the head of ticketing for Coachella 2024. The festival has 125,000 daily capacity across two weekends (250,000 total tickets). \n\nYour data team provides demand research:\n- At $300/ticket: 800,000 people want tickets\n- At $450/ticket: 400,000 people want tickets  \n- At $600/ticket: 250,000 people want tickets\n- At $750/ticket: 150,000 people want tickets\n\nYour venue has fixed capacity (supply is perfectly inelastic at 250,000 tickets).",
+          "quiz": {
+            "id": "coachella-pricing-strategy",
+            "question": "What pricing strategy do you choose for Coachella tickets?",
+            "options": [
+              "Price at $450 to capture broad audience appeal. You'll sell out quickly and generate massive buzz with 400,000 people trying to buy 250,000 tickets. The lottery system creates excitement, media coverage, and social media engagement. Secondary market activity proves demand strength for future years and keeps the brand hot.",
+              "Price at $600 to match supply with demand exactly. You eliminate chaos of lottery systems and secondary markets while maximizing revenue from people who value the experience most. Clean market clearing means better customer experience - everyone who buys gets tickets, no disappointment or scalping drama."
+            ],
+            "correctAnswer": 0,
+            "difficulty": "medium",
+            "xpReward": 15,
+            "xpPenalties": [
+              5,
+              8
+            ],
+            "explanation": "Each approach reflects different philosophies about market clearing and customer experience."
+          }
+        },
+        {
+          "id": "section-4-sub-2",
+          "title": "The Magic of Market Equilibrium",
+          "content": "### The Magic of Market Equilibrium\n\nWhat you just experienced is the fundamental concept of **market equilibrium**.\n\n**Market equilibrium** occurs at the price where quantity demanded equals quantity supplied. At this point:\n- Every consumer willing to pay the market price can buy the good\n- Every producer willing to sell at the market price can sell their output\n- There's no shortage (excess demand) or surplus (excess supply)\n- The market \"clears\"\n\n**Equilibrium price** is the price at which this balance occurs.\n**Equilibrium quantity** is the amount bought and sold at equilibrium price.\n\nIn your Coachella example, equilibrium occurs at $600/ticket where 250,000 people want tickets and 250,000 tickets are available.",
+          "quiz": {
+            "id": "equilibrium-concept-recognition",
+            "question": "A local farmers market sells organic tomatoes. At $4/pound, farmers want to sell 500 pounds but consumers only want to buy 200 pounds. What will happen to the price?",
+            "options": [
+              "Price will rise because there's excess demand",
+              "Price will fall because there's excess supply",
+              "Price will stay at $4 because that's what farmers want",
+              "The market cannot reach equilibrium"
+            ],
+            "correctAnswer": 1,
+            "difficulty": "hard",
+            "xpReward": 25,
+            "xpPenalties": [
+              10,
+              15
+            ],
+            "explanation": "When quantity supplied (500) exceeds quantity demanded (200), there's excess supply. Farmers will compete by lowering prices to attract more buyers and sell their inventory."
+          }
+        },
+        {
+          "id": "section-4-sub-3",
+          "title": "Why Markets Move Toward Equilibrium",
+          "content": "### Why Markets Move Toward Equilibrium\n\nMarkets have a natural tendency to self-correct toward equilibrium through price adjustments:\n\n**When Price is Above Equilibrium (Surplus):**\n- Quantity supplied > Quantity demanded\n- Sellers compete by lowering prices to move inventory\n- Lower prices increase quantity demanded and decrease quantity supplied\n- Process continues until equilibrium is reached\n\n**When Price is Below Equilibrium (Shortage):**\n- Quantity demanded > Quantity supplied  \n- Buyers compete by offering higher prices to secure goods\n- Higher prices decrease quantity demanded and increase quantity supplied\n- Process continues until equilibrium is reached\n\n**Real Example:** During COVID-19, hand sanitizer prices spiked from $3 to $20+ per bottle. High prices encouraged more production and discouraged hoarding. By late 2020, increased supply and normalized demand brought prices back to $3-4.",
+          "quiz": {
+            "id": "equilibrium-adjustment-application",
+            "question": "Tesla announces they're discontinuing Model S production next year. Current price is $95,000 and the market is in equilibrium. What happens immediately?",
+            "options": [
+              "Nothing changes because production hasn't actually stopped yet",
+              "Demand increases, creating shortage and upward pressure on prices",
+              "Supply increases as Tesla tries to clear inventory",
+              "Both demand and supply shift, keeping equilibrium unchanged"
+            ],
+            "correctAnswer": 1,
+            "difficulty": "hard",
+            "xpReward": 25,
+            "xpPenalties": [
+              10,
+              15
+            ],
+            "explanation": "Future expectations affect current demand. Anticipating reduced future supply increases current demand (people buy now before it's too late), creating temporary shortage and higher prices."
+          }
+        },
+        {
+          "id": "section-4-sub-4",
+          "title": "Market Efficiency: Why Equilibrium Matters",
+          "content": "### Market Efficiency: Why Equilibrium Matters\n\nEquilibrium isn't just about balancing numbers—it represents **allocative efficiency**. At equilibrium:\n\n**Consumer Surplus:** The difference between what consumers are willing to pay and what they actually pay. Some buyers would have paid $800 for Coachella tickets but only paid $600—they gained $200 in value.\n\n**Producer Surplus:** The difference between what producers are willing to accept and what they actually receive. Some venues would have hosted Coachella for $400 per ticket but received $600—they gained $200 in profit.\n\n**Total Economic Welfare:** Consumer surplus + Producer surplus. Equilibrium maximizes this total value creation.",
+          "quiz": {
+            "id": "market-efficiency-analysis",
+            "question": "New York City implements rent control, setting maximum rents at $2,000/month when market equilibrium would be $3,500/month. Analyze the likely outcomes:",
+            "options": [
+              "Rent control successfully makes housing affordable for working families while maintaining adequate housing supply. Landlords accept lower profits but continue operating because $2,000 still covers their costs. The policy achieves its goal of preventing gentrification and displacement.",
+              "Rent control creates housing shortage as quantity demanded exceeds quantity supplied at $2,000. Some landlords exit the market, convert to condos, or reduce maintenance. Long wait lists develop, and housing quality deteriorates over time as investment incentives disappear."
+            ],
+            "correctAnswer": 1,
+            "difficulty": "medium",
+            "xpReward": 15,
+            "xpPenalties": [
+              5,
+              8
+            ],
+            "explanation": "This tests understanding of price controls and their effects on market equilibrium."
+          }
+        },
+        {
+          "id": "section-4-sub-5",
+          "title": "When Equilibrium Shifts: Comparative Statics",
+          "content": "### When Equilibrium Shifts: Comparative Statics\n\nMarkets constantly adjust to changing conditions. When supply or demand curves shift, equilibrium price and quantity change predictably.\n\n**Demand Increases (rightward shift):**\n- Higher equilibrium price\n- Higher equilibrium quantity\n- Example: Taylor Swift concert announcement increases demand for Nashville hotels\n\n**Supply Increases (rightward shift):**\n- Lower equilibrium price  \n- Higher equilibrium quantity\n- Example: New streaming services increase entertainment supply\n\n**Supply Decreases (leftward shift):**\n- Higher equilibrium price\n- Lower equilibrium quantity  \n- Example: Hurricane damages oil refineries, reducing gas supply",
+          "quiz": {
+            "id": "equilibrium-shift-analysis",
+            "question": "The market for electric vehicles in California is in equilibrium at $45,000 per car with 200,000 cars sold annually. Simultaneously, two changes occur: (1) New tax credits reduce EV prices by $7,500, and (2) Three new Tesla factories open in the state. What happens to the new equilibrium?",
+            "options": [
+              "Price falls, quantity effect is ambiguous",
+              "Quantity rises, price effect is ambiguous",
+              "Both price and quantity definitely increase",
+              "Both price and quantity definitely decrease"
+            ],
+            "correctAnswer": 1,
+            "difficulty": "hard",
+            "xpReward": 25,
+            "xpPenalties": [
+              10,
+              15
+            ],
+            "explanation": "Tax credits increase demand (rightward shift), new factories increase supply (rightward shift). When both curves shift right, quantity definitely increases. Price effect depends on the relative magnitude of shifts—if supply shifts more, price falls; if demand shifts more, price rises."
+          }
+        },
+        {
+          "id": "section-4-sub-6",
+          "title": "Real-World Market Clearing: Concert Economics Revisited",
+          "content": "### Real-World Market Clearing: Concert Economics Revisited\n\nLet's see equilibrium theory work in practice. Bad Bunny announces a surprise concert at Madison Square Garden. Capacity: 20,000 people.\n\n**Initial Official Price: $150**\n- Quantity demanded: 80,000 people\n- Quantity supplied: 20,000 tickets  \n- Result: Massive shortage, website crashes, lottery system\n\n**Secondary Market Response:**\n- StubHub prices immediately jump to $400-800\n- Scalpers line up outside venue\n- Social media explodes with complaints about \"unfair\" pricing\n\n**Economic Reality:**\n- True equilibrium price is around $500-600\n- Official price was set below equilibrium (shortage guaranteed)\n- Secondary market reveals actual market-clearing price",
+          "quiz": {
+            "id": "concert-equilibrium-ethics",
+            "question": "Many states are considering laws to ban ticket resales above face value to stop \"scalping.\" You're testifying before the California legislature. What economic argument do you present?",
+            "options": [
+              "Support the ban because scalping creates artificial scarcity and exploits genuine fans. Tickets should go to people who love the artist most, not who has the most money. Market-clearing prices exclude working families from cultural experiences and create unfair two-tiered access systems.",
+              "Oppose the ban because secondary markets reveal true demand and help allocate tickets efficiently. If official prices are below equilibrium, shortages are inevitable. Banning resales just pushes the market underground and prevents price discovery that could inform future official pricing decisions."
+            ],
+            "correctAnswer": 1,
+            "difficulty": "medium",
+            "xpReward": 15,
+            "xpPenalties": [
+              5,
+              8
+            ],
+            "explanation": "This explores the tension between equity (fair access) and efficiency (market allocation)."
+          }
+        },
+        {
+          "id": "section-4-sub-7",
+          "title": "Multiple Market Equilibrium: Spillover Effects",
+          "content": "### Multiple Market Equilibrium: Spillover Effects\n\nReal markets don't exist in isolation. Changes in one market create equilibrium adjustments in related markets.\n\n**Example: Gas Price Spike**\n\n**Direct Effect - Gasoline Market:**\n- Supply shock (refinery closure) shifts supply left\n- Higher gas prices, lower quantity sold\n\n**Spillover Effects:**\n- **SUV Market:** Demand decreases (complementary good)\n- **Hybrid Car Market:** Demand increases (substitute good)\n- **Public Transportation:** Demand increases (substitute service)\n- **Ride-sharing:** Prices increase due to higher driver costs",
+          "quiz": {
+            "id": "spillover-effects-analysis",
+            "question": "Netflix raises subscription prices from $12.99 to $17.99 monthly. Using equilibrium analysis, predict the effects across related markets: Primary Market (Netflix): Movement along demand curve: higher price, lower quantity demanded. Which secondary market effects are most likely?",
+            "options": [
+              "Disney+ and Hulu see increased demand; movie theater attendance rises",
+              "Disney+ and Hulu see increased demand; movie theater attendance falls",
+              "All streaming services raise prices; entertainment demand shifts to free content",
+              "No significant effects because Netflix has no close substitutes"
+            ],
+            "correctAnswer": 0,
+            "difficulty": "hard",
+            "xpReward": 25,
+            "xpPenalties": [
+              10,
+              15
+            ],
+            "explanation": "Netflix price increase shifts demand toward substitute streaming services (Disney+, Hulu). It may also shift some demand toward complementary goods like movie theater experiences, as people reduce home streaming and increase out-of-home entertainment."
+          }
+        },
+        {
+          "id": "section-4-sub-8",
+          "title": "Equilibrium Speed: Why Some Markets Clear Faster",
+          "content": "### Equilibrium Speed: Why Some Markets Clear Faster\n\nNot all markets reach equilibrium at the same speed:\n\n**Fast-Adjusting Markets:**\n- Financial markets (stocks, bonds) - prices adjust in seconds\n- Digital goods (apps, software) - instant price changes possible\n- Ride-sharing - algorithm-driven surge pricing\n\n**Slow-Adjusting Markets:**\n- Housing - buyers and sellers need time to search and negotiate\n- Labor markets - wages and employment adjust gradually  \n- Agricultural products - production cycles limit supply response\n\n**Sticky Markets:**\n- Wages - employers reluctant to cut pay frequently\n- Restaurant menus - reprinting costs discourage constant price changes\n- Long-term contracts - prices fixed for duration of agreement",
+          "quiz": {
+            "id": "equilibrium-speed-analysis",
+            "question": "You're consulting for a ride-sharing company designing their pricing algorithm. Two approaches are proposed:",
+            "options": [
+              "Implement instant surge pricing that adjusts every 30 seconds based on real-time supply and demand. Prices rise immediately when demand spikes, attracting more drivers and clearing the market efficiently. Customers get rides quickly but pay variable prices.",
+              "Use slower price adjustments (every 15 minutes) with smaller increments to avoid shocking customers with sudden price spikes. Accept longer wait times during high demand periods in exchange for more predictable pricing and better customer experience."
+            ],
+            "correctAnswer": 0,
+            "difficulty": "medium",
+            "xpReward": 15,
+            "xpPenalties": [
+              5,
+              8
+            ],
+            "explanation": "This tests understanding of equilibrium speed vs. customer satisfaction trade-offs."
+          }
+        },
+        {
+          "id": "section-4-sub-9",
+          "title": "Connecting Back to Zimbabwe: When Equilibrium Breaks Down",
+          "content": "### Connecting Back to Zimbabwe: When Equilibrium Breaks Down\n\nRemember Zimbabwe's crisis? Now you can analyze it through equilibrium theory:\n\n**Normal Market Equilibrium:**\n- Supply and demand curves intersect at sustainable price/quantity\n- Producers cover costs, consumers get goods, market clears\n\n**Zimbabwe's Breakdown:**\n- **Supply collapse:** Agricultural disruption, industrial shutdown, brain drain\n- **Demand persistence:** People still needed food, medicine, fuel desperately  \n- **Price explosion:** Intersection occurred at impossibly high prices\n- **Market failure:** Even at high prices, adequate supply couldn't be restored quickly\n\n**The Real Problem:** Not just high prices, but supply curves that had shifted so far left that no practical equilibrium price could clear the market sustainably.",
+          "quiz": {
+            "id": "zimbabwe-equilibrium-analysis",
+            "question": "Based on equilibrium analysis, what fundamental lesson does Zimbabwe teach about economic policy?",
+            "options": [
+              "Price controls are necessary during crises to prevent market exploitation",
+              "Printing money can solve supply shortages by increasing purchasing power",
+              "Market equilibrium requires both functioning supply AND demand sides",
+              "Government intervention always makes market failures worse"
+            ],
+            "correctAnswer": 2,
+            "difficulty": "hard",
+            "xpReward": 25,
+            "xpPenalties": [
+              10,
+              15
+            ],
+            "explanation": "Zimbabwe's tragedy illustrates that equilibrium requires both sides of the market to function. You can't solve supply-side collapse with demand-side policies (printing money). Market clearing requires willing sellers AND willing buyers at sustainable prices."
+          }
+        },
+        {
+          "id": "section-4-sub-10",
+          "title": "Looking Ahead: When Markets Don't Clear Perfectly",
+          "content": "### Looking Ahead: When Markets Don't Clear Perfectly\n\nYou now understand how supply and demand interact to determine prices and quantities in ideal markets. But real markets often deviate from perfect equilibrium due to various factors that affect how sensitive buyers and sellers are to price changes.\n\n**Next:** In Section 5, we'll explore **elasticity**—why some markets respond dramatically to small price changes while others barely react to large price swings. You'll discover why governments can successfully tax cigarettes but fail when taxing luxury goods, and how businesses use elasticity to maximize revenue through pricing strategies."
+        }
+      ]
+    },
+    {
+      "id": "section-5",
+      "title": "Elasticity - Why Markets React Differently",
+      "subsections": [
+        {
+          "id": "section-5-sub-1",
+          "title": "The Great Price Sensitivity Mystery",
+          "content": "# 🎯 SECTION 5: Elasticity - Why Markets React Differently\n\n### The Great Price Sensitivity Mystery\n\nYou now understand how supply and demand create market equilibrium. But why do some markets explode when prices change slightly, while others barely budge even with massive price swings?\n\nConsider these puzzling real-world patterns:\n\n**Starbucks raises coffee prices 10%:** Customers grumble but keep buying. Revenue increases.\n\n**Netflix raises subscription prices 25%:** Loses 200,000 subscribers in one quarter. Stock price tumbles.\n\n**Government doubles cigarette taxes:** Smoking rates decline only moderally. Tax revenue soars.\n\n**Luxury yacht tax increases 20%:** Yacht sales collapse 70%. Industry devastated, workers laid off.\n\nThe difference? **Price elasticity**—how responsive quantity demanded or supplied is to price changes. Understanding elasticity explains these patterns and predicts market outcomes.\n\n### You're Pricing Director at Apple\n\nLet's put you in control of elasticity strategy. You're the pricing director for Apple's iPhone division in 2024. The iPhone 16 launched at $999, and you're considering pricing strategy for the iPhone 17.\n\nYour market research team presents two scenarios:\n\n**Market Research Data:**\n- Current iPhone 16 sales: 200 million units at $999\n- Consumer survey: 60% say they'd buy iPhone regardless of price up to $1,400\n- Competitive analysis: Samsung Galaxy S25 launching at $899\n- Economic forecast: Mild recession expected next year",
+          "quiz": {
+            "id": "iphone-pricing-strategy",
+            "question": "How do you price the iPhone 17 launch?",
+            "options": [
+              "Price at $1,199 to maximize revenue per unit. iPhone users are incredibly loyal with few viable substitutes—they'll pay premium prices for the Apple ecosystem. Economic uncertainty makes it crucial to maximize profit margins while you can. The 60% who'll pay up to $1,400 proves demand is price-insensitive.",
+              "Price at $899 to match Samsung and defend market share. A recession makes consumers more price-sensitive, and losing customers to Android might be permanent. Better to sacrifice margins temporarily and maintain the installed base, then raise prices when economic conditions improve and switching costs are higher."
+            ],
+            "correctAnswer": 0,
+            "difficulty": "medium",
+            "xpReward": 15,
+            "xpPenalties": [
+              5,
+              8
+            ],
+            "explanation": "Each strategy reflects different assumptions about how sensitive iPhone demand is to price changes."
+          }
+        },
+        {
+          "id": "section-5-sub-2",
+          "title": "Understanding Price Elasticity of Demand",
+          "content": "### Understanding Price Elasticity of Demand\n\nWhat you just decided depends on **price elasticity of demand**—the measure of how much quantity demanded responds to price changes.\n\n**Price Elasticity of Demand** = % Change in Quantity Demanded / % Change in Price\n\n**Elastic Demand (|elasticity| > 1):**\n- Large quantity response to small price changes\n- Revenue decreases when prices increase\n- Many substitutes available\n- Examples: Restaurant meals, luxury items, entertainment\n\n**Inelastic Demand (|elasticity| < 1):**\n- Small quantity response to large price changes  \n- Revenue increases when prices increase\n- Few substitutes, necessities\n- Examples: Gasoline, prescription medicine, basic food",
+          "quiz": {
+            "id": "elasticity-concept-recognition",
+            "question": "A coffee shop raises prices from $4.50 to $5.50 per latte (22% increase). Daily sales drop from 200 to 180 lattes (10% decrease). What type of demand is this?",
+            "options": [
+              "Perfectly elastic",
+              "Elastic (|elasticity| > 1)",
+              "Inelastic (|elasticity| < 1)",
+              "Perfectly inelastic"
+            ],
+            "correctAnswer": 2,
+            "difficulty": "hard",
+            "xpReward": 25,
+            "xpPenalties": [
+              10,
+              15
+            ],
+            "explanation": "Elasticity = 10% / 22% = 0.45, which is less than 1, indicating inelastic demand. Customers are relatively insensitive to the price increase."
+          }
+        },
+        {
+          "id": "section-5-sub-3",
+          "title": "What Makes Demand Elastic or Inelastic?",
+          "content": "### What Makes Demand Elastic or Inelastic?\n\n**Factors That Increase Elasticity (More Responsive):**\n\n1. **Availability of Substitutes**\n   - Many alternatives → elastic demand\n   - Pepsi vs Coke, streaming services, fast food chains\n\n2. **Luxury vs Necessity**\n   - Luxuries → elastic demand  \n   - Necessities → inelastic demand\n\n3. **Time Period**\n   - Long-term → more elastic (time to find alternatives)\n   - Short-term → more inelastic (stuck with current choices)\n\n4. **Proportion of Income**\n   - Large budget share → more elastic\n   - Small budget share → less elastic",
+          "quiz": {
+            "id": "elasticity-factors-application",
+            "question": "Gasoline prices spike 50% due to supply disruptions. Predict the demand response in different time periods:",
+            "options": [
+              "Short-term: highly elastic response as people immediately drive less",
+              "Long-term: inelastic response as people must commute to work",
+              "Short-term: inelastic response; Long-term: more elastic as people adjust",
+              "Both periods show identical elasticity"
+            ],
+            "correctAnswer": 2,
+            "difficulty": "hard",
+            "xpReward": 25,
+            "xpPenalties": [
+              10,
+              15
+            ],
+            "explanation": "Short-term gas demand is inelastic—people can't immediately change commutes, buy new cars, or move closer to work. Long-term demand is more elastic as people buy efficient cars, move, find alternative transportation, or change jobs."
+          }
+        },
+        {
+          "id": "section-5-sub-4",
+          "title": "Elasticity and Total Revenue: The Business Critical Connection",
+          "content": "### Elasticity and Total Revenue: The Business Critical Connection\n\nUnderstanding elasticity is crucial for revenue optimization:\n\n**For Elastic Demand:**\n- Price increase → Revenue decrease\n- Price decrease → Revenue increase\n- Lower prices increase sales more than proportionally\n\n**For Inelastic Demand:**  \n- Price increase → Revenue increase\n- Price decrease → Revenue decrease\n- Higher prices reduce sales less than proportionally",
+          "quiz": {
+            "id": "revenue-elasticity-analysis",
+            "question": "You're consulting for AMC Theaters during the streaming wars. Movie ticket sales are declining as Netflix, Disney+, and other services gain popularity. Two pricing strategies are proposed:",
+            "options": [
+              "Reduce ticket prices from $15 to $10 to compete with streaming subscriptions. Lower prices will draw customers back to theaters by making movies more affordable than multiple streaming subscriptions. The big-screen experience differentiation will work better at accessible price points.",
+              "Increase ticket prices to $20 and focus on premium experiences (IMAX, reclining seats, premium food). If demand is falling anyway, maximize revenue from remaining loyal customers who value the theatrical experience. Let price-sensitive customers go to streaming."
+            ],
+            "correctAnswer": 0,
+            "difficulty": "medium",
+            "xpReward": 15,
+            "xpPenalties": [
+              5,
+              8
+            ],
+            "explanation": "This tests your understanding of elasticity in a declining market with substitute products."
+          }
+        },
+        {
+          "id": "section-5-sub-5",
+          "title": "Cross-Price Elasticity: How Related Goods Interact",
+          "content": "### Cross-Price Elasticity: How Related Goods Interact\n\n**Cross-Price Elasticity** measures how quantity demanded of one good responds to price changes in another good.\n\n**Cross-Price Elasticity** = % Change in Quantity Demanded (Good A) / % Change in Price (Good B)\n\n**Substitute Goods (Positive Cross-Elasticity):**\n- Pepsi price rises → Coke demand increases\n- Gas prices rise → hybrid car demand increases\n\n**Complementary Goods (Negative Cross-Elasticity):**\n- Gas prices rise → SUV demand decreases  \n- iPhone prices rise → iPhone case demand decreases",
+          "quiz": {
+            "id": "cross-price-elasticity-calculation",
+            "question": "PlayStation 5 prices drop 20%, and Xbox Series X sales fall 15%. What's the cross-price elasticity between these consoles?",
+            "options": [
+              "+0.75 (substitutes)",
+              "-0.75 (complements)",
+              "+1.33 (substitutes)",
+              "-1.33 (complements)"
+            ],
+            "correctAnswer": 0,
+            "difficulty": "hard",
+            "xpReward": 25,
+            "xpPenalties": [
+              10,
+              15
+            ],
+            "explanation": "Cross-price elasticity = 15% / 20% = 0.75. Positive sign indicates substitutes—when PlayStation becomes cheaper, Xbox demand falls as consumers switch."
+          }
+        },
+        {
+          "id": "section-5-sub-6",
+          "title": "Income Elasticity: How Wealth Changes Consumption",
+          "content": "### Income Elasticity: How Wealth Changes Consumption\n\n**Income Elasticity of Demand** measures how quantity demanded responds to income changes.\n\n**Income Elasticity** = % Change in Quantity Demanded / % Change in Income\n\n**Normal Goods (Positive Income Elasticity):**\n- Income rises → demand increases\n- Most goods and services\n\n**Inferior Goods (Negative Income Elasticity):**\n- Income rises → demand decreases  \n- Ramen noodles, used cars, public transportation\n\n**Luxury Goods (Income Elasticity > 1):**\n- Income rises → demand increases more than proportionally\n- Fine dining, jewelry, exotic travel",
+          "quiz": {
+            "id": "income-elasticity-analysis",
+            "question": "During economic recovery, average household income rises 8%. You're planning inventory for a retail chain with diverse product categories. Predict demand changes:",
+            "options": [
+              "Organic groceries (+12%), Used cars (-5%), Luxury watches (+20%), Public transit (-10%)",
+              "Organic groceries (+5%), Used cars (+8%), Luxury watches (+8%), Public transit (+3%)",
+              "All categories increase proportionally by 8% since income rises 8%",
+              "Only necessities increase; luxuries remain unchanged during uncertainty"
+            ],
+            "correctAnswer": 0,
+            "difficulty": "hard",
+            "xpReward": 25,
+            "xpPenalties": [
+              10,
+              15
+            ],
+            "explanation": "This reflects realistic income elasticities: luxury goods (watches) respond more than proportionally, normal goods (organic food) respond positively but less than proportionally, and inferior goods (used cars, public transit) see decreased demand as people upgrade."
+          }
+        },
+        {
+          "id": "section-5-sub-7",
+          "title": "Price Elasticity of Supply: Producer Responsiveness",
+          "content": "### Price Elasticity of Supply: Producer Responsiveness\n\n**Price Elasticity of Supply** measures how quantity supplied responds to price changes.\n\n**Elastic Supply:** Producers can quickly increase/decrease output\n- Software development, consulting services, ride-sharing\n\n**Inelastic Supply:** Producers cannot easily change output  \n- Oil drilling, agricultural products, specialty manufacturing\n\n**Factors Affecting Supply Elasticity:**\n\n1. **Time Period**\n   - Short-run: often inelastic (fixed capacity)\n   - Long-run: more elastic (can build new facilities)\n\n2. **Storage Possibility**\n   - Storable goods → more elastic supply\n   - Perishable goods → less elastic supply\n\n3. **Availability of Inputs**\n   - Common inputs → more elastic\n   - Specialized inputs → less elastic",
+          "quiz": {
+            "id": "supply-elasticity-analysis",
+            "question": "Gold prices surge 40% due to inflation fears. Two mining companies have different responses: Company A (Small operation): Increases output 5% by adding overtime shifts. Company B (Major operation): Increases output 25% by reopening mothballed mines. What explains this difference?",
+            "options": [
+              "Company A has inelastic supply due to capacity constraints; Company B has elastic supply due to unused capacity and resources",
+              "Company A is being cautious; Company B is being reckless with rapid expansion",
+              "Gold mining supply is always inelastic regardless of company size",
+              "Company B must have lower production costs than Company A"
+            ],
+            "correctAnswer": 0,
+            "difficulty": "hard",
+            "xpReward": 25,
+            "xpPenalties": [
+              10,
+              15
+            ],
+            "explanation": "Supply elasticity varies by producer capabilities. Company A faces binding capacity constraints (inelastic), while Company B has dormant resources that can be quickly activated (elastic supply)."
+          }
+        },
+        {
+          "id": "section-5-sub-8",
+          "title": "Tax Incidence: Who Really Pays?",
+          "content": "### Tax Incidence: Who Really Pays?\n\nElasticity determines who bears the burden of taxes—a crucial policy insight.\n\n**Tax Burden Rule:**\n- More inelastic side bears more tax burden\n- More elastic side can \"escape\" by reducing quantity\n\n**Example: Cigarette Tax**\n- Demand: highly inelastic (addiction, few substitutes)\n- Supply: relatively elastic (can shift production)  \n- Result: Consumers pay most of the tax\n\n**Example: Luxury Yacht Tax (1991)**\n- Demand: highly elastic (many substitutes, luxury item)\n- Supply: relatively inelastic (specialized production)\n- Result: Producers bore most burden through lost sales",
+          "quiz": {
+            "id": "tax-incidence-analysis",
+            "question": "Congress is considering two new taxes to fund infrastructure: (A) $2/pack tax on cigarettes, or (B) 15% tax on luxury cars over $100,000. You're advising on revenue potential and economic impact:",
+            "options": [
+              "Choose cigarette tax because demand is inelastic—people will keep smoking and pay the tax, generating stable revenue with minimal market disruption. Luxury car tax will cause wealthy buyers to delay purchases or buy slightly cheaper cars.",
+              "Choose luxury car tax because it targets people with ability to pay without affecting essential goods. Cigarette tax is regressive, hitting low-income smokers hardest, while luxury tax affects discretionary spending by wealthy consumers who won't change behavior significantly."
+            ],
+            "correctAnswer": 0,
+            "difficulty": "medium",
+            "xpReward": 15,
+            "xpPenalties": [
+              5,
+              8
+            ],
+            "explanation": "This tests understanding of elasticity in tax policy design."
+          }
+        },
+        {
+          "id": "section-5-sub-9",
+          "title": "Elasticity in Real-World Pricing Strategies",
+          "content": "### Elasticity in Real-World Pricing Strategies\n\n**Perfect Price Discrimination (Variable Pricing):**\n- Airlines: charge based on elasticity of different passenger types\n- Business travelers (inelastic) → high prices\n- Leisure travelers (elastic) → low prices, advance purchase required\n\n**Bundle Pricing:**\n- Microsoft Office: selling Excel alone faces elastic demand from competitors\n- Bundled with Word/PowerPoint → more inelastic demand\n\n**Subscription Models:**  \n- Netflix: monthly fees create switching costs, reducing elasticity\n- Gym memberships: annual contracts lock in inelastic demand",
+          "quiz": {
+            "id": "pricing-strategy-analysis",
+            "question": "You're launching a new streaming service competing with Netflix, Disney+, and Amazon Prime. Your content is strong but you're unknown. Two pricing models are proposed:",
+            "options": [
+              "Premium pricing at $18/month with exclusive high-budget shows, targeting viewers who value quality over cost. Position as the \"HBO of streaming\" for customers with inelastic demand for premium content.",
+              "Penetration pricing at $6/month to rapidly build subscriber base, then gradually raise prices once switching costs develop. Accept initial losses to establish market position against entrenched competitors."
+            ],
+            "correctAnswer": 0,
+            "difficulty": "medium",
+            "xpReward": 15,
+            "xpPenalties": [
+              5,
+              8
+            ],
+            "explanation": "This integrates elasticity concepts with competitive strategy and market entry decisions."
+          }
+        },
+        {
+          "id": "section-5-sub-10",
+          "title": "Connecting Back to Zimbabwe: Elasticity and Economic Collapse",
+          "content": "### Connecting Back to Zimbabwe: Elasticity and Economic Collapse\n\nZimbabwe's crisis illustrates elasticity in extreme conditions:\n\n**Food Demand:** Perfectly inelastic—people needed calories regardless of price, leading to social unrest when supply failed\n\n**Currency Demand:** Became perfectly elastic—as inflation accelerated, people instantly switched to US dollars, demonstrating how quickly demand can shift when substitutes exist\n\n**Labor Supply:** Highly elastic—skilled workers emigrated when real wages collapsed, creating brain drain\n\n**Economic Lesson:** In crisis conditions, elasticity patterns can shift rapidly. Goods that seem to have inelastic demand (national currency) can become perfectly elastic when viable substitutes emerge.",
+          "quiz": {
+            "id": "zimbabwe-elasticity-analysis",
+            "question": "Based on elasticity analysis, what was the most damaging aspect of Zimbabwe's hyperinflation?",
+            "options": [
+              "People couldn't afford food due to high prices (price elasticity problem)",
+              "The currency became perfectly elastic as people switched to alternatives",
+              "Supply became perfectly inelastic due to production disruptions",
+              "Cross-price elasticity between goods broke down entirely"
+            ],
+            "correctAnswer": 1,
+            "difficulty": "hard",
+            "xpReward": 25,
+            "xpPenalties": [
+              10,
+              15
+            ],
+            "explanation": "The most devastating aspect was currency demand becoming perfectly elastic. When people lost confidence, they instantly abandoned Zimbabwe dollars for foreign currency, making monetary policy powerless and accelerating economic collapse."
+          }
+        },
+        {
+          "id": "section-5-sub-11",
+          "title": "Looking Ahead: Government Intervention and Market Outcomes",
+          "content": "### Looking Ahead: Government Intervention and Market Outcomes\n\nYou now understand the fundamental forces that drive market behavior: supply, demand, equilibrium, and elasticity. But real markets don't operate in isolation from government policy. Price controls, taxes, subsidies, and regulations constantly alter market outcomes.\n\n**Next:** In Section 6, we'll explore **policy applications**—how governments use economic tools to achieve social goals and why these interventions often produce unexpected results. You'll analyze rent control, minimum wage laws, agricultural subsidies, and other policies through the lens of supply, demand, and elasticity."
+        }
+      ]
+    },
+    {
+      "id": "section-6",
+      "title": "Policy Applications - When Government Meets Markets",
+      "subsections": [
+        {
+          "id": "section-6-sub-1",
+          "title": "When Good Intentions Meet Economic Reality",
+          "content": "# 🏛️ SECTION 6: Policy Applications - When Government Meets Markets\n\n### When Good Intentions Meet Economic Reality\n\nYou now understand how markets naturally find equilibrium through supply, demand, and price adjustments. But governments constantly intervene in markets—setting price controls, imposing taxes, providing subsidies, and regulating industries. These policies often produce surprising outcomes that contradict their intended goals.\n\nConsider these policy puzzles from around the world:\n\n**San Francisco rent control:** Designed to keep housing affordable, but the city now has some of America's highest rents and worst housing shortages.\n\n**1990s luxury tax on yachts:** Intended to make wealthy people pay more taxes, but destroyed the yacht industry and eliminated thousands of working-class jobs.\n\n**Venezuela price controls on basic goods:** Meant to help poor families afford food, but created massive shortages and black markets.\n\n**Denmark's fat tax on unhealthy foods:** Aimed at improving public health, but was repealed after one year due to unintended consequences.\n\nThe pattern reveals a crucial insight: **policy outcomes depend on how markets respond to government intervention, not just on policy intentions.**\n\n### You're Economic Advisor to the Mayor of Austin\n\nLet's put you in charge of policy design. You're the chief economic advisor to Austin's mayor in 2024. The city faces a severe housing crisis: median rent has risen 40% in three years, service workers can't afford to live near their jobs, and homelessness is increasing.\n\nThe city council presents two policy proposals:",
+          "quiz": {
+            "id": "austin-housing-policy",
+            "question": "Which housing policy do you recommend to the mayor?",
+            "options": [
+              "Implement rent control capping annual rent increases at 3% for existing tenants. This directly addresses affordability by preventing landlord exploitation during housing shortages. Current residents can stay in their neighborhoods, maintaining community stability. Gradual increases still allow landlords to cover rising costs while protecting tenants from market volatility.",
+              "Eliminate zoning restrictions and expedite permitting for new housing construction. Rent control treats symptoms, not causes—the real problem is insufficient housing supply. Removing regulatory barriers will unleash private construction, increasing housing stock and naturally lowering rents through market competition. Short-term construction disruption creates long-term affordability."
+            ],
+            "correctAnswer": 0,
+            "difficulty": "medium",
+            "xpReward": 15,
+            "xpPenalties": [
+              5,
+              8
+            ],
+            "explanation": "Each approach reflects different theories about how housing markets work and what role government should play."
+          }
+        },
+        {
+          "id": "section-6-sub-2",
+          "title": "Price Controls: Ceilings and Floors",
+          "content": "### Price Controls: Ceilings and Floors\n\n**Price controls** are government-mandated maximum or minimum prices that override market equilibrium.\n\n**Price Ceiling (Maximum Price):**\n- Set below equilibrium price\n- Creates shortage (quantity demanded > quantity supplied)\n- Examples: rent control, gas price limits during crises\n\n**Price Floor (Minimum Price):**\n- Set above equilibrium price  \n- Creates surplus (quantity supplied > quantity demanded)\n- Examples: minimum wage laws, agricultural price supports",
+          "quiz": {
+            "id": "price-controls-concept",
+            "question": "A city sets maximum taxi fares at $2/mile when the equilibrium rate would be $3.50/mile. What economic outcome do you predict?",
+            "options": [
+              "Taxi shortage - fewer drivers willing to work at low rates",
+              "Taxi surplus - more people can afford rides",
+              "No change - drivers must follow the law",
+              "Black market emerges with illegal higher rates"
+            ],
+            "correctAnswer": 0,
+            "difficulty": "hard",
+            "xpReward": 25,
+            "xpPenalties": [
+              10,
+              15
+            ],
+            "explanation": "Price ceilings below equilibrium create shortages. At $2/mile, quantity demanded exceeds quantity supplied as fewer drivers find it profitable to work. Black markets often emerge when legal prices create persistent shortages."
+          }
+        },
+        {
+          "id": "section-6-sub-3",
+          "title": "Rent Control: A Case Study in Unintended Consequences",
+          "content": "### Rent Control: A Case Study in Unintended Consequences\n\n**Stockholm's Rent Control System (Since 1947):**\n\n**Policy Goal:** Keep housing affordable for ordinary citizens\n\n**Immediate Effects (1950s-1960s):**\n- Existing tenants paid below-market rents\n- Political popularity - voters loved affordable housing\n- Reduced inequality in housing costs\n\n**Long-term Effects (1970s-Present):**\n- **Housing shortage:** 20+ year waiting lists for rental apartments\n- **Reduced supply:** Landlords convert rentals to condos or offices\n- **Quality deterioration:** No incentive to maintain or improve properties\n- **Black market:** Illegal subletting at market rates\n- **Mobility reduction:** People stay in unsuitable apartments to keep rent-controlled status",
+          "quiz": {
+            "id": "rent-control-analysis",
+            "question": "New York City expands rent stabilization laws to cover more apartments, limiting rent increases to 2% annually. Predict the market response using supply and demand analysis:",
+            "options": [
+              "More affordable housing as landlords cannot raise rents excessively",
+              "Housing shortage as new construction becomes unprofitable",
+              "Improved housing quality as landlords compete for stable tenants",
+              "Lower property values benefiting first-time homebuyers"
+            ],
+            "correctAnswer": 1,
+            "difficulty": "hard",
+            "xpReward": 25,
+            "xpPenalties": [
+              10,
+              15
+            ],
+            "explanation": "Rent stabilization acts as a price ceiling. While protecting existing tenants, it reduces expected returns on rental housing investment, discouraging new construction and encouraging conversion to other uses, creating long-term shortages."
+          }
+        },
+        {
+          "id": "section-6-sub-4",
+          "title": "Minimum Wage: Labor Market Price Floors",
+          "content": "### Minimum Wage: Labor Market Price Floors\n\n**Minimum wage laws** set price floors in labor markets, mandating wages above what some jobs might naturally pay.\n\n**Traditional Economic Theory:**\n- Minimum wage above equilibrium → unemployment (surplus labor)\n- Some workers benefit (higher wages), others lose jobs\n- Effect depends on elasticity of labor demand\n\n**Modern Research Findings:**\n- Small increases often show minimal unemployment effects\n- Benefits may outweigh costs in low-wage markets\n- Geographic and industry variation matters significantly",
+          "quiz": {
+            "id": "minimum-wage-analysis",
+            "question": "Seattle raises minimum wage from $15 to $20/hour for all businesses. You're consulting for a local restaurant chain. Two adaptation strategies are proposed:",
+            "options": [
+              "Reduce staff hours and increase automation (self-order kiosks, automated prep equipment). Accept higher labor costs by using less labor overall. Maintain profit margins through operational efficiency rather than price increases that might drive away customers.",
+              "Raise menu prices proportionally and maintain current staffing levels. Pass labor cost increases directly to customers while preserving service quality and employment. Market research shows customers will pay premium prices for full-service dining experience."
+            ],
+            "correctAnswer": 0,
+            "difficulty": "medium",
+            "xpReward": 15,
+            "xpPenalties": [
+              5,
+              8
+            ],
+            "explanation": "This tests understanding of how businesses adapt to labor market interventions and the trade-offs between employment, automation, and pricing."
+          }
+        },
+        {
+          "id": "section-6-sub-5",
+          "title": "Agricultural Subsidies: Price Floors in Practice",
+          "content": "### Agricultural Subsidies: Price Floors in Practice\n\n**U.S. Agricultural Price Support System:**\n\n**Policy Mechanism:** Government guarantees minimum prices for crops like corn, wheat, and soybeans\n\n**Intended Goals:**\n- Stabilize farm income during volatile crop markets\n- Ensure food security by maintaining domestic production\n- Support rural communities and family farms\n\n**Economic Effects:**\n- **Surplus production:** Farmers produce more at guaranteed high prices\n- **Storage costs:** Government buys and stores excess crops  \n- **Market distortion:** Resources shift toward subsidized crops\n- **Trade disputes:** Other countries complain about unfair competition\n- **Environmental impact:** Overproduction encourages intensive farming",
+          "quiz": {
+            "id": "agricultural-subsidies-analysis",
+            "question": "The European Union spends €50 billion annually on agricultural subsidies, making EU farmers among the world's most subsidized. Developing countries argue this unfairly damages their agricultural exports. You're advising the EU Trade Commissioner:",
+            "options": [
+              "Maintain subsidies to protect European food security and rural communities. Agricultural self-sufficiency is a national security issue—depending on imports during global crises or conflicts could threaten European stability. Subsidies preserve essential productive capacity and cultural heritage.",
+              "Phase out agricultural subsidies over 10 years and redirect funds to innovation and rural development. Current subsidies distort global markets, harm developing nations, and prop up inefficient farming. Market-based agriculture will be more innovative and competitive long-term."
+            ],
+            "correctAnswer": 0,
+            "difficulty": "medium",
+            "xpReward": 15,
+            "xpPenalties": [
+              5,
+              8
+            ],
+            "explanation": "This integrates domestic policy goals with international trade effects and development economics."
+          }
+        },
+        {
+          "id": "section-6-sub-6",
+          "title": "Tax Policy: Deadweight Loss and Efficiency",
+          "content": "### Tax Policy: Deadweight Loss and Efficiency\n\n**Taxation** creates deadweight loss—reduction in total economic welfare due to reduced market activity.\n\n**How Taxes Affect Markets:**\n1. **Price wedge:** Creates gap between what buyers pay and sellers receive\n2. **Quantity reduction:** Higher effective prices reduce market transactions\n3. **Welfare loss:** Some mutually beneficial trades don't occur\n\n**Tax Burden Distribution:**\n- Determined by relative elasticity, not who legally pays the tax\n- More inelastic side bears larger burden\n- Elastic side can \"escape\" by reducing participation",
+          "quiz": {
+            "id": "tax-policy-analysis",
+            "question": "A city imposes $3/pack tax on cigarettes. Before tax: $8/pack, 100,000 packs sold monthly. After tax: consumers pay $10.50/pack, sellers receive $7.50/pack, 85,000 packs sold. Who bears more of the tax burden?",
+            "options": [
+              "Consumers bear $2.50, sellers bear $0.50",
+              "Consumers bear $1.50, sellers bear $1.50",
+              "Sellers bear $2.50, consumers bear $0.50",
+              "The burden splits equally at $1.50 each"
+            ],
+            "correctAnswer": 0,
+            "difficulty": "hard",
+            "xpReward": 25,
+            "xpPenalties": [
+              10,
+              15
+            ],
+            "explanation": "Consumers pay $2.50 more ($10.50 - $8.00), sellers receive $0.50 less ($7.50 - $8.00). Total tax = $3.00. Consumers bear most burden because cigarette demand is more inelastic than supply."
+          }
+        },
+        {
+          "id": "section-6-sub-7",
+          "title": "Sin Taxes: Using Elasticity for Social Policy",
+          "content": "### Sin Taxes: Using Elasticity for Social Policy\n\n**\"Sin taxes\"** on tobacco, alcohol, and sugary drinks aim to reduce consumption while raising revenue.\n\n**Policy Design Considerations:**\n- **Elastic demand:** Large consumption reduction, low revenue\n- **Inelastic demand:** Small consumption reduction, high revenue  \n- **Cross-border shopping:** High local taxes may shift purchases elsewhere\n- **Substitution effects:** Taxes on one product may increase demand for alternatives\n\n**Real Example: Mexico's Soda Tax (2014):**\n- 20% tax on sugar-sweetened beverages\n- 10% reduction in soda consumption after two years\n- Increased consumption of water and diet sodas\n- Revenue generated funded public health programs",
+          "quiz": {
+            "id": "sin-tax-analysis",
+            "question": "California is considering a $2/pack tax on vaping products to reduce teen usage. Public health advocates support it, but vape shop owners warn it will drive business to neighboring states or illegal products. You're testifying before the state legislature:",
+            "options": [
+              "Support the tax because teen health outcomes justify potential business disruption. Even modest usage reduction protects developing brains from addiction. Revenue can fund smoking cessation programs. Cross-border shopping is minimal compared to health benefits.",
+              "Oppose the tax because it will create black markets and push users toward more dangerous unregulated products. High taxes on harm-reduction products may drive people back to cigarettes. Better to regulate quality and marketing rather than price teens out of legal, safer alternatives."
+            ],
+            "correctAnswer": 0,
+            "difficulty": "medium",
+            "xpReward": 15,
+            "xpPenalties": [
+              5,
+              8
+            ],
+            "explanation": "This explores trade-offs between public health goals, market effects, and unintended behavioral responses."
+          }
+        },
+        {
+          "id": "section-6-sub-8",
+          "title": "Trade Policy: Tariffs and Quotas",
+          "content": "### Trade Policy: Tariffs and Quotas\n\n**Trade barriers** protect domestic industries but create economic inefficiencies.\n\n**Tariffs (Import Taxes):**\n- Raise domestic prices above world prices\n- Protect domestic producers from foreign competition  \n- Generate government revenue\n- Create deadweight loss from reduced trade\n\n**Import Quotas:**\n- Limit quantity of foreign goods allowed\n- Often more distortive than tariffs\n- Create economic rents for quota holders",
+          "quiz": {
+            "id": "trade-policy-analysis",
+            "question": "The U.S. steel industry requests 25% tariffs on imported steel, claiming foreign producers are \"dumping\" below-cost steel to destroy American competitors. The auto industry opposes tariffs, saying they'll raise car production costs. You're advising the Commerce Secretary:",
+            "options": [
+              "Impose tariffs to protect strategic steel production capacity and manufacturing jobs. National security requires domestic steel capability during conflicts. Short-term higher costs for automakers are acceptable to preserve industrial base and prevent foreign economic manipulation.",
+              "Reject tariffs and focus on trade enforcement instead. Tariffs are taxes on American manufacturers and consumers. Higher steel costs will make U.S. cars less competitive globally, potentially costing more jobs in automotive than saved in steel. Use existing trade laws to address specific unfair practices."
+            ],
+            "correctAnswer": 0,
+            "difficulty": "medium",
+            "xpReward": 15,
+            "xpPenalties": [
+              5,
+              8
+            ],
+            "explanation": "This tests understanding of how trade policy creates winners and losers across industries and the economy."
+          }
+        },
+        {
+          "id": "section-6-sub-9",
+          "title": "Environmental Policy: Market-Based Solutions",
+          "content": "### Environmental Policy: Market-Based Solutions\n\n**Carbon Pricing** uses market mechanisms to address climate change:\n\n**Carbon Tax:**\n- Direct price on carbon emissions\n- Lets businesses choose how to reduce emissions\n- Generates revenue for government programs\n- Simple and transparent\n\n**Cap-and-Trade:**\n- Government sets total emission limit (cap)\n- Companies trade emission allowances\n- Market determines carbon price\n- Ensures specific environmental outcome",
+          "quiz": {
+            "id": "environmental-policy-analysis",
+            "question": "Your state wants to reduce carbon emissions 30% by 2030. Two policies are proposed:",
+            "options": [
+              "Implement $50/ton carbon tax on all fossil fuel use, with revenue returned to households as tax rebates. Price signal encourages efficiency and clean energy investment across all sectors. Businesses and consumers decide the most cost-effective emission reductions.",
+              "Create cap-and-trade system with free allowances initially, transitioning to auction system over 5 years. Guarantees specific emission reductions while allowing market flexibility. Protects existing businesses during transition while achieving environmental goals."
+            ],
+            "correctAnswer": 0,
+            "difficulty": "medium",
+            "xpReward": 15,
+            "xpPenalties": [
+              5,
+              8
+            ],
+            "explanation": "This tests understanding of different market-based approaches to environmental policy and their trade-offs."
+          }
+        },
+        {
+          "id": "section-6-sub-10",
+          "title": "Health Care Markets: When Normal Markets Fail",
+          "content": "### Health Care Markets: When Normal Markets Fail\n\n**Health care** exhibits unique characteristics that complicate standard market analysis:\n\n**Market Failures:**\n- **Information asymmetry:** Doctors know more than patients\n- **Insurance moral hazard:** Coverage reduces price sensitivity  \n- **Emergency situations:** No time for price shopping\n- **Network effects:** Value depends on provider participation\n\n**Policy Responses:**\n- **Single-payer systems:** Government as sole insurance provider\n- **Regulated markets:** Private insurance with government oversight\n- **Health savings accounts:** Consumer-directed health care",
+          "quiz": {
+            "id": "healthcare-policy-analysis",
+            "question": "Rising prescription drug costs are a major political issue. Two reform approaches are debated:",
+            "options": [
+              "Allow Medicare to negotiate drug prices directly with pharmaceutical companies, using purchasing power to lower costs. Government negotiation works in other countries and for other Medicare services. Taxpayers shouldn't overpay for medications developed with public research funding.",
+              "Increase generic drug competition by streamlining FDA approval and preventing brand-name companies from blocking generics. Market competition naturally lowers prices better than government price-setting. Preserve innovation incentives while opening markets to competition."
+            ],
+            "correctAnswer": 0,
+            "difficulty": "medium",
+            "xpReward": 15,
+            "xpPenalties": [
+              5,
+              8
+            ],
+            "explanation": "This explores different approaches to market power in health care and the role of competition versus regulation."
+          }
+        },
+        {
+          "id": "section-6-sub-11",
+          "title": "Connecting Back to Zimbabwe: When All Policies Fail",
+          "content": "### Connecting Back to Zimbabwe: When All Policies Fail\n\nZimbabwe's crisis illustrates what happens when multiple policy failures compound:\n\n**Price Controls:** Government mandated low prices for basic goods, creating shortages and black markets\n\n**Currency Policy:** Printing money to finance spending destroyed the medium of exchange itself\n\n**Land Reform:** Redistributed productive farms without maintaining agricultural knowledge or infrastructure\n\n**Trade Policy:** Economic sanctions limited access to international markets and financing\n\n**Lesson:** Individual policies don't exist in isolation. Poor policy design in one area can undermine the effectiveness of policies in other areas, creating systemic breakdown.",
+          "quiz": {
+            "id": "zimbabwe-policy-analysis",
+            "question": "Using all concepts from this course—supply, demand, equilibrium, elasticity, and policy analysis—explain why Zimbabwe's economic collapse was so complete and lasting:",
+            "options": [
+              "Price controls interacted with supply disruptions, hyperinflation made all other policies ineffective, and market-based solutions eventually worked (dollarization)",
+              "Government intervention prevented normal market adjustments, creating systemic breakdown",
+              "The crisis was caused by external factors beyond economic policy control",
+              "All economic principles broke down simultaneously due to political instability"
+            ],
+            "correctAnswer": 0,
+            "difficulty": "hard",
+            "xpReward": 25,
+            "xpPenalties": [
+              10,
+              15
+            ],
+            "explanation": "This is an open-ended question requiring synthesis of multiple economic concepts. Consider how price controls interacted with supply disruptions, why hyperinflation made all other policies ineffective, and how market-based solutions eventually worked."
+          }
+        },
+        {
+          "id": "section-6-sub-12",
+          "title": "Looking Ahead: Economics as a Way of Thinking",
+          "content": "### Looking Ahead: Economics as a Way of Thinking\n\nCongratulations! You've completed your journey through intermediate microeconomics. You now understand:\n\n- **Scarcity and opportunity cost** - why all choices involve trade-offs\n- **Supply and demand** - how markets coordinate economic activity  \n- **Market equilibrium** - how prices emerge from voluntary exchange\n- **Elasticity** - why markets respond differently to changes\n- **Policy analysis** - how government intervention affects market outcomes\n\n**Next:** In Section 7, we'll bring everything together with a comprehensive review and reflection on how these economic principles apply to current events, personal decisions, and policy debates. You'll revisit your original intuitions and see how your economic thinking has evolved."
+        }
+      ]
+    }
+  ],
+  "masteryQuiz": {
+    "questionsPerAttempt": 25,
+    "passingScore": 70,
+    "timeLimitMinutes": 25,
+    "questionPool": [
+      {
+        "id": "reflection-integration-review",
+        "question": "Looking back at your original Zimbabwe choice, how has your analysis changed?",
+        "options": [
+          "My choice was correct, but now I understand the economic mechanisms behind it",
+          "I would make the same choice for different reasons based on economic analysis",
+          "I would change my choice based on what I've learned about market forces",
+          "The choice remains impossible, but I now see why both options led to disaster"
+        ],
+        "correctAnswer": 0,
+        "difficulty": "hard",
+        "xpReward": 30,
+        "xpPenalties": [
+          10,
+          15
+        ],
+        "explanation": "There's no \"correct\" answer—this tests how your economic thinking has evolved."
+      },
+      {
+        "id": "personal-integration-application",
+        "question": "You're deciding between two job offers: Job A: $85,000 salary at a large corporation with excellent benefits and job security, but limited growth potential and rigid structure. Job B: $70,000 salary at a startup with equity participation, rapid learning opportunities, but high risk of failure and long hours. Using economic analysis, what factors should determine your choice?",
+        "options": [
+          "Consider opportunity cost, risk-return trade-offs, human capital investment, and your personal elasticity of substitution between income and other job attributes.",
+          "Choose the higher salary since money is the most important factor in career decisions",
+          "Choose the startup since equity could be worth millions if successful",
+          "Choose the corporation since job security is priceless during economic uncertainty"
+        ],
+        "correctAnswer": 0,
+        "difficulty": "hard",
+        "xpReward": 30,
+        "xpPenalties": [
+          10,
+          15
+        ],
+        "explanation": "Consider opportunity cost, risk-return trade-offs, human capital investment, and your personal elasticity of substitution between income and other job attributes."
+      },
+      {
+        "id": "great-resignation-analysis",
+        "question": "Using supply and demand analysis, what long-term effects would you predict from the Great Resignation?",
+        "options": [
+          "Permanent shift to higher wages and better working conditions as new equilibrium",
+          "Temporary disruption followed by return to pre-2021 labor market conditions",
+          "Continued labor shortages leading to increased automation and reduced services",
+          "Government intervention to restore previous wage and employment levels"
+        ],
+        "correctAnswer": 0,
+        "difficulty": "hard",
+        "xpReward": 30,
+        "xpPenalties": [
+          10,
+          15
+        ],
+        "explanation": "When labor supply permanently decreases (early retirements, career exits), market equilibrium shifts to higher wages and improved conditions. This represents a new stable balance, not temporary disruption."
+      },
+      {
+        "id": "housing-crisis-policy",
+        "question": "You're advising a mayor facing severe housing unaffordability. Propose a comprehensive policy approach using economic principles:",
+        "options": [
+          "Consider supply-side vs demand-side interventions, short-term relief vs long-term solutions, elasticity implications of different policies, unintended consequences and political feasibility, and how policies might interact with each other.",
+          "Implement rent control immediately to provide immediate relief to struggling families",
+          "Build more public housing to solve the supply shortage",
+          "Provide housing vouchers to increase demand and drive up prices"
+        ],
+        "correctAnswer": 0,
+        "difficulty": "hard",
+        "xpReward": 30,
+        "xpPenalties": [
+          10,
+          15
+        ],
+        "explanation": "This open-ended question tests your ability to synthesize multiple economic concepts into practical policy recommendations."
+      },
+      {
+        "id": "streaming-wars-analysis",
+        "question": "Netflix is considering raising prices again while competitors keep prices stable. What does economic theory predict?",
+        "options": [
+          "Netflix will lose significant subscribers due to elastic demand with many substitutes available",
+          "Netflix will retain most subscribers due to switching costs and content differentiation creating inelastic demand",
+          "The outcome depends on Netflix's content quality relative to competitors and consumers' income levels",
+          "Price increases will fail because streaming services are inferior goods during economic uncertainty"
+        ],
+        "correctAnswer": 2,
+        "difficulty": "hard",
+        "xpReward": 30,
+        "xpPenalties": [
+          10,
+          15
+        ],
+        "explanation": "The outcome depends on elasticity, which varies based on substitute quality, switching costs, and consumer income. Netflix's success depends on whether their content differentiation makes demand relatively inelastic compared to competitors."
+      },
+      {
+        "id": "climate-policy-design",
+        "question": "Design a climate policy that addresses both economic efficiency and political feasibility:",
+        "options": [
+          "Consider how to price carbon without harming economic competitiveness, international coordination challenges, distributional effects, innovation incentives vs immediate emission reductions, and public choice problems.",
+          "Implement a simple carbon tax and let the market solve everything",
+          "Ban all fossil fuels immediately to achieve zero emissions",
+          "Wait for technology to solve the problem without government intervention"
+        ],
+        "correctAnswer": 0,
+        "difficulty": "hard",
+        "xpReward": 30,
+        "xpPenalties": [
+          10,
+          15
+        ],
+        "explanation": "This question integrates environmental economics with political economy and international trade considerations."
+      },
+      {
+        "id": "meta-reflection-thinking",
+        "question": "Which economic concept has most changed how you view the world?",
+        "options": [
+          "Opportunity cost - recognizing that every choice involves giving up alternatives",
+          "Supply and demand - understanding how decentralized markets coordinate activity",
+          "Unintended consequences - seeing how policies often produce opposite effects",
+          "Systems thinking - recognizing how individual decisions create collective outcomes"
+        ],
+        "correctAnswer": 0,
+        "difficulty": "hard",
+        "xpReward": 30,
+        "xpPenalties": [
+          10,
+          15
+        ],
+        "explanation": "This isn't about a \"right\" answer but about metacognitive awareness of your intellectual development."
+      },
+      {
+        "id": "critical-thinking-evaluation",
+        "question": "Evaluate this argument: \"Raising minimum wage to $20/hour will eliminate poverty by ensuring all workers earn living wages.\"",
+        "options": [
+          "What economic concepts help you analyze this claim? What additional information would you need? What are the strongest counterarguments?",
+          "This is obviously true since higher wages mean more money for workers",
+          "This is obviously false since it will cause massive unemployment",
+          "The answer depends on whether you support workers or businesses"
+        ],
+        "correctAnswer": 0,
+        "difficulty": "hard",
+        "xpReward": 30,
+        "xpPenalties": [
+          10,
+          15
+        ],
+        "explanation": "What economic concepts help you analyze this claim? What additional information would you need? What are the strongest counterarguments?"
+      },
+      {
+        "id": "capstone-policy-advisor",
+        "question": "Imagine you're economic advisor to a newly elected president of a developing country. The nation faces: High unemployment (25% of working-age population), Inflation (15% annually and rising), Income inequality (top 10% earn 60% of total income), Infrastructure deficits (unreliable electricity, poor roads, limited internet), Brain drain (educated citizens emigrating to developed countries). Design a comprehensive economic strategy addressing these challenges:",
+        "options": [
+          "Your answer should demonstrate understanding of supply and demand dynamics in labor and product markets, how different policies interact and potentially conflict, short-term political pressures vs long-term economic development, international economic constraints and opportunities, and the role of institutions, incentives, and human capital.",
+          "Implement austerity measures to reduce inflation and government spending",
+          "Print money to create jobs and stimulate the economy",
+          "Nationalize all industries to ensure equal distribution of wealth"
+        ],
+        "correctAnswer": 0,
+        "difficulty": "hard",
+        "xpReward": 30,
+        "xpPenalties": [
+          10,
+          15
+        ],
+        "explanation": "This capstone question tests your ability to integrate all course concepts into sophisticated policy analysis."
+      }
+    ]
+  }
+}
