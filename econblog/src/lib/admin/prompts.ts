@@ -1,9 +1,12 @@
 import fs from "fs";
 import path from "path";
 
+const STYLE_RULES = `
+STYLE CONSTRAINT: Never use em dashes (—) anywhere in your output. Use commas, semicolons, colons, parentheses, or separate sentences instead.`;
+
 function loadWritingRules(): string {
   const rulesPath = path.join(process.cwd(), "src/content/lesson_writing_rules.md");
-  return fs.readFileSync(rulesPath, "utf-8");
+  return fs.readFileSync(rulesPath, "utf-8") + "\n" + STYLE_RULES;
 }
 
 export function researchSynthesisPrompt(
@@ -22,7 +25,8 @@ Focus on:
 - Multiple perspectives on controversial topics
 - Caribbean and African examples alongside Western ones
 
-Format your output as structured research notes with clear sections. Include source URLs where available. Flag any claims that seem uncertain or need verification.`,
+Format your output as structured research notes with clear sections. Include source URLs where available. Flag any claims that seem uncertain or need verification.
+${STYLE_RULES}`,
     user: `Research topic: "${topic}"
 
 ## Web Search Results
@@ -105,7 +109,7 @@ You must output valid JSON matching this structure:
   ]
 }
 
-Write engaging, specific, real-world-grounded prose. Every statistic must be real. Every scenario must be verifiable. Use markdown formatting with ### headers, **bold** for key terms, and > blockquotes for real quotes.`,
+Write engaging, specific, real-world-grounded prose. Every statistic must be real. Every scenario must be verifiable. Use markdown formatting with **bold** for key terms, > blockquotes for real quotes, and valid GitHub-flavored markdown tables for matrices or tabular comparisons. Do not repeat the subsection title as a markdown heading because the UI already renders it separately.`,
     user: `Lesson: "${lessonTitle}"
 Topic: "${topic}"
 Section ${sectionIndex + 1} of 8: "${sectionOutline.title}"
@@ -222,7 +226,8 @@ export function masteryPoolPrompt(
   lessonTitle: string,
   allSectionsContent: string,
   questionsPerAttempt: number,
-  poolSize: number
+  poolSize: number,
+  existingQuestionStems: string[] = []
 ): { system: string; user: string } {
   const rules = loadWritingRules();
 
@@ -265,6 +270,68 @@ Draw per attempt: ${questionsPerAttempt} questions
 ## Full Lesson Content
 ${allSectionsContent.slice(0, 12000)}
 
+${existingQuestionStems.length > 0 ? `## Existing Mastery Questions To Avoid Duplicating
+${existingQuestionStems.map((stem, index) => `${index + 1}. ${stem}`).join("\n")}
+
+Generate new questions that test different scenarios, combinations, or contexts from the ones above.
+` : ""}
+
 Generate ${poolSize} mastery questions spanning all sections. Each question should integrate concepts from multiple sections.`,
+  };
+}
+
+export function masteryQuestionPrompt(
+  lessonTitle: string,
+  allSectionsContent: string,
+  questionsPerAttempt: number,
+  questionNumber: number,
+  targetCount: number,
+  existingQuestionStems: string[] = []
+): { system: string; user: string } {
+  const rules = loadWritingRules();
+
+  return {
+    system: `You are creating one mastery exam question for an economics lesson. This question must be hard and require integrating concepts across multiple sections.
+
+${rules}
+
+The output must be valid JSON with this exact shape:
+{
+  "questionsPerAttempt": ${questionsPerAttempt},
+  "passingScore": number,
+  "timeLimitMinutes": number,
+  "question": {
+    "id": "mastery-unique-id",
+    "type": "recap",
+    "question": "...",
+    "options": ["...", "..."],
+    "correctAnswer": 0,
+    "difficulty": "hard",
+    "xpReward": 30,
+    "xpPenalties": [10, 15],
+    "explanation": "..."
+  }
+}
+
+Rules for this one question:
+- It must feel distinct from the existing mastery questions
+- It must require knowledge from at least 2 different sections
+- It must use 2-4 options
+- Every option must include deep reasoning
+- correctAnswer must not be null`,
+    user: `Lesson: "${lessonTitle}"
+Question ${questionNumber} of ${targetCount}
+Draw per attempt: ${questionsPerAttempt} questions
+
+## Full Lesson Content
+${allSectionsContent.slice(0, 12000)}
+
+${existingQuestionStems.length > 0 ? `## Existing Mastery Questions To Avoid Duplicating
+${existingQuestionStems.map((stem, index) => `${index + 1}. ${stem}`).join("\n")}
+
+Create a new mastery question that uses a clearly different setup, scenario, or angle from the ones above.
+` : ""}
+
+Generate exactly one mastery question as valid JSON only.`,
   };
 }

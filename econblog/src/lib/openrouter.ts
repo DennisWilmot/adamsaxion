@@ -11,6 +11,66 @@ interface OpenRouterOptions {
   responseFormat?: { type: "json_object" };
 }
 
+function cleanJSONResponse(raw: string) {
+  return raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+}
+
+function extractJSONObject(text: string) {
+  const start = text.indexOf("{");
+  if (start === -1) return null;
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let i = start; i < text.length; i++) {
+    const char = text[i];
+
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (char === "\\") {
+        escaped = true;
+      } else if (char === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (char === '"') {
+      inString = true;
+      continue;
+    }
+
+    if (char === "{") depth++;
+    if (char === "}") depth--;
+
+    if (depth === 0) {
+      return text.slice(start, i + 1);
+    }
+  }
+
+  return null;
+}
+
+function parseJSONResponse<T>(raw: string): T {
+  const cleaned = cleanJSONResponse(raw);
+
+  try {
+    return JSON.parse(cleaned) as T;
+  } catch {
+    const extracted = extractJSONObject(cleaned);
+    if (extracted) {
+      return JSON.parse(extracted) as T;
+    }
+    throw new Error(
+      `Invalid JSON response: ${cleaned.slice(0, 240)}${
+        cleaned.length > 240 ? "..." : ""
+      }`
+    );
+  }
+}
+
 export async function chat(
   messages: Message[],
   options: OpenRouterOptions = {}
@@ -59,6 +119,29 @@ export async function chatJSON<T = unknown>(
     responseFormat: { type: "json_object" },
   });
 
-  const cleaned = raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-  return JSON.parse(cleaned) as T;
+  try {
+    return parseJSONResponse<T>(raw);
+  } catch (parseError) {
+    const repaired = await chat(
+      [
+        ...messages,
+        { role: "assistant", content: raw },
+        {
+          role: "user",
+          content:
+            "Your previous response was invalid JSON. Return the same answer as valid JSON only. Do not use markdown fences, prose, or commentary. Do not omit required fields.",
+        },
+      ],
+      {
+        ...options,
+        responseFormat: { type: "json_object" },
+      }
+    );
+
+    try {
+      return parseJSONResponse<T>(repaired);
+    } catch {
+      throw parseError;
+    }
+  }
 }

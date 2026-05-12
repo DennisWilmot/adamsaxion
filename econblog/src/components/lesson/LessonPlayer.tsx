@@ -2,10 +2,83 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Lock, Check, ChevronRight, Trophy } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { QuizGate } from "@/components/quiz/QuizGate";
 import { MasteryExam } from "@/components/quiz/MasteryExam";
 import { FloatingIcons } from "@/components/FloatingIcons";
 import type { LessonData, Section } from "@/lib/types/lesson";
+
+function ProgressRing({
+  value,
+  max,
+  size = 56,
+  strokeWidth = 4.5,
+  color = "var(--color-primary)",
+  label,
+  sublabel,
+}: {
+  value: number;
+  max: number;
+  size?: number;
+  strokeWidth?: number;
+  color?: string;
+  label: string;
+  sublabel: string;
+}) {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const fraction = max > 0 ? value / max : 0;
+  const offset = circumference * (1 - fraction);
+  const pct = max > 0 ? Math.round((value / max) * 100) : 0;
+
+  return (
+    <div className="flex items-center gap-md">
+      <svg
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
+        className="block shrink-0"
+      >
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="var(--color-border)"
+          strokeWidth={strokeWidth}
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke={color}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+          className="transition-all duration-500 ease-out"
+        />
+        <text
+          x="50%"
+          y="50%"
+          textAnchor="middle"
+          dominantBaseline="central"
+          className="fill-foreground font-display font-bold"
+          style={{ fontSize: size * 0.22 }}
+        >
+          {pct}%
+        </text>
+      </svg>
+      <div className="flex flex-col">
+        <span className="font-body text-xs font-semibold text-foreground leading-tight">{label}</span>
+        <span className="font-body text-[11px] text-foreground-muted leading-tight">{sublabel}</span>
+      </div>
+    </div>
+  );
+}
 
 interface LessonProgress {
   completedSubsections: string[];
@@ -30,6 +103,17 @@ interface QuizStatuses {
 interface LessonPlayerProps {
   lesson: LessonData;
   isAuthenticated: boolean;
+}
+
+function normalizeLessonMarkdown(content: string, subsectionTitle: string) {
+  const escapedTitle = subsectionTitle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  return content
+    .replace(
+      new RegExp(`^\\s{0,3}#{1,6}\\s+${escapedTitle}\\s*\\n+`, "i"),
+      ""
+    )
+    .replace(/^\|\|/gm, "| |");
 }
 
 export function LessonPlayer({ lesson, isAuthenticated }: LessonPlayerProps) {
@@ -171,25 +255,56 @@ export function LessonPlayer({ lesson, isAuthenticated }: LessonPlayerProps) {
             <span className="text-foreground-muted">{lesson.difficulty}</span>
             <span className="text-foreground-muted">{lesson.estimatedMinutes} min</span>
           </div>
-          <h1 className="font-display font-bold text-2xl text-foreground mb-sm leading-tight">
+          <h1 className="font-display font-semibold text-2xl text-foreground mb-md leading-tight">
             {lesson.title}
           </h1>
-          <div className="flex items-center gap-xl font-body text-sm text-foreground-muted">
-            <span className="tabular-nums">
-              <span className="font-display font-semibold text-gold">
-                {progress.totalXpEarned}
-              </span>{" "}
-              XP earned
-            </span>
-            <span className="tabular-nums">
-              {progress.completedSubsections.length} /{" "}
-              {lesson.sections.reduce(
-                (s, sec) => s + sec.subsections.filter((sub) => sub.quiz).length,
-                0
-              )}{" "}
-              completed
-            </span>
-          </div>
+          {(() => {
+            const sectionSubsTotal = currentSection?.subsections.filter((s) => s.quiz).length ?? 0;
+            const sectionSubsDone = currentSection
+              ? currentSection.subsections.filter((s) => s.quiz && progress.completedSubsections.includes(s.id)).length
+              : 0;
+
+            const totalSections = lesson.sections.length;
+            const completedSections = lesson.sections.filter((sec) =>
+              sec.subsections.filter((s) => s.quiz).every((s) => progress.completedSubsections.includes(s.id))
+            ).length;
+
+            const totalSubs = lesson.sections.reduce((sum, sec) => sum + sec.subsections.filter((s) => s.quiz).length, 0);
+            const doneSubs = progress.completedSubsections.length;
+
+            return (
+              <div className="flex flex-wrap items-center gap-lg mt-md">
+                <ProgressRing
+                  value={sectionSubsDone}
+                  max={sectionSubsTotal}
+                  color="var(--color-primary)"
+                  label="This Section"
+                  sublabel={`${sectionSubsDone} of ${sectionSubsTotal} parts done`}
+                />
+                <div className="h-10 w-px bg-border hidden sm:block" />
+                <ProgressRing
+                  value={completedSections}
+                  max={totalSections}
+                  color="var(--color-gold, #d4a017)"
+                  label="Sections Complete"
+                  sublabel={`${completedSections} of ${totalSections} sections`}
+                />
+                <div className="h-10 w-px bg-border hidden sm:block" />
+                <ProgressRing
+                  value={doneSubs}
+                  max={totalSubs}
+                  color="#22c55e"
+                  label="Overall Lesson"
+                  sublabel={`${doneSubs} of ${totalSubs} total`}
+                />
+                <div className="h-10 w-px bg-border hidden sm:block" />
+                <div className="flex flex-col">
+                  <span className="font-display font-semibold text-gold text-lg leading-tight">{progress.totalXpEarned}</span>
+                  <span className="font-body text-[11px] text-foreground-muted leading-tight">XP earned</span>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </div>
 
@@ -221,9 +336,9 @@ export function LessonPlayer({ lesson, isAuthenticated }: LessonPlayerProps) {
               }`}
             >
               {completed ? (
-                <Check className="h-3.5 w-3.5 text-success" />
+                <Check className="size-3.5 text-success" />
               ) : !unlocked ? (
-                <Lock className="h-3 w-3" />
+                <Lock className="size-3" />
               ) : null}
               <span className="hidden sm:inline">Section {idx + 1}</span>
               <span className="sm:hidden">{idx + 1}</span>
@@ -246,7 +361,7 @@ export function LessonPlayer({ lesson, isAuthenticated }: LessonPlayerProps) {
                 : "text-border cursor-not-allowed"
             }`}
           >
-            <Trophy className="h-3.5 w-3.5" />
+            <Trophy className="size-3.5" />
             <span className="hidden sm:inline">Mastery</span>
           </button>
         )}
@@ -307,12 +422,11 @@ export function LessonPlayer({ lesson, isAuthenticated }: LessonPlayerProps) {
                 {currentSub.title}
               </h3>
 
-              <div
-                className="prose-custom font-body text-base text-foreground-secondary leading-relaxed max-w-[52rem]"
-                dangerouslySetInnerHTML={{
-                  __html: markdownToHtml(currentSub.content),
-                }}
-              />
+              <div className="prose-custom font-body text-base text-foreground-secondary leading-relaxed max-w-[52rem]">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {normalizeLessonMarkdown(currentSub.content, currentSub.title)}
+                </ReactMarkdown>
+              </div>
 
               {currentSub.quiz ? (
                 <QuizGate
@@ -349,7 +463,7 @@ export function LessonPlayer({ lesson, isAuthenticated }: LessonPlayerProps) {
                         : "bg-primary text-surface-raised hover:bg-primary-hover shadow-sm"
                     }`}
                   >
-                    Next <ChevronRight className="h-4 w-4" />
+                    Next <ChevronRight className="size-4" />
                   </button>
                 )}
               </div>
@@ -359,30 +473,4 @@ export function LessonPlayer({ lesson, isAuthenticated }: LessonPlayerProps) {
       )}
     </div>
   );
-}
-
-function markdownToHtml(md: string): string {
-  let html = md
-    .replace(/^#### (.+)$/gm, "<h4>$1</h4>")
-    .replace(/^### (.+)$/gm, "<h3>$1</h3>")
-    .replace(/^## (.+)$/gm, "<h2>$1</h2>")
-    .replace(/^# (.+)$/gm, "<h1>$1</h1>")
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.+?)\*/g, "<em>$1</em>")
-    .replace(/^- (.+)$/gm, "<li>$1</li>")
-    .replace(/(<li>.*<\/li>\n?)+/g, (match) => `<ul>${match}</ul>`)
-    .replace(/^\d+\. (.+)$/gm, "<li>$1</li>")
-    .replace(/\n\n/g, "</p><p>")
-    .replace(/\n/g, "<br/>");
-
-  html = `<p>${html}</p>`;
-  html = html
-    .replace(/<p><h([1-4])>/g, "<h$1>")
-    .replace(/<\/h([1-4])><\/p>/g, "</h$1>");
-  html = html
-    .replace(/<p><ul>/g, "<ul>")
-    .replace(/<\/ul><\/p>/g, "</ul>");
-  html = html.replace(/<p>\s*<\/p>/g, "");
-
-  return html;
 }

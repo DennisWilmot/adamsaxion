@@ -19,9 +19,9 @@ export default function HomePage() {
           </h1>
 
           <p className="font-body text-lg text-foreground-secondary leading-relaxed max-w-[36rem] mb-2xl">
-            Structured lessons with gated quizzes. Wrong answers cost XP.
-            Three strikes lock a question for 24 hours. No clicking through.
-            No shortcuts. You either learn it or you don&apos;t.
+            Every XP point must be earned. Structured lessons, fast feedback
+            loops, and gated quizzes that test whether you can actually apply
+            economics under pressure. No clicking through. No fake progress.
           </p>
 
           <div className="flex items-center gap-lg">
@@ -32,7 +32,8 @@ export default function HomePage() {
               Start with Lesson Zero
             </Link>
             <span className="text-xs text-foreground-muted font-body">
-              Free. No account needed.
+              Free. Built for serious self-study before undergrad, a master&apos;s,
+              or a harder economics course.
             </span>
           </div>
         </div>
@@ -78,6 +79,38 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section className="border-t border-border-subtle">
+        <div className="max-w-[64rem] mx-auto px-xl py-4xl">
+          <div className="max-w-[46rem]">
+            <p className="font-display font-bold text-2xl text-foreground mb-lg">
+              The philosophy
+            </p>
+            <div className="space-y-lg font-body text-base text-foreground-secondary leading-relaxed">
+              <p>
+                This is economics boot camp. The goal is not to make you feel
+                busy. The goal is to make you better at reasoning through real
+                economic problems.
+              </p>
+              <p>
+                Every XP point represents demonstrated understanding. You read a
+                section, get tested quickly, and move forward only when you earn
+                it. The pace stays tight so the feedback loop stays honest.
+              </p>
+              <p>
+                The questions are designed around application, not recall. You
+                should have to compare tradeoffs, work through scenarios, and
+                notice where your assumptions or biases break down.
+              </p>
+              <p>
+                The ambition is simple: build something rigorous enough to help
+                someone prepare for undergraduate economics, a master&apos;s
+                program, or serious independent study.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* How it works — asymmetric, editorial */}
       <section className="border-t border-border-subtle bg-surface-sunken">
         <div className="max-w-[64rem] mx-auto px-xl py-4xl">
@@ -89,23 +122,23 @@ export default function HomePage() {
             {[
               {
                 step: "01",
-                title: "Read a dense section",
-                desc: "Real economics content. Zimbabwe's hyperinflation. Coachella's ticket pricing. Apple's elasticity strategy. Not toy examples.",
+                title: "Work through a real section",
+                desc: "Dense economics content grounded in real cases, tradeoffs, and decisions. Not toy examples and not watered-down summaries.",
               },
               {
                 step: "02",
-                title: "Answer the gate question",
-                desc: "Each subsection ends with a quiz gate. Get it right: unlock the next section and earn XP. Get it wrong: lose XP and try again.",
+                title: "Apply it immediately",
+                desc: "Each subsection ends with a quiz gate. You are tested fast, while the idea is still fresh, so the system can tell whether you actually understood it.",
               },
               {
                 step: "03",
-                title: "Complete all sections",
-                desc: "8 major sections per lesson, each with ~3 gated subsections. Work through all of them at your own pace.",
+                title: "Earn your progress",
+                desc: "Correct answers unlock the next step and earn XP. Wrong answers cost XP. Progress reflects demonstrated understanding, not time spent on the page.",
               },
               {
                 step: "04",
-                title: "Pass the mastery exam",
-                desc: "25 randomly-drawn questions. Timed. 70% to pass. Different questions every attempt. This is where you prove you know the material.",
+                title: "Prove it on mastery",
+                desc: "Finish with a timed mastery exam drawn from a larger pool of application-heavy questions. This is where recall stops being enough.",
               },
             ].map((item) => (
               <div key={item.step} className="flex gap-xl items-baseline">
@@ -133,8 +166,9 @@ export default function HomePage() {
             Lesson Zero is free
           </p>
           <p className="font-body text-base text-foreground-secondary mb-xl max-w-md mx-auto">
-            A full lesson with real content, real quizzes, and real XP.
-            See if this is worth $19.99/month before you commit.
+            A full lesson with real content, real quizzes, and XP that must be
+            earned. See whether this style of economics training works for you
+            before you commit.
           </p>
           <Link
             href="/lessons"

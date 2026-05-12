@@ -1,14 +1,18 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import {
   ArrowLeft, Upload, Search, FileText, Check, Loader2,
-  ChevronRight, AlertCircle, Eye, Send,
+  ChevronRight, AlertCircle, Eye, Send, Zap, Square, History, RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
 import { LessonPlayer } from "@/components/lesson/LessonPlayer";
 import type { LessonData } from "@/lib/types/lesson";
+import {
+  getJobStageSummary,
+  type LessonGenerationJobState,
+} from "@/lib/admin/generation-state";
 
 interface LessonRecord {
   id: string;
@@ -42,6 +46,8 @@ interface Source {
   createdAt: string;
 }
 
+type GenerationJob = LessonGenerationJobState;
+
 type Tab = "sources" | "outline" | "sections" | "questions" | "mastery" | "preview";
 
 const TABS: { id: Tab; label: string; minStatus: string[] }[] = [
@@ -55,7 +61,6 @@ const TABS: { id: Tab; label: string; minStatus: string[] }[] = [
 
 export default function LessonWorkspace() {
   const { id } = useParams<{ id: string }>();
-  const router = useRouter();
   const [lesson, setLesson] = useState<LessonRecord | null>(null);
   const [sources, setSources] = useState<Source[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>("sources");
@@ -63,24 +68,62 @@ export default function LessonWorkspace() {
   const [generating, setGenerating] = useState(false);
   const [genStatus, setGenStatus] = useState("");
   const [error, setError] = useState("");
+  const [jobs, setJobs] = useState<GenerationJob[]>([]);
+  const [activeJob, setActiveJob] = useState<GenerationJob | null>(null);
+  const [hasRemainingWork, setHasRemainingWork] = useState(false);
 
   const loadLesson = useCallback(async () => {
-    const res = await fetch(`/api/admin/lessons/${id}`);
+    const res = await fetch(`/api/admin/lessons/${id}`, { cache: "no-store" });
     const data = await res.json();
     setLesson(data.lesson);
     setLoading(false);
   }, [id]);
 
   const loadSources = useCallback(async () => {
-    const res = await fetch(`/api/admin/lessons/${id}/sources`);
+    const res = await fetch(`/api/admin/lessons/${id}/sources`, {
+      cache: "no-store",
+    });
     const data = await res.json();
     setSources(data.sources ?? []);
+  }, [id]);
+
+  const loadJobs = useCallback(async () => {
+    const res = await fetch(`/api/admin/lessons/${id}/autopilot`, {
+      cache: "no-store",
+    });
+    const data = await res.json();
+    setJobs(data.jobs ?? []);
+    setActiveJob(data.activeJob ?? null);
+    setHasRemainingWork(Boolean(data.hasRemainingWork));
   }, [id]);
 
   useEffect(() => {
     loadLesson();
     loadSources();
-  }, [loadLesson, loadSources]);
+    loadJobs();
+  }, [loadLesson, loadSources, loadJobs]);
+
+  useEffect(() => {
+    if (!activeJob) {
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      void loadLesson();
+      void loadSources();
+      void loadJobs();
+    }, 3000);
+
+    return () => window.clearInterval(interval);
+  }, [activeJob, loadJobs, loadLesson, loadSources]);
+
+  const latestJob = jobs[0] ?? null;
+  const jobInFlight = Boolean(activeJob);
+  const resumeAvailable =
+    !activeJob &&
+    hasRemainingWork &&
+    (latestJob?.status === "failed" || latestJob?.status === "cancelled");
+  const anyGenerationBusy = generating || jobInFlight;
 
   async function generate(stage: string, sectionIndex?: number) {
     setGenerating(true);
@@ -153,6 +196,44 @@ export default function LessonWorkspace() {
     }
   }
 
+  async function startAutopilot() {
+    setError("");
+
+    try {
+      const res = await fetch(`/api/admin/lessons/${id}/autopilot`, {
+        method: "POST",
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to queue generation job");
+      }
+
+      setActiveJob(data.job ?? null);
+      await loadJobs();
+      await loadLesson();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Autopilot failed");
+    }
+  }
+
+  async function cancelAutopilot() {
+    try {
+      const res = await fetch(`/api/admin/lessons/${id}/autopilot`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to cancel job");
+      }
+
+      await loadJobs();
+      await loadLesson();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to cancel job");
+    }
+  }
+
   if (loading || !lesson) {
     return <div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
   }
@@ -179,12 +260,42 @@ export default function LessonWorkspace() {
             }`}>{lesson.status}</span>
           </div>
         </div>
-        {lesson.status === "review" && (
-          <button onClick={publish} className="flex items-center gap-sm px-lg py-md rounded-lg bg-green-600 text-white font-body text-sm font-semibold hover:bg-green-700 transition-colors">
-            <Send className="h-4 w-4" /> Publish
-          </button>
-        )}
+        <div className="flex items-center gap-md">
+          {jobInFlight ? (
+            <button
+              onClick={cancelAutopilot}
+              className="flex items-center gap-sm px-lg py-md rounded-lg bg-red-600 text-white font-body text-sm font-semibold hover:bg-red-700 transition-colors"
+            >
+              <Square className="h-4 w-4" /> Cancel Job
+            </button>
+          ) : hasRemainingWork &&
+            !["review", "published", "archived"].includes(lesson.status) ? (
+            <button
+              onClick={startAutopilot}
+              disabled={generating}
+              className="flex items-center gap-sm px-lg py-md rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 text-white font-body text-sm font-semibold hover:from-amber-600 hover:to-orange-600 transition-all shadow-sm disabled:opacity-50"
+            >
+              {resumeAvailable ? <RefreshCw className="h-4 w-4" /> : <Zap className="h-4 w-4" />}
+              {resumeAvailable ? "Resume Job" : "Generate the Rest"}
+            </button>
+          ) : null}
+          {lesson.status === "review" && (
+            <button onClick={publish} className="flex items-center gap-sm px-lg py-md rounded-lg bg-green-600 text-white font-body text-sm font-semibold hover:bg-green-700 transition-colors">
+              <Send className="h-4 w-4" /> Publish
+            </button>
+          )}
+        </div>
       </div>
+
+      <JobActivityPanel
+        lesson={lesson}
+        activeJob={activeJob}
+        latestJob={latestJob}
+        jobs={jobs}
+        hasRemainingWork={hasRemainingWork}
+        onStart={startAutopilot}
+        onCancel={cancelAutopilot}
+      />
 
       {/* Tabs */}
       <div className="flex border-b border-border mb-xl overflow-x-auto">
@@ -227,8 +338,9 @@ export default function LessonWorkspace() {
           onDelete={deleteSource}
           onRunResearch={() => generate("research")}
           researchNotes={lesson.researchNotes}
-          generating={generating}
+          generating={anyGenerationBusy}
           onApproveResearch={() => updateLesson({ status: "outline" as any })}
+          approved={["outline", "content", "questions", "mastery", "review", "published"].includes(lesson.status)}
         />
       )}
       {activeTab === "outline" && (
@@ -239,7 +351,8 @@ export default function LessonWorkspace() {
           estimatedMinutes={lesson.estimatedMinutes}
           onGenerate={() => generate("outline")}
           onUpdate={(updates) => updateLesson(updates)}
-          generating={generating}
+          generating={anyGenerationBusy}
+          approved={["content", "questions", "mastery", "review", "published"].includes(lesson.status)}
         />
       )}
       {activeTab === "sections" && (
@@ -249,7 +362,7 @@ export default function LessonWorkspace() {
           contentProgress={lesson.contentProgress}
           onGenerate={(idx) => generate("content", idx)}
           onUpdateSections={(sections) => updateLesson({ sections })}
-          generating={generating}
+          generating={anyGenerationBusy}
         />
       )}
       {activeTab === "questions" && (
@@ -257,14 +370,14 @@ export default function LessonWorkspace() {
           sections={lesson.sections}
           questionsProgress={lesson.questionsProgress}
           onGenerate={(idx) => generate("questions", idx)}
-          generating={generating}
+          generating={anyGenerationBusy}
         />
       )}
       {activeTab === "mastery" && (
         <MasteryTab
           mastery={lesson.masteryQuiz}
           onGenerate={() => generate("mastery")}
-          generating={generating}
+          generating={anyGenerationBusy}
         />
       )}
       {activeTab === "preview" && (
@@ -274,9 +387,197 @@ export default function LessonWorkspace() {
   );
 }
 
+function JobActivityPanel({
+  lesson,
+  activeJob,
+  latestJob,
+  jobs,
+  hasRemainingWork,
+  onStart,
+  onCancel,
+}: {
+  lesson: LessonRecord;
+  activeJob: GenerationJob | null;
+  latestJob: GenerationJob | null;
+  jobs: GenerationJob[];
+  hasRemainingWork: boolean;
+  onStart: () => void;
+  onCancel: () => void;
+}) {
+  if (!latestJob && !hasRemainingWork) {
+    return null;
+  }
+
+  const displayJob = activeJob ?? latestJob;
+  const progressPercent =
+    displayJob && displayJob.total > 0
+      ? Math.min((displayJob.progress / displayJob.total) * 100, 100)
+      : 0;
+  const resumeAvailable =
+    !activeJob &&
+    hasRemainingWork &&
+    (latestJob?.status === "failed" || latestJob?.status === "cancelled");
+
+  const statusClasses =
+    displayJob?.status === "running"
+      ? "bg-amber-100 text-amber-800"
+      : displayJob?.status === "queued"
+        ? "bg-blue-100 text-blue-800"
+        : displayJob?.status === "completed"
+          ? "bg-green-100 text-green-800"
+          : displayJob?.status === "failed"
+            ? "bg-red-100 text-red-800"
+            : displayJob?.status === "cancelled"
+              ? "bg-gray-100 text-gray-700"
+              : "bg-surface-sunken text-foreground-muted";
+
+  return (
+    <div className="mb-xl rounded-xl border border-border bg-surface-raised p-xl">
+      <div className="flex flex-col gap-lg lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-md">
+            <History className="h-5 w-5 text-primary" />
+            <h3 className="font-display text-lg font-semibold text-foreground">
+              Job Activity
+            </h3>
+            {displayJob ? (
+              <span
+                className={`rounded px-sm py-[2px] text-[10px] font-semibold uppercase tracking-wider ${statusClasses}`}
+              >
+                {displayJob.status}
+              </span>
+            ) : null}
+          </div>
+
+          {activeJob ? (
+            <p className="mt-xs font-body text-sm text-foreground-muted">
+              This lesson is generating in the background. You can refresh or leave
+              this page and the worker will keep going.
+            </p>
+          ) : resumeAvailable ? (
+            <p className="mt-xs font-body text-sm text-foreground-muted">
+              The last run stopped partway through. You can resume from the current
+              lesson state.
+            </p>
+          ) : hasRemainingWork ? (
+            <p className="mt-xs font-body text-sm text-foreground-muted">
+              This lesson still has generation work left. Start a background job to
+              continue from the current checkpoint.
+            </p>
+          ) : (
+            <p className="mt-xs font-body text-sm text-foreground-muted">
+              This lesson has no remaining generation work.
+            </p>
+          )}
+
+          {displayJob ? (
+            <div className="mt-lg rounded-lg bg-surface-sunken p-lg">
+              <div className="mb-sm flex items-center justify-between gap-md">
+                <p className="min-w-0 font-body text-sm font-medium text-foreground">
+                  {displayJob.currentStep ?? "Waiting for worker status..."}
+                </p>
+                <span className="shrink-0 font-body text-xs text-foreground-muted">
+                  {displayJob.progress}/{displayJob.total || 0}
+                </span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-border">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    activeJob
+                      ? "bg-gradient-to-r from-amber-500 to-orange-500"
+                      : displayJob.status === "completed"
+                        ? "bg-green-600"
+                        : displayJob.status === "failed"
+                          ? "bg-red-600"
+                          : "bg-gray-500"
+                  }`}
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+              <div className="mt-sm flex flex-wrap items-center gap-md font-body text-xs text-foreground-muted">
+                <span>
+                  Stage:{" "}
+                  <span className="font-semibold text-foreground">
+                    {getJobStageSummary(displayJob)}
+                  </span>
+                </span>
+                <span>
+                  Updated{" "}
+                  {displayJob.updatedAt
+                    ? new Date(displayJob.updatedAt).toLocaleString()
+                    : "just now"}
+                </span>
+              </div>
+              {displayJob.error ? (
+                <p className="mt-md font-body text-sm text-red-700">
+                  {displayJob.error}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="flex shrink-0 items-center gap-md">
+          {activeJob ? (
+            <button
+              onClick={onCancel}
+              className="flex items-center gap-sm rounded-lg bg-red-600 px-lg py-md font-body text-sm font-semibold text-white transition-colors hover:bg-red-700"
+            >
+              <Square className="h-4 w-4" /> Cancel
+            </button>
+          ) : hasRemainingWork ? (
+            <button
+              onClick={onStart}
+              className="flex items-center gap-sm rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 px-lg py-md font-body text-sm font-semibold text-white transition-all hover:from-amber-600 hover:to-orange-600"
+            >
+              {resumeAvailable ? (
+                <RefreshCw className="h-4 w-4" />
+              ) : (
+                <Zap className="h-4 w-4" />
+              )}
+              {resumeAvailable ? "Resume Job" : "Start Job"}
+            </button>
+          ) : null}
+        </div>
+      </div>
+
+      {jobs.length > 0 ? (
+        <div className="mt-xl border-t border-border pt-lg">
+          <h4 className="font-body text-xs font-semibold uppercase tracking-wide text-foreground-secondary">
+            Recent Runs
+          </h4>
+          <div className="mt-md space-y-sm">
+            {jobs.slice(0, 5).map((job) => (
+              <div
+                key={job.id}
+                className="flex flex-col gap-xs rounded-lg bg-surface-sunken p-md sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div>
+                  <p className="font-body text-sm font-medium text-foreground">
+                    {job.currentStep ?? "No step recorded"}
+                  </p>
+                  <p className="font-body text-xs text-foreground-muted">
+                    {getJobStageSummary(job)} ·{" "}
+                    {new Date(job.createdAt).toLocaleString()}
+                  </p>
+                </div>
+                <span
+                  className={`inline-flex w-fit rounded px-sm py-[2px] text-[10px] font-semibold uppercase tracking-wider ${job.status === "completed" ? "bg-green-100 text-green-800" : job.status === "failed" ? "bg-red-100 text-red-800" : job.status === "cancelled" ? "bg-gray-100 text-gray-700" : "bg-blue-100 text-blue-800"}`}
+                >
+                  {job.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 /* ==================== Sources Tab ==================== */
 function SourcesTab({
-  sources, onUpload, onAddText, onDelete, onRunResearch, researchNotes, generating, onApproveResearch,
+  sources, onUpload, onAddText, onDelete, onRunResearch, researchNotes, generating, onApproveResearch, approved,
 }: {
   sources: Source[];
   onUpload: (f: File) => void;
@@ -286,6 +587,7 @@ function SourcesTab({
   researchNotes: string | null;
   generating: boolean;
   onApproveResearch: () => void;
+  approved: boolean;
 }) {
   const [pasteTitle, setPasteTitle] = useState("");
   const [pasteContent, setPasteContent] = useState("");
@@ -399,12 +701,18 @@ function SourcesTab({
           <div>
             <div className="flex items-center justify-between mb-md">
               <h4 className="font-body text-xs font-semibold uppercase tracking-wide text-foreground-secondary">Research Synthesis</h4>
-              <button
-                onClick={onApproveResearch}
-                className="flex items-center gap-sm px-md py-xs rounded-lg bg-green-600 text-white font-body text-xs font-semibold hover:bg-green-700 transition-colors"
-              >
-                <Check className="h-3 w-3" /> Approve & Continue
-              </button>
+              {approved ? (
+                <span className="flex items-center gap-sm px-md py-xs rounded-lg bg-green-100 text-green-700 font-body text-xs font-semibold">
+                  <Check className="h-3 w-3" /> Approved
+                </span>
+              ) : (
+                <button
+                  onClick={onApproveResearch}
+                  className="flex items-center gap-sm px-md py-xs rounded-lg bg-green-600 text-white font-body text-xs font-semibold hover:bg-green-700 transition-colors"
+                >
+                  <Check className="h-3 w-3" /> Approve & Continue
+                </button>
+              )}
             </div>
             <div className="rounded-lg bg-surface-sunken p-lg font-body text-sm text-foreground whitespace-pre-wrap max-h-96 overflow-y-auto">
               {researchNotes}
@@ -418,7 +726,7 @@ function SourcesTab({
 
 /* ==================== Outline Tab ==================== */
 function OutlineTab({
-  outline, title, description, estimatedMinutes, onGenerate, onUpdate, generating,
+  outline, title, description, estimatedMinutes, onGenerate, onUpdate, generating, approved,
 }: {
   outline: any;
   title: string;
@@ -427,6 +735,7 @@ function OutlineTab({
   onGenerate: () => void;
   onUpdate: (updates: any) => void;
   generating: boolean;
+  approved: boolean;
 }) {
   const [editTitle, setEditTitle] = useState(title);
   const [editDesc, setEditDesc] = useState(description);
@@ -492,12 +801,18 @@ function OutlineTab({
               <h4 className="font-body text-xs font-semibold uppercase tracking-wide text-foreground-secondary">
                 {outline.sections.length} Sections · {outline.sections.reduce((sum: number, s: any) => sum + (s.subsections?.length ?? 0), 0)} Subsections
               </h4>
-              <button
-                onClick={() => onUpdate({ status: "content" })}
-                className="flex items-center gap-sm px-md py-xs rounded-lg bg-green-600 text-white font-body text-xs font-semibold hover:bg-green-700 transition-colors"
-              >
-                <Check className="h-3 w-3" /> Approve Outline
-              </button>
+              {approved ? (
+                <span className="flex items-center gap-sm px-md py-xs rounded-lg bg-green-100 text-green-700 font-body text-xs font-semibold">
+                  <Check className="h-3 w-3" /> Approved
+                </span>
+              ) : (
+                <button
+                  onClick={() => onUpdate({ status: "content" })}
+                  className="flex items-center gap-sm px-md py-xs rounded-lg bg-green-600 text-white font-body text-xs font-semibold hover:bg-green-700 transition-colors"
+                >
+                  <Check className="h-3 w-3" /> Approve Outline
+                </button>
+              )}
             </div>
             {outline.sections.map((section: any, sIdx: number) => (
               <div key={section.id} className="rounded-lg border border-border p-lg">
@@ -760,6 +1075,33 @@ function MasteryTab({
             <span>Passing: <strong>{mastery.passingScore}%</strong></span>
             <span>Time limit: <strong>{mastery.timeLimitMinutes} min</strong></span>
           </div>
+          {mastery.generationProgress && (
+            <div className="mb-xl rounded-lg bg-surface-sunken p-lg">
+              <div className="flex items-center justify-between mb-sm">
+                <p className="font-body text-sm font-medium text-foreground">
+                  Mastery generation progress
+                </p>
+                <span className="font-body text-xs text-foreground-muted">
+                  {mastery.generationProgress.generatedCount}/
+                  {mastery.generationProgress.targetCount}
+                </span>
+              </div>
+              <div className="h-2 rounded-full bg-border overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-gold transition-all duration-500"
+                  style={{
+                    width: `${
+                      mastery.generationProgress.targetCount > 0
+                        ? (mastery.generationProgress.generatedCount /
+                            mastery.generationProgress.targetCount) *
+                          100
+                        : 0
+                    }%`,
+                  }}
+                />
+              </div>
+            </div>
+          )}
           <div className="space-y-lg">
             {mastery.questionPool?.map((q: any, idx: number) => (
               <div key={q.id || idx} className="rounded-lg border border-border p-lg">

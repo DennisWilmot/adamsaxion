@@ -42,6 +42,7 @@ function rowToLessonData(row: typeof lessons.$inferSelect): LessonData {
       xpPenalties: q.xpPenalties ?? [10, 15],
       explanation: q.explanation,
     })),
+    generationProgress: masteryRaw.generationProgress,
   } : { questionsPerAttempt: 5, passingScore: 70, timeLimitMinutes: 15, questionPool: [] };
 
   return {

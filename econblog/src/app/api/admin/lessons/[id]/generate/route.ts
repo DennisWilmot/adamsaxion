@@ -7,8 +7,9 @@ import {
   generateOutline,
   generateSectionContent,
   generateSectionQuestions,
-  generateMasteryPool,
+  generateMasteryQuestion,
 } from "@/lib/admin/pipeline";
+import { getActiveLessonJob } from "@/lib/admin/lesson-generation-runner";
 
 export const maxDuration = 120;
 
@@ -20,6 +21,17 @@ export async function POST(
     const { id } = await params;
     const body = await request.json();
     const { stage, sectionIndex } = body;
+
+    const activeJob = await getActiveLessonJob(id);
+    if (activeJob) {
+      return NextResponse.json(
+        {
+          error:
+            "A background generation job is already running for this lesson.",
+        },
+        { status: 409 }
+      );
+    }
 
     const [lesson] = await db.select().from(lessons).where(eq(lessons.id, id)).limit(1);
     if (!lesson) {
@@ -278,23 +290,94 @@ export async function POST(
             `## ${s.title}\n${s.subsections.map((sub) => `### ${sub.title}\n${sub.content}`).join("\n\n")}`
           )
           .join("\n\n---\n\n");
-
-        const mastery = await generateMasteryPool(
-          lesson.title,
-          allContent,
-          currentSections.length
+        const questionsPerAttempt = Math.max(
+          5,
+          Math.min(10, currentSections.length)
         );
+        const targetCount = questionsPerAttempt * 2;
+        const existingMastery = (lesson.masteryQuiz as {
+          questionsPerAttempt?: number;
+          passingScore?: number;
+          timeLimitMinutes?: number;
+          questionPool?: Array<Record<string, unknown>>;
+        } | null) ?? null;
+        const questionPool = [...(existingMastery?.questionPool ?? [])];
+        let passingScore = existingMastery?.passingScore ?? 70;
+        let timeLimitMinutes = existingMastery?.timeLimitMinutes ?? 15;
+
+        while (questionPool.length < targetCount) {
+          const result = await generateMasteryQuestion(
+            lesson.title,
+            allContent,
+            questionsPerAttempt,
+            questionPool.length + 1,
+            targetCount,
+            questionPool.map((question) => String(question.question ?? ""))
+          );
+
+          if (!result.question) {
+            throw new Error("Mastery generation returned no question");
+          }
+
+          passingScore = result.passingScore ?? passingScore;
+          timeLimitMinutes = result.timeLimitMinutes ?? timeLimitMinutes;
+          questionPool.push(result.question);
+
+          await db
+            .update(lessons)
+            .set({
+              masteryQuiz: {
+                questionsPerAttempt,
+                passingScore,
+                timeLimitMinutes,
+                questionPool: questionPool.slice(0, targetCount),
+                generationProgress: {
+                  generatedCount: Math.min(questionPool.length, targetCount),
+                  targetCount,
+                  complete: questionPool.length >= targetCount,
+                  lastUpdatedAt: new Date().toISOString(),
+                },
+              } as unknown as Record<string, unknown>,
+              status: "mastery",
+              updatedAt: new Date(),
+            })
+            .where(eq(lessons.id, id));
+        }
 
         await db
           .update(lessons)
           .set({
-            masteryQuiz: mastery as unknown as Record<string, unknown>,
+            masteryQuiz: {
+              questionsPerAttempt,
+              passingScore,
+              timeLimitMinutes,
+              questionPool: questionPool.slice(0, targetCount),
+              generationProgress: {
+                generatedCount: targetCount,
+                targetCount,
+                complete: true,
+                lastUpdatedAt: new Date().toISOString(),
+              },
+            } as unknown as Record<string, unknown>,
             status: "review",
             updatedAt: new Date(),
           })
           .where(eq(lessons.id, id));
 
-        return NextResponse.json({ mastery });
+        return NextResponse.json({
+          mastery: {
+            questionsPerAttempt,
+            passingScore,
+            timeLimitMinutes,
+            questionPool: questionPool.slice(0, targetCount),
+            generationProgress: {
+              generatedCount: targetCount,
+              targetCount,
+              complete: true,
+              lastUpdatedAt: new Date().toISOString(),
+            },
+          },
+        });
       }
 
       default:

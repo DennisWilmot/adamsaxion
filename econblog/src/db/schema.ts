@@ -76,6 +76,24 @@ export const lessons = pgTable("lessons", {
   publishedAt: timestamp("published_at", { withTimezone: true }),
 });
 
+export const lessonGenerationJobs = pgTable("lesson_generation_jobs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  lessonId: uuid("lesson_id")
+    .references(() => lessons.id, { onDelete: "cascade" })
+    .notNull(),
+  status: text("status").default("queued").notNull(),
+  currentStage: text("current_stage"),
+  currentStep: text("current_step"),
+  progress: integer("progress").default(0).notNull(),
+  total: integer("total").default(0).notNull(),
+  error: text("error"),
+  cancelRequested: boolean("cancel_requested").default(false).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  startedAt: timestamp("started_at", { withTimezone: true }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  finishedAt: timestamp("finished_at", { withTimezone: true }),
+});
+
 export const lessonSources = pgTable("lesson_sources", {
   id: uuid("id").defaultRandom().primaryKey(),
   lessonId: uuid("lesson_id").references(() => lessons.id, { onDelete: "cascade" }).notNull(),

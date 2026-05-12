@@ -167,6 +167,61 @@
   text-underline-offset: 2px;
 }
 
+.prose-custom blockquote {
+  margin: 0 0 var(--space-lg);
+  border-left: 3px solid var(--color-primary);
+  padding-left: var(--space-lg);
+  color: var(--color-foreground);
+  font-style: italic;
+}
+
+.prose-custom table {
+  width: 100%;
+  margin: var(--space-lg) 0 var(--space-xl);
+  border-collapse: collapse;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+}
+
+.prose-custom thead {
+  background: var(--color-surface-sunken);
+}
+
+.prose-custom th,
+.prose-custom td {
+  border: 1px solid var(--color-border);
+  padding: var(--space-md);
+  text-align: left;
+  vertical-align: top;
+}
+
+.prose-custom th {
+  color: var(--color-foreground);
+  font-weight: 600;
+}
+
+.prose-custom code {
+  border-radius: 0.375rem;
+  background: var(--color-surface-sunken);
+  padding: 0.125rem 0.375rem;
+  font-size: 0.9em;
+}
+
+.prose-custom pre {
+  margin: 0 0 var(--space-lg);
+  overflow-x: auto;
+  border-radius: 0.75rem;
+  background: var(--color-surface-sunken);
+  padding: var(--space-lg);
+}
+
+.prose-custom pre code {
+  background: transparent;
+  padding: 0;
+}
+
 @keyframes float-drift {
   0%, 100% {
     transform: translate(0, 0) rotate(0deg);

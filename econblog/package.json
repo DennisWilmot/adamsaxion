@@ -10,7 +10,13 @@
     "db:generate": "drizzle-kit generate",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx scripts/seed-database.ts",
-    "db:migrate-lessons": "tsx scripts/migrate-lessons-to-db.ts"
+    "db:migrate-lessons": "tsx scripts/migrate-lessons-to-db.ts",
+    "batch:generate": "tsx scripts/batch-generate.ts",
+    "batch:resume": "tsx scripts/batch-generate.ts --resume",
+    "worker:lessons": "node --import tsx scripts/lesson-generation-worker.ts",
+    "react-doctor": "pnpm exec react-doctor . --yes",
+    "react-doctor:verbose": "pnpm exec react-doctor . --verbose --yes",
+    "react-doctor:score": "pnpm exec react-doctor . --score --yes"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",
@@ -39,15 +45,20 @@
     "pdf-parse": "^2.4.5",
     "postgres": "^3.4.9",
     "posthog-js": "^1.261.6",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^19",
     "autoprefixer": "^10.4.21",
+    "dotenv": "^17.4.2",
     "drizzle-kit": "^0.31.10",
     "postcss": "^8.5.6",
+    "react-doctor": "^0.1.6",
     "tailwindcss": "^3.4.17",
     "tailwindcss-animate": "^1.0.7",
     "tsx": "^4.20.5",

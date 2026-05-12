@@ -32,6 +32,12 @@ export interface MasteryQuiz {
   passingScore: number;
   timeLimitMinutes: number;
   questionPool: MasteryQuestion[];
+  generationProgress?: {
+    generatedCount: number;
+    targetCount: number;
+    complete: boolean;
+    lastUpdatedAt?: string;
+  };
 }
 
 export interface LessonData {

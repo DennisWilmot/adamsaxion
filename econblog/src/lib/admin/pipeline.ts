@@ -210,6 +210,46 @@ export async function generateSectionQuestions(
   return questions;
 }
 
+export async function generateMasteryQuestion(
+  lessonTitle: string,
+  allSectionsContent: string,
+  questionsPerAttempt: number,
+  questionNumber: number,
+  targetCount: number,
+  existingQuestionStems: string[] = []
+): Promise<{
+  questionsPerAttempt: number;
+  passingScore: number;
+  timeLimitMinutes: number;
+  question: QuestionResult["questions"][0]["quiz"];
+}> {
+  const prompt = prompts.masteryQuestionPrompt(
+    lessonTitle,
+    allSectionsContent,
+    questionsPerAttempt,
+    questionNumber,
+    targetCount,
+    existingQuestionStems
+  );
+
+  return withRetry(
+    () =>
+      chatJSON<{
+        questionsPerAttempt: number;
+        passingScore: number;
+        timeLimitMinutes: number;
+        question: QuestionResult["questions"][0]["quiz"];
+      }>(
+        [
+          { role: "system", content: prompt.system },
+          { role: "user", content: prompt.user },
+        ],
+        { temperature: 0.7, maxTokens: 4096 }
+      ),
+    `mastery-question-${questionNumber}`
+  );
+}
+
 export async function generateMasteryPool(
   lessonTitle: string,
   allSectionsContent: string,
@@ -222,19 +262,33 @@ export async function generateMasteryPool(
 }> {
   const questionsPerAttempt = Math.max(5, Math.min(10, sectionCount));
   const poolSize = questionsPerAttempt * 2;
+  const questionPool: QuestionResult["questions"][0]["quiz"][] = [];
+  let passingScore = 70;
+  let timeLimitMinutes = 15;
 
-  const prompt = prompts.masteryPoolPrompt(
-    lessonTitle,
-    allSectionsContent,
+  while (questionPool.length < poolSize) {
+    const result = await generateMasteryQuestion(
+      lessonTitle,
+      allSectionsContent,
+      questionsPerAttempt,
+      questionPool.length + 1,
+      poolSize,
+      questionPool.map((question) => question.question)
+    );
+
+    if (!result.question) {
+      throw new Error("Mastery generation returned no question");
+    }
+
+    passingScore = result.passingScore ?? passingScore;
+    timeLimitMinutes = result.timeLimitMinutes ?? timeLimitMinutes;
+    questionPool.push(result.question);
+  }
+
+  return {
     questionsPerAttempt,
-    poolSize
-  );
-
-  return withRetry(
-    () => chatJSON([
-      { role: "system", content: prompt.system },
-      { role: "user", content: prompt.user },
-    ], { temperature: 0.7, maxTokens: 8192 }),
-    "mastery-pool"
-  );
+    passingScore,
+    timeLimitMinutes,
+    questionPool: questionPool.slice(0, poolSize),
+  };
 }

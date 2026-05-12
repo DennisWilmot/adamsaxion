@@ -1,0 +1,12 @@
+[
+  { "topic": "Supply and Demand", "category": "Microeconomics", "difficulty": "Beginner" },
+  { "topic": "Elasticity of Demand", "category": "Microeconomics", "difficulty": "Beginner" },
+  { "topic": "Market Structures and Competition", "category": "Microeconomics", "difficulty": "Intermediate" },
+  { "topic": "Externalities and Public Goods", "category": "Microeconomics", "difficulty": "Intermediate" },
+  { "topic": "Consumer Choice Theory", "category": "Microeconomics", "difficulty": "Advanced" },
+  { "topic": "GDP and National Income Accounting", "category": "Macroeconomics", "difficulty": "Beginner" },
+  { "topic": "Inflation and the Cost of Living", "category": "Macroeconomics", "difficulty": "Beginner" },
+  { "topic": "Monetary Policy and Central Banking", "category": "Macroeconomics", "difficulty": "Intermediate" },
+  { "topic": "Fiscal Policy and Government Spending", "category": "Macroeconomics", "difficulty": "Intermediate" },
+  { "topic": "International Trade and Comparative Advantage", "category": "International Economics", "difficulty": "Intermediate" }
+]
