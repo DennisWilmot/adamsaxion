@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function AuthCallbackPage() {
+function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState("");
@@ -69,5 +69,29 @@ export default function AuthCallbackPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="mx-auto flex min-h-[60vh] max-w-[28rem] items-center justify-center px-xl py-4xl text-center">
+          <div>
+            <h1 className="font-display text-2xl font-semibold text-foreground">
+              Finishing sign in
+            </h1>
+            <p className="mt-sm font-body text-sm text-foreground-muted">
+              Setting up your profile and taking you to your lesson.
+            </p>
+            <p className="mt-lg animate-pulse font-body text-sm text-foreground-muted">
+              One moment...
+            </p>
+          </div>
+        </div>
+      }
+    >
+      <AuthCallbackContent />
+    </Suspense>
   );
 }

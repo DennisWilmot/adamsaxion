@@ -24,7 +24,7 @@ export default function HomePage() {
             economics under pressure. No clicking through. No fake progress.
           </p>
 
-          <div className="flex items-center gap-lg">
+          <div className="flex flex-col items-start gap-md sm:flex-row sm:items-center sm:gap-lg">
             <Link
               href="/lessons"
               className="inline-flex items-center px-xl py-md font-body text-sm font-semibold text-surface-raised bg-primary hover:bg-primary-hover transition-colors rounded-lg shadow-sm"

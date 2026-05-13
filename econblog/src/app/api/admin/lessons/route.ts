@@ -31,7 +31,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { topic, category, difficulty } = body;
+    const { topic, description, category, difficulty } = body;
 
     if (!topic || !category || !difficulty) {
       return NextResponse.json(
@@ -51,6 +51,7 @@ export async function POST(request: Request) {
       .values({
         slug,
         title: topic,
+        description: String(description || "").trim(),
         category,
         difficulty,
         status: "research",

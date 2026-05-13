@@ -287,102 +287,122 @@ export default function LessonWorkspace() {
         </div>
       </div>
 
-      <JobActivityPanel
-        lesson={lesson}
-        activeJob={activeJob}
-        latestJob={latestJob}
-        jobs={jobs}
-        hasRemainingWork={hasRemainingWork}
-        onStart={startAutopilot}
-        onCancel={cancelAutopilot}
-      />
+      <div className="grid gap-xl lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
+        <div className="min-w-0">
+          {/* Tabs */}
+          <div className="mb-xl flex overflow-x-auto border-b border-border">
+            {TABS.map((tab) => {
+              const enabled =
+                tab.minStatus.includes(lesson.status) || tab.id === "sources";
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => enabled && setActiveTab(tab.id)}
+                  disabled={!enabled}
+                  className={`whitespace-nowrap border-b-2 px-xl py-md font-body text-sm font-medium transition-colors ${
+                    activeTab === tab.id
+                      ? "border-primary text-primary"
+                      : enabled
+                        ? "border-transparent text-foreground-muted hover:border-border hover:text-foreground"
+                        : "cursor-not-allowed border-transparent text-foreground-muted/40"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
 
-      {/* Tabs */}
-      <div className="flex border-b border-border mb-xl overflow-x-auto">
-        {TABS.map((tab) => {
-          const enabled = tab.minStatus.includes(lesson.status) || tab.id === "sources";
-          return (
-            <button
-              key={tab.id}
-              onClick={() => enabled && setActiveTab(tab.id)}
-              disabled={!enabled}
-              className={`px-xl py-md font-body text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                activeTab === tab.id
-                  ? "border-primary text-primary"
-                  : enabled
-                    ? "border-transparent text-foreground-muted hover:text-foreground hover:border-border"
-                    : "border-transparent text-foreground-muted/40 cursor-not-allowed"
+          {/* Status bar */}
+          {(generating || error) && (
+            <div
+              className={`mb-lg flex items-center gap-md rounded-lg p-md ${
+                error ? "bg-red-50 text-red-700" : "bg-blue-50 text-blue-700"
               }`}
             >
-              {tab.label}
-            </button>
-          );
-        })}
-      </div>
+              {generating ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <AlertCircle className="h-4 w-4" />
+              )}
+              <span className="font-body text-sm">{error || genStatus}</span>
+              {error ? (
+                <button
+                  onClick={() => setError("")}
+                  className="ml-auto text-xs underline"
+                >
+                  Dismiss
+                </button>
+              ) : null}
+            </div>
+          )}
 
-      {/* Status bar */}
-      {(generating || error) && (
-        <div className={`mb-lg rounded-lg p-md flex items-center gap-md ${error ? "bg-red-50 text-red-700" : "bg-blue-50 text-blue-700"}`}>
-          {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <AlertCircle className="h-4 w-4" />}
-          <span className="font-body text-sm">{error || genStatus}</span>
-          {error && <button onClick={() => setError("")} className="ml-auto text-xs underline">Dismiss</button>}
+          {/* Tab Content */}
+          {activeTab === "sources" && (
+            <SourcesTab
+              sources={sources}
+              onUpload={uploadFile}
+              onAddText={addTextSource}
+              onDelete={deleteSource}
+              onRunResearch={() => generate("research")}
+              researchNotes={lesson.researchNotes}
+              generating={anyGenerationBusy}
+              onApproveResearch={() => updateLesson({ status: "outline" as any })}
+              approved={["outline", "content", "questions", "mastery", "review", "published"].includes(lesson.status)}
+            />
+          )}
+          {activeTab === "outline" && (
+            <OutlineTab
+              outline={lesson.outlineData}
+              title={lesson.title}
+              description={lesson.description}
+              estimatedMinutes={lesson.estimatedMinutes}
+              onGenerate={() => generate("outline")}
+              onUpdate={(updates) => updateLesson(updates)}
+              generating={anyGenerationBusy}
+              approved={["content", "questions", "mastery", "review", "published"].includes(lesson.status)}
+            />
+          )}
+          {activeTab === "sections" && (
+            <SectionsTab
+              sections={lesson.sections}
+              outline={lesson.outlineData}
+              contentProgress={lesson.contentProgress}
+              onGenerate={(idx) => generate("content", idx)}
+              onUpdateSections={(sections) => updateLesson({ sections })}
+              generating={anyGenerationBusy}
+            />
+          )}
+          {activeTab === "questions" && (
+            <QuestionsTab
+              sections={lesson.sections}
+              questionsProgress={lesson.questionsProgress}
+              onGenerate={(idx) => generate("questions", idx)}
+              generating={anyGenerationBusy}
+            />
+          )}
+          {activeTab === "mastery" && (
+            <MasteryTab
+              mastery={lesson.masteryQuiz}
+              onGenerate={() => generate("mastery")}
+              generating={anyGenerationBusy}
+            />
+          )}
+          {activeTab === "preview" && <PreviewTab lesson={lesson} />}
         </div>
-      )}
 
-      {/* Tab Content */}
-      {activeTab === "sources" && (
-        <SourcesTab
-          sources={sources}
-          onUpload={uploadFile}
-          onAddText={addTextSource}
-          onDelete={deleteSource}
-          onRunResearch={() => generate("research")}
-          researchNotes={lesson.researchNotes}
-          generating={anyGenerationBusy}
-          onApproveResearch={() => updateLesson({ status: "outline" as any })}
-          approved={["outline", "content", "questions", "mastery", "review", "published"].includes(lesson.status)}
-        />
-      )}
-      {activeTab === "outline" && (
-        <OutlineTab
-          outline={lesson.outlineData}
-          title={lesson.title}
-          description={lesson.description}
-          estimatedMinutes={lesson.estimatedMinutes}
-          onGenerate={() => generate("outline")}
-          onUpdate={(updates) => updateLesson(updates)}
-          generating={anyGenerationBusy}
-          approved={["content", "questions", "mastery", "review", "published"].includes(lesson.status)}
-        />
-      )}
-      {activeTab === "sections" && (
-        <SectionsTab
-          sections={lesson.sections}
-          outline={lesson.outlineData}
-          contentProgress={lesson.contentProgress}
-          onGenerate={(idx) => generate("content", idx)}
-          onUpdateSections={(sections) => updateLesson({ sections })}
-          generating={anyGenerationBusy}
-        />
-      )}
-      {activeTab === "questions" && (
-        <QuestionsTab
-          sections={lesson.sections}
-          questionsProgress={lesson.questionsProgress}
-          onGenerate={(idx) => generate("questions", idx)}
-          generating={anyGenerationBusy}
-        />
-      )}
-      {activeTab === "mastery" && (
-        <MasteryTab
-          mastery={lesson.masteryQuiz}
-          onGenerate={() => generate("mastery")}
-          generating={anyGenerationBusy}
-        />
-      )}
-      {activeTab === "preview" && (
-        <PreviewTab lesson={lesson} />
-      )}
+        <div className="min-w-0 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">
+          <JobActivityPanel
+            lesson={lesson}
+            activeJob={activeJob}
+            latestJob={latestJob}
+            jobs={jobs}
+            hasRemainingWork={hasRemainingWork}
+            onStart={startAutopilot}
+            onCancel={cancelAutopilot}
+          />
+        </div>
+      </div>
     </div>
   );
 }
@@ -432,21 +452,28 @@ function JobActivityPanel({
               : "bg-surface-sunken text-foreground-muted";
 
   return (
-    <div className="mb-xl rounded-xl border border-border bg-surface-raised p-xl">
-      <div className="flex flex-col gap-lg lg:flex-row lg:items-start lg:justify-between">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-md">
-            <History className="h-5 w-5 text-primary" />
-            <h3 className="font-display text-lg font-semibold text-foreground">
-              Job Activity
-            </h3>
-            {displayJob ? (
-              <span
-                className={`rounded px-sm py-[2px] text-[10px] font-semibold uppercase tracking-wider ${statusClasses}`}
-              >
-                {displayJob.status}
-              </span>
-            ) : null}
+    <div className="rounded-xl border border-border bg-surface-raised p-lg shadow-sm">
+      <div className="flex flex-col gap-lg">
+        <div className="min-w-0">
+          <div className="flex items-start justify-between gap-md">
+            <div>
+              <div className="flex items-center gap-md">
+                <History className="h-5 w-5 text-primary" />
+                <h3 className="font-display text-lg font-semibold text-foreground">
+                  Job Activity
+                </h3>
+                {displayJob ? (
+                  <span
+                    className={`rounded px-sm py-[2px] text-[10px] font-semibold uppercase tracking-wider ${statusClasses}`}
+                  >
+                    {displayJob.status}
+                  </span>
+                ) : null}
+              </div>
+              <p className="mt-xs font-body text-xs text-foreground-muted">
+                Background generation status for this lesson
+              </p>
+            </div>
           </div>
 
           {activeJob ? (
@@ -521,14 +548,14 @@ function JobActivityPanel({
           {activeJob ? (
             <button
               onClick={onCancel}
-              className="flex items-center gap-sm rounded-lg bg-red-600 px-lg py-md font-body text-sm font-semibold text-white transition-colors hover:bg-red-700"
+              className="flex w-full items-center justify-center gap-sm rounded-lg bg-red-600 px-lg py-md font-body text-sm font-semibold text-white transition-colors hover:bg-red-700"
             >
               <Square className="h-4 w-4" /> Cancel
             </button>
           ) : hasRemainingWork ? (
             <button
               onClick={onStart}
-              className="flex items-center gap-sm rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 px-lg py-md font-body text-sm font-semibold text-white transition-all hover:from-amber-600 hover:to-orange-600"
+              className="flex w-full items-center justify-center gap-sm rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 px-lg py-md font-body text-sm font-semibold text-white transition-all hover:from-amber-600 hover:to-orange-600"
             >
               {resumeAvailable ? (
                 <RefreshCw className="h-4 w-4" />
@@ -542,7 +569,7 @@ function JobActivityPanel({
       </div>
 
       {jobs.length > 0 ? (
-        <div className="mt-xl border-t border-border pt-lg">
+        <div className="mt-lg border-t border-border pt-lg">
           <h4 className="font-body text-xs font-semibold uppercase tracking-wide text-foreground-secondary">
             Recent Runs
           </h4>

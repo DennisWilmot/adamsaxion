@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Plus, FileText, Trash2 } from "lucide-react";
+import { Plus, FileText, Trash2, Layers, Zap } from "lucide-react";
 
 interface LessonSummary {
   id: string;
@@ -31,14 +31,46 @@ const STATUS_COLORS: Record<string, string> = {
 const CATEGORIES = ["Microeconomics", "Macroeconomics", "Trade", "Finance"];
 const DIFFICULTIES = ["Beginner", "Intermediate", "Advanced"];
 
+function parseBatchLessons(input: string) {
+  return input
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const parts = line.includes("\t")
+        ? line.split("\t")
+        : line.split("|");
+
+      const [title, description = "", category = "", difficulty = ""] = parts.map(
+        (part) => part.trim()
+      );
+
+      return {
+        title,
+        description,
+        category,
+        difficulty,
+      };
+    })
+    .filter((lesson) => lesson.title);
+}
+
 export default function AdminPage() {
   const [lessons, setLessons] = useState<LessonSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
+  const [showBatchCreate, setShowBatchCreate] = useState(false);
   const [newTopic, setNewTopic] = useState("");
+  const [newDescription, setNewDescription] = useState("");
   const [newCategory, setNewCategory] = useState("Microeconomics");
   const [newDifficulty, setNewDifficulty] = useState("Intermediate");
   const [creating, setCreating] = useState(false);
+  const [batchInput, setBatchInput] = useState("");
+  const [batchCategory, setBatchCategory] = useState("Microeconomics");
+  const [batchDifficulty, setBatchDifficulty] = useState("Intermediate");
+  const [batchCreating, setBatchCreating] = useState(false);
+
+  const parsedBatchLessons = parseBatchLessons(batchInput);
 
   async function loadLessons() {
     const res = await fetch("/api/admin/lessons");
@@ -57,16 +89,50 @@ export default function AdminPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         topic: newTopic.trim(),
+        description: newDescription.trim(),
         category: newCategory,
         difficulty: newDifficulty,
       }),
     });
     if (res.ok) {
       setNewTopic("");
+      setNewDescription("");
       setShowCreate(false);
       await loadLessons();
     }
     setCreating(false);
+  }
+
+  async function handleBatchCreate() {
+    if (parsedBatchLessons.length === 0) return;
+
+    setBatchCreating(true);
+
+    const payload = parsedBatchLessons.map((lesson) => ({
+      title: lesson.title,
+      description: lesson.description,
+      category: lesson.category || batchCategory,
+      difficulty: lesson.difficulty || batchDifficulty,
+    }));
+
+    const res = await fetch("/api/admin/lessons/batch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        lessons: payload,
+        defaultCategory: batchCategory,
+        defaultDifficulty: batchDifficulty,
+        autoQueue: true,
+      }),
+    });
+
+    if (res.ok) {
+      setBatchInput("");
+      setShowBatchCreate(false);
+      await loadLessons();
+    }
+
+    setBatchCreating(false);
   }
 
   async function handleDelete(id: string) {
@@ -77,7 +143,7 @@ export default function AdminPage() {
 
   return (
     <div className="max-w-[72rem] mx-auto px-xl py-3xl">
-      <div className="flex items-center justify-between mb-2xl">
+      <div className="mb-2xl flex items-center justify-between">
         <div>
           <h1 className="font-display font-bold text-3xl text-foreground">
             Lesson Generator
@@ -86,14 +152,114 @@ export default function AdminPage() {
             Create, generate, and publish lessons
           </p>
         </div>
-        <button
-          onClick={() => setShowCreate(!showCreate)}
-          className="flex items-center gap-sm px-lg py-md rounded-lg bg-primary text-surface-raised font-body text-sm font-semibold hover:bg-primary-hover transition-colors"
-        >
-          <Plus className="h-4 w-4" />
-          New Lesson
-        </button>
+        <div className="flex items-center gap-sm">
+          <button
+            onClick={() => setShowBatchCreate(!showBatchCreate)}
+            className="flex items-center gap-sm rounded-lg border border-border bg-surface-raised px-lg py-md font-body text-sm font-semibold text-foreground transition-colors hover:border-primary/40 hover:text-primary"
+          >
+            <Layers className="h-4 w-4" />
+            Batch Queue
+          </button>
+          <button
+            onClick={() => setShowCreate(!showCreate)}
+            className="flex items-center gap-sm rounded-lg bg-primary px-lg py-md font-body text-sm font-semibold text-surface-raised transition-colors hover:bg-primary-hover"
+          >
+            <Plus className="h-4 w-4" />
+            New Lesson
+          </button>
+        </div>
       </div>
+
+      {showBatchCreate && (
+        <div className="mb-2xl rounded-xl border border-border bg-surface-raised p-xl">
+          <div className="mb-lg flex items-start justify-between gap-lg">
+            <div>
+              <h2 className="font-display font-semibold text-lg">
+                Batch Queue Lessons
+              </h2>
+              <p className="mt-xs max-w-2xl font-body text-sm text-foreground-secondary">
+                Paste one lesson per line and the worker will keep pulling jobs
+                until the queue is empty. Use either
+                <code className="mx-1 rounded bg-surface-sunken px-1.5 py-0.5 text-xs">Title | Description</code>
+                or tab-separated rows from a spreadsheet. You can optionally add
+                category and difficulty as the 3rd and 4th columns.
+              </p>
+            </div>
+            <span className="inline-flex items-center gap-xs rounded-full bg-amber-50 px-sm py-xs font-body text-xs font-medium text-amber-800">
+              <Zap className="h-3.5 w-3.5" />
+              Auto-queues generation
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 gap-lg sm:grid-cols-2 mb-lg">
+            <div>
+              <label className="mb-xs block font-body text-xs font-semibold uppercase tracking-wide text-foreground-secondary">
+                Default Category
+              </label>
+              <select
+                value={batchCategory}
+                onChange={(e) => setBatchCategory(e.target.value)}
+                className="w-full rounded-lg border border-border bg-surface px-lg py-md font-body text-sm"
+              >
+                {CATEGORIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="mb-xs block font-body text-xs font-semibold uppercase tracking-wide text-foreground-secondary">
+                Default Difficulty
+              </label>
+              <select
+                value={batchDifficulty}
+                onChange={(e) => setBatchDifficulty(e.target.value)}
+                className="w-full rounded-lg border border-border bg-surface px-lg py-md font-body text-sm"
+              >
+                {DIFFICULTIES.map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <textarea
+            value={batchInput}
+            onChange={(e) => setBatchInput(e.target.value)}
+            rows={10}
+            placeholder={`Game Theory | Strategic interaction, incentives, and equilibrium across real-world decisions\nKeynesian Economics | Demand shortfalls, stimulus, and recovery during downturns\nInternational Trade\tComparative advantage, tariffs, and global exchange\tTrade\tIntermediate`}
+            className="mb-md w-full rounded-lg border border-border bg-surface px-lg py-md font-body text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          />
+
+          <div className="flex flex-wrap items-center justify-between gap-md">
+            <p className="font-body text-sm text-foreground-muted">
+              {parsedBatchLessons.length}{" "}
+              {parsedBatchLessons.length === 1 ? "lesson" : "lessons"} ready to
+              create and queue
+            </p>
+            <div className="flex gap-md">
+              <button
+                onClick={() => setShowBatchCreate(false)}
+                className="rounded-lg border border-border px-xl py-md font-body text-sm transition-colors hover:bg-surface-sunken"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleBatchCreate}
+                disabled={parsedBatchLessons.length === 0 || batchCreating}
+                className="rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 px-xl py-md font-body text-sm font-semibold text-white transition-all hover:from-amber-600 hover:to-orange-600 disabled:opacity-50"
+              >
+                {batchCreating
+                  ? "Queueing Lessons..."
+                  : `Create + Queue ${parsedBatchLessons.length || ""}`.trim()}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showCreate && (
         <div className="mb-2xl rounded-xl border border-border bg-surface-raised p-xl">
@@ -106,6 +272,18 @@ export default function AdminPage() {
                 value={newTopic}
                 onChange={(e) => setNewTopic(e.target.value)}
                 placeholder="e.g. Supply and Demand Fundamentals"
+                className="w-full rounded-lg border border-border bg-surface px-lg py-md font-body text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+              />
+            </div>
+            <div className="sm:col-span-3">
+              <label className="block font-body text-xs font-semibold text-foreground-secondary mb-xs uppercase tracking-wide">
+                Description
+              </label>
+              <textarea
+                value={newDescription}
+                onChange={(e) => setNewDescription(e.target.value)}
+                rows={3}
+                placeholder="Short description of what the lesson should cover"
                 className="w-full rounded-lg border border-border bg-surface px-lg py-md font-body text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
               />
             </div>

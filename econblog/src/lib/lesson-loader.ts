@@ -3,6 +3,7 @@ import { lessons } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
 import type { LessonData, LessonMeta, Section, MasteryQuiz } from "./types/lesson";
 import { calculateLessonXp } from "./types/lesson";
+import { resolveLessonThumbnail } from "./lesson-thumbnail";
 
 function rowToLessonData(row: typeof lessons.$inferSelect): LessonData {
   const sections = (row.sections as any[] || []).map((s: any) => ({
@@ -52,7 +53,15 @@ function rowToLessonData(row: typeof lessons.$inferSelect): LessonData {
     difficulty: row.difficulty,
     estimatedMinutes: row.estimatedMinutes,
     description: row.description,
-    thumbnail: row.thumbnail,
+    thumbnail: resolveLessonThumbnail(
+      {
+        title: row.title,
+        category: row.category,
+        difficulty: row.difficulty,
+        description: row.description,
+      },
+      row.thumbnail
+    ),
     sections,
     masteryQuiz,
   };

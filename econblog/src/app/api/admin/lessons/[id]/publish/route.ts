@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { lessons } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { createLessonThumbnail } from "@/lib/lesson-thumbnail";
 
 export async function POST(
   request: Request,
@@ -22,9 +23,20 @@ export async function POST(
       );
     }
 
+    const thumbnail = await createLessonThumbnail(
+      {
+        title: lesson.title,
+        category: lesson.category,
+        difficulty: lesson.difficulty,
+        description: lesson.description,
+      },
+      lesson.thumbnail
+    );
+
     const [updated] = await db
       .update(lessons)
       .set({
+        thumbnail,
         status: "published",
         publishedAt: new Date(),
         updatedAt: new Date(),

@@ -11,6 +11,12 @@ interface OpenRouterOptions {
   responseFormat?: { type: "json_object" };
 }
 
+interface OpenRouterImageOptions {
+  model?: string;
+  aspectRatio?: string;
+  imageSize?: string;
+}
+
 function cleanJSONResponse(raw: string) {
   return raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
 }
@@ -144,4 +150,60 @@ export async function chatJSON<T = unknown>(
       throw parseError;
     }
   }
+}
+
+export async function generateImageDataUrl(
+  prompt: string,
+  options: OpenRouterImageOptions = {}
+): Promise<string> {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) throw new Error("OPENROUTER_API_KEY not set");
+
+  const model =
+    options.model ||
+    process.env.OPENROUTER_IMAGE_MODEL ||
+    "google/gemini-2.5-flash-image";
+
+  const body: Record<string, unknown> = {
+    model,
+    messages: [
+      {
+        role: "user",
+        content: prompt,
+      },
+    ],
+    modalities: ["image", "text"],
+    image_config: {
+      aspect_ratio: options.aspectRatio ?? "16:9",
+      image_size: options.imageSize ?? "1K",
+    },
+  };
+
+  const res = await fetch(OPENROUTER_API_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      "HTTP-Referer":
+        process.env.NEXT_PUBLIC_SUPABASE_URL || "http://localhost:3000",
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`OpenRouter image API error (${res.status}): ${err}`);
+  }
+
+  const data = await res.json();
+  const message = data.choices?.[0]?.message;
+  const image =
+    message?.images?.[0]?.image_url?.url ??
+    message?.images?.[0]?.imageUrl?.url;
+
+  if (!image || typeof image !== "string") {
+    throw new Error("OpenRouter image API returned no image");
+  }
+
+  return image;
 }

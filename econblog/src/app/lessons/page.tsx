@@ -140,42 +140,55 @@ export default function LessonsPage() {
             <Link
               key={lesson.id}
               href={`/lessons/${lesson.id}`}
-              className="group rounded-xl border border-border bg-surface-raised overflow-hidden hover:border-primary/30 hover:shadow-lg transition-all"
+              className="group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-surface-raised transition-all hover:border-primary/30 hover:shadow-lg"
             >
               {/* Thumbnail Area */}
-              <div
-                className={`relative h-44 bg-gradient-to-br ${
-                  CARD_GRADIENTS[lesson.category] ?? "from-gray-600 to-gray-700"
-                } flex items-center justify-center overflow-hidden`}
-              >
+              <div className="relative h-44 overflow-hidden border-b border-border-subtle">
+                {lesson.thumbnail ? (
+                  <img
+                    src={lesson.thumbnail}
+                    alt={`${lesson.title} thumbnail`}
+                    loading="lazy"
+                    decoding="async"
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                  />
+                ) : (
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-br ${
+                      CARD_GRADIENTS[lesson.category] ?? "from-gray-600 to-gray-700"
+                    } flex items-center justify-center`}
+                  >
+                    <div className="text-center text-white/90">
+                      <p className="font-display font-bold text-4xl opacity-20">
+                        {lesson.id.match(/lesson-(\d+)/)?.[1] ?? "?"}
+                      </p>
+                    </div>
+
+                    <div className="absolute inset-0 opacity-10">
+                      <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <pattern id={`grid-${lesson.id}`} width="24" height="24" patternUnits="userSpaceOnUse">
+                            <circle cx="1" cy="1" r="1" fill="currentColor" className="text-white" />
+                          </pattern>
+                        </defs>
+                        <rect width="100%" height="100%" fill={`url(#grid-${lesson.id})`} />
+                      </svg>
+                    </div>
+                  </div>
+                )}
+
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+                <div className="absolute inset-0 ring-1 ring-inset ring-black/8" />
+
                 {/* Category Badge */}
-                <span className="absolute top-md left-md bg-surface-raised/90 backdrop-blur-sm text-foreground font-body text-[10px] font-semibold tracking-widest uppercase px-sm py-[3px] rounded-md">
+                <span className="absolute right-md top-md rounded-md border border-white/25 bg-surface-raised/95 px-sm py-[3px] font-body text-[10px] font-semibold tracking-widest uppercase text-foreground shadow-md backdrop-blur-sm">
                   {lesson.category}
                 </span>
-
-                {/* Placeholder content — replaced with real images later */}
-                <div className="text-center text-white/90">
-                  <p className="font-display font-bold text-4xl opacity-20">
-                    {lesson.id.match(/lesson-(\d+)/)?.[1] ?? "?"}
-                  </p>
-                </div>
-
-                {/* Subtle pattern overlay */}
-                <div className="absolute inset-0 opacity-10">
-                  <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <pattern id={`grid-${lesson.id}`} width="24" height="24" patternUnits="userSpaceOnUse">
-                        <circle cx="1" cy="1" r="1" fill="currentColor" className="text-white" />
-                      </pattern>
-                    </defs>
-                    <rect width="100%" height="100%" fill={`url(#grid-${lesson.id})`} />
-                  </svg>
-                </div>
               </div>
 
               {/* Card Body */}
-              <div className="p-xl">
-                <div className="flex items-center gap-md mb-sm">
+              <div className="flex flex-1 flex-col p-xl">
+                <div className="mb-sm flex flex-wrap items-center gap-x-md gap-y-xs">
                   <span className="font-body text-xs text-foreground-muted">
                     {lesson.difficulty}
                   </span>
@@ -193,11 +206,11 @@ export default function LessonsPage() {
                   {lesson.title}
                 </h2>
 
-                <p className="font-body text-sm text-foreground-muted leading-relaxed line-clamp-2 mb-lg">
+                <p className="mb-lg flex-1 font-body text-sm leading-relaxed text-foreground-muted line-clamp-3">
                   {lesson.description}
                 </p>
 
-                <div className="flex items-center justify-between">
+                <div className="mt-auto flex items-center justify-between gap-md border-t border-border-subtle pt-md">
                   <span className="font-body text-xs text-foreground-muted">
                     {lesson.sectionCount} sections · {lesson.subsectionCount} parts
                   </span>
@@ -257,7 +270,7 @@ export default function LessonsPage() {
 
       {/* Results count */}
       <p className="font-body text-xs text-foreground-muted text-center mt-lg">
-        {filtered.length} lesson{filtered.length !== 1 ? "s" : ""} available
+        {filtered.length} {filtered.length === 1 ? "lesson" : "lessons"} available
       </p>
     </div>
   );
