@@ -63,5 +63,13 @@
     "tailwindcss-animate": "^1.0.7",
     "tsx": "^4.20.5",
     "typescript": "^5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "core-js",
+      "esbuild",
+      "protobufjs",
+      "sharp"
+    ]
   }
 }
