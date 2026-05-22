@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import {
   ArrowLeft, Upload, Search, FileText, Check, Loader2,
-  ChevronRight, AlertCircle, Eye, Send, Zap, Square, History, RefreshCw,
+  ChevronRight, AlertCircle, Eye, Send, Zap, Square, History, RefreshCw, ImageIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { LessonPlayer } from "@/components/lesson/LessonPlayer";
@@ -70,6 +70,7 @@ export default function LessonWorkspace() {
   const [genStatus, setGenStatus] = useState("");
   const [error, setError] = useState("");
   const [publishing, setPublishing] = useState(false);
+  const [regeneratingThumbnail, setRegeneratingThumbnail] = useState(false);
   const [jobs, setJobs] = useState<GenerationJob[]>([]);
   const [activeJob, setActiveJob] = useState<GenerationJob | null>(null);
   const [hasRemainingWork, setHasRemainingWork] = useState(false);
@@ -187,6 +188,45 @@ export default function LessonWorkspace() {
       method: "DELETE",
     });
     await loadSources();
+  }
+
+  async function regenerateThumbnail() {
+    setRegeneratingThumbnail(true);
+    setError("");
+
+    try {
+      const res = await fetch(`/api/admin/lessons/${id}/thumbnail`, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { Accept: "application/json" },
+        redirect: "manual",
+      });
+
+      if (res.type === "opaqueredirect" || (res.status >= 300 && res.status < 400)) {
+        throw new Error("Session expired. Sign in again and retry.");
+      }
+
+      const contentType = res.headers.get("content-type") ?? "";
+      if (!contentType.includes("application/json")) {
+        throw new Error(`Unexpected server response (${res.status}).`);
+      }
+
+      const data = (await res.json()) as { error?: string; lesson?: LessonRecord };
+
+      if (!res.ok) {
+        throw new Error(data.error || `Thumbnail regeneration failed (${res.status})`);
+      }
+
+      if (data.lesson) {
+        setLesson(data.lesson);
+      } else {
+        await loadLesson();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Thumbnail regeneration failed");
+    } finally {
+      setRegeneratingThumbnail(false);
+    }
   }
 
   async function publish() {
@@ -321,6 +361,15 @@ export default function LessonWorkspace() {
               {resumeAvailable ? "Resume Job" : "Generate the Rest"}
             </button>
           ) : null}
+          <button
+            type="button"
+            onClick={() => void regenerateThumbnail()}
+            disabled={regeneratingThumbnail || publishing}
+            className="flex items-center gap-sm px-lg py-md rounded-lg border border-border bg-surface-raised text-foreground font-body text-sm font-semibold hover:bg-surface-sunken transition-colors disabled:opacity-50"
+          >
+            <ImageIcon className="h-4 w-4" />
+            {regeneratingThumbnail ? "Regenerating..." : "Regenerate Thumbnail"}
+          </button>
           {canPublish && (
             <button
               type="button"
@@ -362,19 +411,24 @@ export default function LessonWorkspace() {
           </div>
 
           {/* Status bar */}
-          {(generating || publishing || error) && (
+          {(generating || publishing || regeneratingThumbnail || error) && (
             <div
               className={`mb-lg flex items-center gap-md rounded-lg p-md ${
                 error ? "bg-red-50 text-red-700" : "bg-blue-50 text-blue-700"
               }`}
             >
-              {generating || publishing ? (
+              {generating || publishing || regeneratingThumbnail ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <AlertCircle className="h-4 w-4" />
               )}
               <span className="font-body text-sm">
-                {error || (publishing ? "Publishing lesson..." : genStatus)}
+                {error ||
+                  (regeneratingThumbnail
+                    ? "Regenerating thumbnail..."
+                    : publishing
+                      ? "Publishing lesson..."
+                      : genStatus)}
               </span>
               {error ? (
                 <button

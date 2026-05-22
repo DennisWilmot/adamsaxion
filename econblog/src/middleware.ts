@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { getAdminEmails } from "@/lib/admin/auth";
 
 const PROTECTED_ROUTES = ["/profile"];
 const ADMIN_ROUTES = ["/admin", "/api/admin"];
@@ -50,10 +51,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    const adminEmails = (process.env.ADMIN_EMAILS || "")
-      .split(",")
-      .map((e) => e.trim().toLowerCase())
-      .filter(Boolean);
+    const adminEmails = getAdminEmails();
     const userEmail = (user.email ?? "").toLowerCase();
 
     if (adminEmails.length === 0) {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { LayoutDashboard, Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
@@ -18,6 +18,7 @@ export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -34,6 +35,37 @@ export function Header() {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!user) {
+      setIsAdmin(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    fetch("/api/user/admin-status", { cache: "no-store" })
+      .then(async (res) => {
+        if (!res.ok) {
+          return { isAdmin: false };
+        }
+        return res.json() as Promise<{ isAdmin?: boolean }>;
+      })
+      .then((data) => {
+        if (!cancelled) {
+          setIsAdmin(Boolean(data.isAdmin));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setIsAdmin(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   async function handleSignIn() {
     const supabase = createClient();
@@ -80,33 +112,50 @@ export function Header() {
         <div className="flex items-center gap-md">
           {loading ? (
             <div className="h-8 w-16 rounded-lg bg-surface-sunken animate-pulse" />
-          ) : user ? (
-            <Link
-              href="/profile"
-              className={`h-8 px-md rounded-lg flex items-center justify-center text-sm font-medium transition-colors gap-sm ${
-                pathname === "/profile"
-                  ? "bg-primary text-surface-raised"
-                  : "bg-surface-sunken text-foreground-muted hover:text-foreground hover:bg-border"
-              }`}
-            >
-              {user.user_metadata?.avatar_url ? (
-                <img
-                  src={user.user_metadata.avatar_url}
-                  alt=""
-                  className="h-5 w-5 rounded-full"
-                />
-              ) : null}
-              <span className="hidden sm:inline">
-                {user.user_metadata?.full_name?.split(" ")[0] || "Profile"}
-              </span>
-            </Link>
           ) : (
-            <button
-              onClick={handleSignIn}
-              className="h-8 px-lg rounded-lg bg-primary text-surface-raised text-sm font-semibold hover:bg-primary-hover transition-colors"
-            >
-              Sign in
-            </button>
+            <>
+              {isAdmin ? (
+                <Link
+                  href="/admin"
+                  className={`hidden h-8 items-center gap-sm rounded-lg px-md text-sm font-medium transition-colors sm:inline-flex ${
+                    pathname.startsWith("/admin")
+                      ? "bg-primary text-surface-raised"
+                      : "bg-surface-sunken text-foreground-muted hover:bg-border hover:text-foreground"
+                  }`}
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  Admin
+                </Link>
+              ) : null}
+              {user ? (
+                <Link
+                  href="/profile"
+                  className={`h-8 px-md rounded-lg flex items-center justify-center text-sm font-medium transition-colors gap-sm ${
+                    pathname === "/profile"
+                      ? "bg-primary text-surface-raised"
+                      : "bg-surface-sunken text-foreground-muted hover:text-foreground hover:bg-border"
+                  }`}
+                >
+                  {user.user_metadata?.avatar_url ? (
+                    <img
+                      src={user.user_metadata.avatar_url}
+                      alt=""
+                      className="h-5 w-5 rounded-full"
+                    />
+                  ) : null}
+                  <span className="hidden sm:inline">
+                    {user.user_metadata?.full_name?.split(" ")[0] || "Profile"}
+                  </span>
+                </Link>
+              ) : (
+                <button
+                  onClick={handleSignIn}
+                  className="h-8 px-lg rounded-lg bg-primary text-surface-raised text-sm font-semibold hover:bg-primary-hover transition-colors"
+                >
+                  Sign in
+                </button>
+              )}
+            </>
           )}
 
           {/* Mobile Hamburger */}
@@ -142,6 +191,17 @@ export function Header() {
               </Link>
             );
           })}
+          {isAdmin ? (
+            <Link
+              href="/admin"
+              onClick={() => setMobileOpen(false)}
+              className={`block py-sm text-sm font-medium ${
+                pathname.startsWith("/admin") ? "text-primary" : "text-foreground-secondary"
+              }`}
+            >
+              Admin
+            </Link>
+          ) : null}
           {!user && (
             <button
               onClick={() => {
