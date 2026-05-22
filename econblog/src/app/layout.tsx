@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Source_Serif_4, Hanken_Grotesk } from "next/font/google";
 import "./globals.css";
-import { AuthCallbackRedirect } from "@/components/auth/AuthCallbackRedirect";
 import { AuthNotice } from "@/components/AuthNotice";
 import { Header } from "@/components/Header";
 
@@ -36,9 +35,6 @@ export default function RootLayout({
       <body className="font-body bg-surface text-foreground min-h-screen antialiased">
         <Suspense fallback={null}>
           <Header />
-        </Suspense>
-        <Suspense fallback={null}>
-          <AuthCallbackRedirect />
         </Suspense>
         <Suspense fallback={null}>
           <AuthNotice />

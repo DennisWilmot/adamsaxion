@@ -12,7 +12,7 @@ export async function GET(request: Request) {
   const next = safeNextPath(searchParams.get("next") ?? cookieNext);
 
   if (!code) {
-    return NextResponse.redirect(`${origin}/auth?error=auth`);
+    return NextResponse.redirect(`${origin}/?error=auth`);
   }
 
   const response = NextResponse.redirect(`${origin}${next}`);
@@ -38,7 +38,7 @@ export async function GET(request: Request) {
 
   if (error || !data.user) {
     console.error("GET /auth/callback error:", error?.message);
-    return NextResponse.redirect(`${origin}/auth?error=auth`);
+    return NextResponse.redirect(`${origin}/?error=auth`);
   }
 
   try {

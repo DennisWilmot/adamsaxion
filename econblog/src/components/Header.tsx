@@ -90,9 +90,22 @@ export function Header() {
     };
   }, [user]);
 
-  function handleSignIn(mode?: "signin" | "signup") {
+  async function handleSignIn() {
+    const supabase = createClient();
+    const next = searchParams.get("next") ?? "/lessons";
+    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
+
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo,
+      },
+    });
+  }
+
+  function handleSignUp() {
     const next = searchParams.get("next") ?? pathname ?? "/lessons";
-    window.location.href = authPageUrl(next, mode);
+    window.location.href = authPageUrl(next, "signup");
   }
 
   return (
@@ -167,13 +180,13 @@ export function Header() {
               ) : (
                 <div className="hidden sm:flex items-center gap-sm">
                   <button
-                    onClick={() => handleSignIn("signup")}
+                    onClick={handleSignUp}
                     className="h-8 px-md rounded-lg border border-border text-sm font-medium text-foreground hover:bg-surface-sunken transition-colors"
                   >
                     Sign up
                   </button>
                   <button
-                    onClick={() => handleSignIn("signin")}
+                    onClick={handleSignIn}
                     className="h-8 px-lg rounded-lg bg-primary text-surface-raised text-sm font-semibold hover:bg-primary-hover transition-colors"
                   >
                     Sign in
@@ -232,16 +245,16 @@ export function Header() {
               <button
                 onClick={() => {
                   setMobileOpen(false);
-                  handleSignIn("signin");
+                  void handleSignIn();
                 }}
                 className="block w-full text-left py-sm text-sm font-semibold text-primary"
               >
-                Sign in
+                Sign in with Google
               </button>
               <button
                 onClick={() => {
                   setMobileOpen(false);
-                  handleSignIn("signup");
+                  handleSignUp();
                 }}
                 className="block w-full text-left py-sm text-sm font-medium text-foreground-secondary"
               >

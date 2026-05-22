@@ -8,10 +8,14 @@ const ADMIN_ROUTES = ["/admin", "/api/admin"];
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Supabase sometimes redirects to Site URL (/) instead of /auth/callback
-  // when the callback URL isn't allowlisted. Forward the code to the handler.
+  // Code exchange must happen only in /auth/callback/route.ts — skip all auth here.
+  if (pathname === "/auth/callback") {
+    return NextResponse.next();
+  }
+
+  // Supabase sometimes redirects to Site URL (/) instead of /auth/callback.
   const authCode = request.nextUrl.searchParams.get("code");
-  if (authCode && pathname !== "/auth/callback") {
+  if (authCode) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/callback";
     return NextResponse.redirect(url);
@@ -98,7 +102,7 @@ export async function middleware(request: NextRequest) {
 
   if (!user && isProtected) {
     const url = request.nextUrl.clone();
-    url.pathname = "/auth";
+    url.pathname = "/";
     url.searchParams.set("next", pathname);
     return NextResponse.redirect(url);
   }
