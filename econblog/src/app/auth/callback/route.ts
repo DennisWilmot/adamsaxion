@@ -1,18 +1,15 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { ensureProfileForUser } from "@/lib/user-profile";
-
-function safeNextPath(value: string | null) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) {
-    return "/lessons";
-  }
-  return value;
-}
+import { safeNextPath } from "@/lib/auth/redirect";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = safeNextPath(searchParams.get("next"));
+  const cookieStore = await cookies();
+  const cookieNext = cookieStore.get("auth_next")?.value ?? null;
+  const next = safeNextPath(searchParams.get("next") ?? cookieNext);
 
   if (!code) {
     return NextResponse.redirect(`${origin}/?error=auth`);
@@ -33,5 +30,7 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/?error=auth`);
   }
 
-  return NextResponse.redirect(`${origin}${next}`);
+  const response = NextResponse.redirect(`${origin}${next}`);
+  response.cookies.set("auth_next", "", { path: "/", maxAge: 0 });
+  return response;
 }

@@ -8,6 +8,8 @@ import remarkGfm from "remark-gfm";
 import { QuizGate } from "@/components/quiz/QuizGate";
 import { MasteryExam } from "@/components/quiz/MasteryExam";
 import { FloatingIcons } from "@/components/FloatingIcons";
+import { PathSetupModal } from "@/components/learning/PathSetupModal";
+import { isLessonZeroSlug } from "@/lib/constants/lessons";
 import type { LessonData, Section } from "@/lib/types/lesson";
 
 function ProgressRing({
@@ -131,6 +133,7 @@ export function LessonPlayer({ lesson, isAuthenticated, adminEditHref }: LessonP
   });
   const [quizStatuses, setQuizStatuses] = useState<QuizStatuses>({});
   const [loading, setLoading] = useState(true);
+  const [pathSetupOpen, setPathSetupOpen] = useState(false);
 
   const fetchProgress = useCallback(async () => {
     if (!isAuthenticated) {
@@ -360,25 +363,25 @@ export function LessonPlayer({ lesson, isAuthenticated, adminEditHref }: LessonP
           );
         })}
 
-        {/* Mastery Tab */}
-        {isAuthenticated && (
-          <button
-            onClick={() => {
+        {/* Mastery Tab — visible to all; sign-in required to start exam */}
+        <button
+          onClick={() => {
+            if (allSectionsAttempted) {
               setShowMastery(true);
               window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
-            className={`flex items-center gap-xs px-lg py-sm font-body text-sm font-medium whitespace-nowrap rounded-t-md transition-all ${
-              showMastery
-                ? "text-gold border-b-2 border-gold -mb-[1px]"
-                : allSectionsAttempted
-                ? "text-gold/60 hover:text-gold"
-                : "text-border cursor-not-allowed"
-            }`}
-          >
-            <Trophy className="size-3.5" />
-            <span className="hidden sm:inline">Mastery</span>
-          </button>
-        )}
+            }
+          }}
+          className={`flex items-center gap-xs px-lg py-sm font-body text-sm font-medium whitespace-nowrap rounded-t-md transition-all ${
+            showMastery
+              ? "text-gold border-b-2 border-gold -mb-[1px]"
+              : allSectionsAttempted
+              ? "text-gold/60 hover:text-gold"
+              : "text-border cursor-not-allowed"
+          }`}
+        >
+          <Trophy className="size-3.5" />
+          <span className="hidden sm:inline">Mastery</span>
+        </button>
       </div>
 
       {/* Mastery View */}
@@ -387,13 +390,17 @@ export function LessonPlayer({ lesson, isAuthenticated, adminEditHref }: LessonP
           masteryQuiz={lesson.masteryQuiz}
           lessonSlug={lesson.id}
           allSectionsAttempted={allSectionsAttempted}
-          onComplete={(passed, score) => {
+          isAuthenticated={isAuthenticated}
+          onComplete={(passed) => {
             setProgress((prev) => ({
               ...prev,
               masteryAttempted: true,
               masteryPassed: passed,
             }));
             fetchProgress();
+            if (passed && isLessonZeroSlug(lesson.id) && isAuthenticated) {
+              setPathSetupOpen(true);
+            }
           }}
         />
       ) : (
@@ -485,6 +492,13 @@ export function LessonPlayer({ lesson, isAuthenticated, adminEditHref }: LessonP
           )}
         </>
       )}
+
+      <PathSetupModal
+        open={pathSetupOpen}
+        onClose={() => setPathSetupOpen(false)}
+        onComplete={() => setPathSetupOpen(false)}
+        entryBranch="lesson_zero"
+      />
     </div>
   );
 }

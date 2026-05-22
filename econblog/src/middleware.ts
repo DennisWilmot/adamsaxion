@@ -35,6 +35,15 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
+  // Supabase sometimes redirects to Site URL (/) instead of /auth/callback
+  // when the callback URL isn't allowlisted. Forward the code to the handler.
+  const authCode = request.nextUrl.searchParams.get("code");
+  if (authCode && pathname !== "/auth/callback") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/auth/callback";
+    return NextResponse.redirect(url);
+  }
+
   const isAdmin = ADMIN_ROUTES.some(
     (route) => pathname === route || pathname.startsWith(route + "/")
   );
@@ -89,7 +98,8 @@ export async function middleware(request: NextRequest) {
 
   if (!user && isProtected) {
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = "/auth";
+    url.searchParams.set("next", pathname);
     return NextResponse.redirect(url);
   }
 

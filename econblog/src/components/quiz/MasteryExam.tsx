@@ -2,11 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { MasteryQuiz, MasteryQuestion } from "@/lib/types/lesson";
+import { SignInPrompt } from "@/components/auth/SignInPrompt";
 
 interface MasteryExamProps {
   masteryQuiz: MasteryQuiz;
   lessonSlug: string;
   allSectionsAttempted: boolean;
+  isAuthenticated?: boolean;
   onComplete: (passed: boolean, score: number) => void;
 }
 
@@ -23,6 +25,7 @@ export function MasteryExam({
   masteryQuiz,
   lessonSlug,
   allSectionsAttempted,
+  isAuthenticated = true,
   onComplete,
 }: MasteryExamProps) {
   const [started, setStarted] = useState(false);
@@ -37,7 +40,7 @@ export function MasteryExam({
   const [finished, setFinished] = useState(false);
   const [timeLeft, setTimeLeft] = useState(masteryQuiz.timeLimitMinutes * 60);
 
-  const finishExam = useCallback(() => {
+  const finishExam = useCallback(async () => {
     setFinished(true);
     const correctCount = Array.from(results.values()).filter(
       (r) => r.isCorrect
@@ -46,8 +49,28 @@ export function MasteryExam({
       (correctCount / Math.max(1, questions.length)) * 100
     );
     const passed = score >= masteryQuiz.passingScore;
+
+    if (isAuthenticated) {
+      try {
+        await fetch(`/api/lessons/${lessonSlug}/mastery/complete`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ passed, score }),
+        });
+      } catch (err) {
+        console.error("Mastery persist error:", err);
+      }
+    }
+
     onComplete(passed, score);
-  }, [results, questions.length, masteryQuiz.passingScore, onComplete]);
+  }, [
+    results,
+    questions.length,
+    masteryQuiz.passingScore,
+    onComplete,
+    isAuthenticated,
+    lessonSlug,
+  ]);
 
   useEffect(() => {
     if (!started || finished) return;
@@ -133,12 +156,16 @@ export function MasteryExam({
           Questions are randomly drawn from the mastery pool. Each correct
           answer earns 30 XP.
         </p>
-        <button
-          onClick={handleStart}
-          className="inline-flex items-center px-2xl py-md font-body text-sm font-semibold text-surface-raised bg-gold hover:bg-gold-hover transition-colors rounded-lg shadow-sm"
-        >
-          Begin Exam
-        </button>
+        {!isAuthenticated ? (
+          <SignInPrompt message="Sign in to take the mastery exam and save your progress." />
+        ) : (
+          <button
+            onClick={handleStart}
+            className="inline-flex items-center px-2xl py-md font-body text-sm font-semibold text-surface-raised bg-gold hover:bg-gold-hover transition-colors rounded-lg shadow-sm"
+          >
+            Begin Exam
+          </button>
+        )}
       </div>
     );
   }

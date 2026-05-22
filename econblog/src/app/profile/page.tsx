@@ -3,7 +3,9 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { profiles } from "@/db/schema";
 import { SignOutButton } from "@/components/profile/SignOutButton";
+import { ProfilePageClient } from "@/components/profile/ProfilePageClient";
 import { createClient } from "@/lib/supabase/server";
+import { getUserDashboard } from "@/lib/learning/user-dashboard";
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -14,9 +16,15 @@ export default async function ProfilePage() {
   if (!user) {
     return (
       <div className="max-w-[36rem] mx-auto px-xl py-5xl text-center">
-        <p className="font-body text-foreground-secondary">
+        <p className="font-body text-foreground-secondary mb-lg">
           Sign in to view your profile.
         </p>
+        <a
+          href="/auth?next=/profile"
+          className="inline-flex rounded-lg px-xl py-md font-body text-sm font-semibold bg-primary text-surface-raised hover:bg-primary-hover"
+        >
+          Sign in or create account
+        </a>
       </div>
     );
   }
@@ -31,20 +39,20 @@ export default async function ProfilePage() {
     return (
       <div className="max-w-[36rem] mx-auto px-xl py-5xl text-center">
         <p className="font-body text-foreground-secondary">
-          We couldn't find your profile yet. Try signing out and back in.
+          We couldn&apos;t find your profile yet. Try signing out and back in.
         </p>
       </div>
     );
   }
 
+  const dashboard = await getUserDashboard(user.id);
   const xpInLevel = profile.totalXp % 1000;
   const levelProgress = (xpInLevel / 1000) * 100;
   const xpToNext = 1000 - xpInLevel;
   const avatarUrl = user.user_metadata?.avatar_url ?? null;
 
   return (
-    <div className="max-w-[36rem] mx-auto px-xl py-3xl">
-      {/* Identity */}
+    <div className="max-w-[72rem] mx-auto px-xl py-3xl">
       <div className="flex items-center gap-xl mb-3xl">
         {avatarUrl ? (
           <Image
@@ -63,41 +71,31 @@ export default async function ProfilePage() {
           <h1 className="font-display font-semibold text-2xl text-foreground">
             {profile.username}
           </h1>
-          <p className="font-body text-sm text-foreground-muted">
-            {user.email}
-          </p>
+          <p className="font-body text-sm text-foreground-muted">{user.email}</p>
         </div>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-3 gap-lg mb-2xl">
         <div className="bg-surface-sunken rounded-lg p-lg">
           <p className="font-display font-semibold text-2xl text-gold tabular-nums">
             {profile.totalXp.toLocaleString()}
           </p>
-          <p className="font-body text-xs text-foreground-muted mt-xs">
-            Total XP
-          </p>
+          <p className="font-body text-xs text-foreground-muted mt-xs">Total XP</p>
         </div>
         <div className="bg-surface-sunken rounded-lg p-lg">
           <p className="font-display font-semibold text-2xl text-primary tabular-nums">
             {profile.currentLevel}
           </p>
-          <p className="font-body text-xs text-foreground-muted mt-xs">
-            Level
-          </p>
+          <p className="font-body text-xs text-foreground-muted mt-xs">Level</p>
         </div>
         <div className="bg-surface-sunken rounded-lg p-lg">
           <p className="font-display font-semibold text-2xl text-foreground tabular-nums">
             {xpToNext}
           </p>
-          <p className="font-body text-xs text-foreground-muted mt-xs">
-            XP to next
-          </p>
+          <p className="font-body text-xs text-foreground-muted mt-xs">XP to next</p>
         </div>
       </div>
 
-      {/* Level Progress */}
       <div className="mb-3xl">
         <div className="flex justify-between font-body text-xs text-foreground-muted mb-sm">
           <span>Level {profile.currentLevel}</span>
@@ -111,8 +109,11 @@ export default async function ProfilePage() {
         </div>
       </div>
 
-      {/* Sign Out */}
-      <SignOutButton />
+      {dashboard && <ProfilePageClient initialDashboard={dashboard} />}
+
+      <div className="mt-3xl">
+        <SignOutButton />
+      </div>
     </div>
   );
 }

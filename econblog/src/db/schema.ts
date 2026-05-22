@@ -17,6 +17,19 @@ export const profiles = pgTable("profiles", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+export const userPreferences = pgTable("user_preferences", {
+  userId: uuid("user_id")
+    .primaryKey()
+    .references(() => profiles.id, { onDelete: "cascade" }),
+  primaryInterestId: text("primary_interest_id"),
+  secondaryInterestIds: text("secondary_interest_ids").array().default([]).notNull(),
+  pathSetupCompletedAt: timestamp("path_setup_completed_at", { withTimezone: true }),
+  pathSetupSkippedAt: timestamp("path_setup_skipped_at", { withTimezone: true }),
+  entryBranch: text("entry_branch"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const quizAttempts = pgTable("quiz_attempts", {
   id: uuid("id").defaultRandom().primaryKey(),
   userId: uuid("user_id").references(() => profiles.id).notNull(),

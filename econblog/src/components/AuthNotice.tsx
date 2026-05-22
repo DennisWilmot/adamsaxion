@@ -27,11 +27,21 @@ export function AuthNotice() {
     );
   }
 
+  if (error === "confirm_email") {
+    return (
+      <div className="bg-primary/10 border-b border-primary/20 px-xl py-md text-center">
+        <p className="font-body text-sm text-foreground">
+          Check your email to confirm your account, then sign in.
+        </p>
+      </div>
+    );
+  }
+
   if (next?.startsWith("/admin")) {
     return (
       <div className="bg-primary/10 border-b border-primary/20 px-xl py-md text-center">
         <p className="font-body text-sm text-foreground">
-          Sign in with Google to access the admin panel.
+          Sign in to access the admin panel.
         </p>
       </div>
     );

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect, useMemo } from "react";
 import { Search, ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 import { FloatingIcons } from "@/components/FloatingIcons";
+import { LessonsPageExtras } from "@/components/lessons/LessonsPageExtras";
 import type { LessonMeta } from "@/lib/types/lesson";
 
 const CATEGORIES = ["All", "Microeconomics", "Macroeconomics", "Trade", "Finance"];
@@ -71,6 +72,8 @@ export default function LessonsPage() {
           </p>
         </div>
       </div>
+
+      <LessonsPageExtras />
 
       {/* Search + Filters */}
       <div className="flex flex-col sm:flex-row gap-md mb-2xl">

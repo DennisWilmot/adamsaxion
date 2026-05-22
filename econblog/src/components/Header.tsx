@@ -5,6 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { LayoutDashboard, Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { authPageUrl } from "@/lib/auth/redirect";
 import type { User } from "@supabase/supabase-js";
 
 const NAV_ITEMS = [
@@ -19,6 +20,7 @@ export function Header() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [displayName, setDisplayName] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -67,17 +69,30 @@ export function Header() {
     };
   }, [user]);
 
-  async function handleSignIn() {
-    const supabase = createClient();
-    const next = searchParams.get("next") ?? "/lessons";
-    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
+  useEffect(() => {
+    if (!user) {
+      setDisplayName(null);
+      return;
+    }
 
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo,
-      },
-    });
+    let cancelled = false;
+    fetch("/api/user/profile")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled && data?.username) {
+          setDisplayName(data.username);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  function handleSignIn(mode?: "signin" | "signup") {
+    const next = searchParams.get("next") ?? pathname ?? "/lessons";
+    window.location.href = authPageUrl(next, mode);
   }
 
   return (
@@ -144,16 +159,26 @@ export function Header() {
                     />
                   ) : null}
                   <span className="hidden sm:inline">
-                    {user.user_metadata?.full_name?.split(" ")[0] || "Profile"}
+                    {displayName ??
+                      user.user_metadata?.full_name?.split(" ")[0] ??
+                      "Profile"}
                   </span>
                 </Link>
               ) : (
-                <button
-                  onClick={handleSignIn}
-                  className="h-8 px-lg rounded-lg bg-primary text-surface-raised text-sm font-semibold hover:bg-primary-hover transition-colors"
-                >
-                  Sign in
-                </button>
+                <div className="hidden sm:flex items-center gap-sm">
+                  <button
+                    onClick={() => handleSignIn("signup")}
+                    className="h-8 px-md rounded-lg border border-border text-sm font-medium text-foreground hover:bg-surface-sunken transition-colors"
+                  >
+                    Sign up
+                  </button>
+                  <button
+                    onClick={() => handleSignIn("signin")}
+                    className="h-8 px-lg rounded-lg bg-primary text-surface-raised text-sm font-semibold hover:bg-primary-hover transition-colors"
+                  >
+                    Sign in
+                  </button>
+                </div>
               )}
             </>
           )}
@@ -203,15 +228,26 @@ export function Header() {
             </Link>
           ) : null}
           {!user && (
-            <button
-              onClick={() => {
-                setMobileOpen(false);
-                handleSignIn();
-              }}
-              className="block w-full text-left py-sm text-sm font-semibold text-primary"
-            >
-              Sign in with Google
-            </button>
+            <>
+              <button
+                onClick={() => {
+                  setMobileOpen(false);
+                  handleSignIn("signin");
+                }}
+                className="block w-full text-left py-sm text-sm font-semibold text-primary"
+              >
+                Sign in
+              </button>
+              <button
+                onClick={() => {
+                  setMobileOpen(false);
+                  handleSignIn("signup");
+                }}
+                className="block w-full text-left py-sm text-sm font-medium text-foreground-secondary"
+              >
+                Create account
+              </button>
+            </>
           )}
         </nav>
       )}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { QuizQuestion } from "@/lib/types/lesson";
+import { SignInPrompt } from "@/components/auth/SignInPrompt";
 
 interface QuizStatus {
   answered: boolean;
@@ -244,27 +245,7 @@ export function QuizGate({ quiz, lessonSlug, status, isAuthenticated = true, onC
       </div>
 
       {!isAuthenticated ? (
-        <div className="rounded-lg bg-surface-sunken p-lg text-center">
-          <p className="font-body text-sm text-foreground-secondary mb-sm">
-            Sign in to submit answers and track your progress.
-          </p>
-          <button
-            onClick={() => {
-              import("@/lib/supabase/client").then(({ createClient }) => {
-                const supabase = createClient();
-                supabase.auth.signInWithOAuth({
-                  provider: "google",
-                  options: {
-                    redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(window.location.pathname)}`,
-                  },
-                });
-              });
-            }}
-            className="font-body text-sm font-semibold text-primary hover:text-primary-hover transition-colors"
-          >
-            Sign in with Google
-          </button>
-        </div>
+        <SignInPrompt />
       ) : (
         <button
           onClick={handleSubmit}
