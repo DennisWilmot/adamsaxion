@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { lessons } from "@/db/schema";
-import { createLessonThumbnail } from "@/lib/lesson-thumbnail";
+import { createLessonThumbnail, resolveLessonThumbnail } from "@/lib/lesson-thumbnail";
 
-export const maxDuration = 60;
+export const maxDuration = 90;
 
 export async function POST(
   _request: Request,
@@ -41,7 +41,20 @@ export async function POST(
       .returning();
 
     console.log(`[thumbnail] regenerated thumbnail for lesson ${id}`);
-    return NextResponse.json({ lesson: updated });
+    return NextResponse.json({
+      lesson: {
+        ...updated,
+        thumbnail: resolveLessonThumbnail(
+          {
+            title: updated.title,
+            category: updated.category,
+            difficulty: updated.difficulty,
+            description: updated.description,
+          },
+          updated.thumbnail
+        ),
+      },
+    });
   } catch (error) {
     console.error("POST /api/admin/lessons/[id]/thumbnail error:", error);
     return NextResponse.json(

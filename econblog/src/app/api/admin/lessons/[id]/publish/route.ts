@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm";
 import { isLessonReadyToPublish } from "@/lib/admin/publish";
 import { createLessonThumbnail } from "@/lib/lesson-thumbnail";
 
-export const maxDuration = 60;
+export const maxDuration = 90;
 
 export async function POST(
   request: Request,

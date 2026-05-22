@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Lock, Check, ChevronRight, Trophy } from "lucide-react";
+import Link from "next/link";
+import { Lock, Check, ChevronRight, Trophy, Settings2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { QuizGate } from "@/components/quiz/QuizGate";
@@ -103,6 +104,7 @@ interface QuizStatuses {
 interface LessonPlayerProps {
   lesson: LessonData;
   isAuthenticated: boolean;
+  adminEditHref?: string | null;
 }
 
 function normalizeLessonMarkdown(content: string, subsectionTitle: string) {
@@ -116,7 +118,7 @@ function normalizeLessonMarkdown(content: string, subsectionTitle: string) {
     .replace(/^\|\|/gm, "| |");
 }
 
-export function LessonPlayer({ lesson, isAuthenticated }: LessonPlayerProps) {
+export function LessonPlayer({ lesson, isAuthenticated, adminEditHref }: LessonPlayerProps) {
   const [activeSection, setActiveSection] = useState(0);
   const [activeSubsection, setActiveSubsection] = useState(0);
   const [showMastery, setShowMastery] = useState(false);
@@ -244,6 +246,18 @@ export function LessonPlayer({ lesson, isAuthenticated }: LessonPlayerProps) {
 
   return (
     <div className="max-w-[56rem] mx-auto px-xl py-2xl">
+      {adminEditHref ? (
+        <div className="mb-lg flex justify-end">
+          <Link
+            href={adminEditHref}
+            className="inline-flex items-center gap-sm rounded-lg border border-border bg-surface-raised px-md py-sm font-body text-xs font-semibold text-foreground-secondary transition-colors hover:border-primary/40 hover:text-primary"
+          >
+            <Settings2 className="h-3.5 w-3.5" />
+            Open in Lesson Generator
+          </Link>
+        </div>
+      ) : null}
+
       {/* Lesson Header */}
       <div className="relative mb-2xl overflow-hidden rounded-xl bg-surface-sunken p-xl">
         <FloatingIcons count={16} />

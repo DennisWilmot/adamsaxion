@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { db } from "@/db";
 import { quizAttempts } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { loadLesson } from "@/lib/lesson-loader";
+import { lessonIdCandidates } from "@/lib/constants/lessons";
 
 export async function GET(
   request: Request,
@@ -39,7 +40,7 @@ export async function GET(
       .where(
         and(
           eq(quizAttempts.userId, user.id),
-          eq(quizAttempts.lessonId, slug)
+          inArray(quizAttempts.lessonId, lessonIdCandidates(slug))
         )
       );
 

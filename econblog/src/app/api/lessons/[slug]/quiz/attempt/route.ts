@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { db } from "@/db";
 import { quizAttempts, profiles, lessonProgress } from "@/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, inArray } from "drizzle-orm";
 import { loadLesson, getQuestionFromLesson } from "@/lib/lesson-loader";
+import { canonicalLessonId, lessonIdCandidates } from "@/lib/constants/lessons";
 
 const LOCKOUT_HOURS = 24;
 
@@ -42,13 +43,16 @@ export async function POST(
 
     const { question, isMastery } = found;
 
+    const lessonIds = lessonIdCandidates(slug);
+    const storedLessonId = canonicalLessonId(slug);
+
     const previousAttempts = await db
       .select()
       .from(quizAttempts)
       .where(
         and(
           eq(quizAttempts.userId, user.id),
-          eq(quizAttempts.lessonId, slug),
+          inArray(quizAttempts.lessonId, lessonIds),
           eq(quizAttempts.questionId, questionId)
         )
       )
@@ -96,7 +100,7 @@ export async function POST(
 
     await db.insert(quizAttempts).values({
       userId: user.id,
-      lessonId: slug,
+      lessonId: storedLessonId,
       questionId,
       selectedAnswer,
       isCorrect,
@@ -122,7 +126,7 @@ export async function POST(
     if (isCorrect && !isMastery) {
       const subsectionId = findSubsectionForQuestion(lesson, questionId);
       if (subsectionId) {
-        await updateLessonProgress(user.id, slug, subsectionId, xpEarned, lesson);
+        await updateLessonProgress(user.id, storedLessonId, subsectionId, xpEarned, lesson);
       }
     }
 
@@ -167,7 +171,7 @@ async function updateLessonProgress(
     .where(
       and(
         eq(lessonProgress.userId, userId),
-        eq(lessonProgress.lessonId, lessonId)
+        inArray(lessonProgress.lessonId, lessonIdCandidates(lessonId))
       )
     )
     .limit(1);

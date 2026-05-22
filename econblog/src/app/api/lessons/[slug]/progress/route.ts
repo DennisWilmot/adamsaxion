@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { db } from "@/db";
 import { lessonProgress } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
+import { canonicalLessonId, lessonIdCandidates } from "@/lib/constants/lessons";
 
 export async function GET(
   request: Request,
@@ -17,20 +18,22 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const lessonIds = lessonIdCandidates(slug);
+
     const [progress] = await db
       .select()
       .from(lessonProgress)
       .where(
         and(
           eq(lessonProgress.userId, user.id),
-          eq(lessonProgress.lessonId, slug)
+          inArray(lessonProgress.lessonId, lessonIds)
         )
       )
       .limit(1);
 
     if (!progress) {
       return NextResponse.json({
-        lessonId: slug,
+        lessonId: canonicalLessonId(slug),
         completedSubsections: [],
         unlockedSections: [],
         masteryAttempted: false,

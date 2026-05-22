@@ -71,6 +71,7 @@ export default function LessonWorkspace() {
   const [error, setError] = useState("");
   const [publishing, setPublishing] = useState(false);
   const [regeneratingThumbnail, setRegeneratingThumbnail] = useState(false);
+  const [thumbnailVersion, setThumbnailVersion] = useState(0);
   const [jobs, setJobs] = useState<GenerationJob[]>([]);
   const [activeJob, setActiveJob] = useState<GenerationJob | null>(null);
   const [hasRemainingWork, setHasRemainingWork] = useState(false);
@@ -219,6 +220,7 @@ export default function LessonWorkspace() {
 
       if (data.lesson) {
         setLesson(data.lesson);
+        setThumbnailVersion((v) => v + 1);
       } else {
         await loadLesson();
       }
@@ -495,7 +497,13 @@ export default function LessonWorkspace() {
           {activeTab === "preview" && <PreviewTab lesson={lesson} />}
         </div>
 
-        <div className="min-w-0 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">
+        <div className="min-w-0 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto space-y-lg">
+          <ThumbnailPanel
+            lesson={lesson}
+            thumbnailVersion={thumbnailVersion}
+            regenerating={regeneratingThumbnail}
+            onRegenerate={() => void regenerateThumbnail()}
+          />
           <JobActivityPanel
             lesson={lesson}
             activeJob={activeJob}
@@ -507,6 +515,70 @@ export default function LessonWorkspace() {
           />
         </div>
       </div>
+    </div>
+  );
+}
+
+function ThumbnailPanel({
+  lesson,
+  thumbnailVersion,
+  regenerating,
+  onRegenerate,
+}: {
+  lesson: LessonRecord;
+  thumbnailVersion: number;
+  regenerating: boolean;
+  onRegenerate: () => void;
+}) {
+  const thumbnailSrc = lesson.thumbnail
+    ? lesson.thumbnail.startsWith("data:")
+      ? lesson.thumbnail
+      : `${lesson.thumbnail}${lesson.thumbnail.includes("?") ? "&" : "?"}v=${thumbnailVersion}`
+    : null;
+
+  return (
+    <div className="rounded-xl border border-border bg-surface-raised p-lg shadow-sm">
+      <div className="mb-md flex items-center gap-md">
+        <ImageIcon className="h-5 w-5 text-primary" />
+        <div>
+          <h3 className="font-display text-lg font-semibold text-foreground">
+            Thumbnail
+          </h3>
+          <p className="font-body text-xs text-foreground-muted">
+            Shown on the lessons page and lesson cards
+          </p>
+        </div>
+      </div>
+
+      <div className="relative mb-md aspect-[16/10] overflow-hidden rounded-lg border border-border-subtle bg-surface-sunken">
+        {thumbnailSrc ? (
+          <img
+            key={thumbnailVersion}
+            src={thumbnailSrc}
+            alt={`${lesson.title} thumbnail`}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center font-body text-sm text-foreground-muted">
+            No thumbnail yet
+          </div>
+        )}
+        {regenerating ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[1px]">
+            <Loader2 className="h-8 w-8 animate-spin text-white" />
+          </div>
+        ) : null}
+      </div>
+
+      <button
+        type="button"
+        onClick={onRegenerate}
+        disabled={regenerating}
+        className="flex w-full items-center justify-center gap-sm rounded-lg border border-border bg-surface px-lg py-md font-body text-sm font-semibold text-foreground transition-colors hover:bg-surface-sunken disabled:opacity-50"
+      >
+        <RefreshCw className={`h-4 w-4 ${regenerating ? "animate-spin" : ""}`} />
+        {regenerating ? "Regenerating..." : "Regenerate Thumbnail"}
+      </button>
     </div>
   );
 }

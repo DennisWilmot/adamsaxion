@@ -2,24 +2,50 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { lessons } from "@/db/schema";
 import { desc } from "drizzle-orm";
+import { resolveLessonThumbnail } from "@/lib/lesson-thumbnail";
 
 export async function GET() {
   try {
-    const all = await db
+    const rows = await db
       .select({
         id: lessons.id,
         slug: lessons.slug,
         title: lessons.title,
+        description: lessons.description,
         category: lessons.category,
         difficulty: lessons.difficulty,
         status: lessons.status,
         sortOrder: lessons.sortOrder,
+        thumbnail: lessons.thumbnail,
         createdAt: lessons.createdAt,
         updatedAt: lessons.updatedAt,
         publishedAt: lessons.publishedAt,
       })
       .from(lessons)
       .orderBy(desc(lessons.updatedAt));
+
+    const all = rows.map((row) => ({
+      id: row.id,
+      slug: row.slug,
+      title: row.title,
+      description: row.description,
+      category: row.category,
+      difficulty: row.difficulty,
+      status: row.status,
+      sortOrder: row.sortOrder,
+      thumbnail: resolveLessonThumbnail(
+        {
+          title: row.title,
+          category: row.category,
+          difficulty: row.difficulty,
+          description: row.description,
+        },
+        row.thumbnail
+      ),
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      publishedAt: row.publishedAt,
+    }));
 
     return NextResponse.json({ lessons: all });
   } catch (error) {

@@ -1,8 +1,8 @@
 {
-  "id": "lesson-1-supply-and-demand-fundamentals",
-  "title": "Lesson 1: Introduction to Intermediate Microeconomics: Supply, Demand, and Market Forces",
-  "category": "Microeconomics",
-  "difficulty": "Intermediate",
+  "id": "lesson-zero",
+  "title": "Lesson Zero: How a Currency Dies — Zimbabwe's Hyperinflation",
+  "category": "Macroeconomics",
+  "difficulty": "Beginner",
   "estimatedMinutes": 35,
   "description": "Learn the fundamental principles of microeconomics through Zimbabwe's 2007 economic crisis and discover how scarcity, incentives, and market forces shape our world.",
   "thumbnail": "/thumbnails/lesson-1.png",

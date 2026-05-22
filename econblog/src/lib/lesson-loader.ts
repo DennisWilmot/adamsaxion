@@ -4,6 +4,19 @@ import { eq, asc } from "drizzle-orm";
 import type { LessonData, LessonMeta, Section, MasteryQuiz } from "./types/lesson";
 import { calculateLessonXp } from "./types/lesson";
 import { resolveLessonThumbnail } from "./lesson-thumbnail";
+import {
+  isLessonZeroSlug,
+  LESSON_ZERO_SLUG,
+  LEGACY_LESSON_ZERO_SLUGS,
+  canonicalLessonId,
+} from "./constants/lessons";
+
+function lessonSlugCandidates(slug: string): string[] {
+  if (isLessonZeroSlug(slug)) {
+    return [LESSON_ZERO_SLUG, ...LEGACY_LESSON_ZERO_SLUGS];
+  }
+  return [slug];
+}
 
 function rowToLessonData(row: typeof lessons.$inferSelect): LessonData {
   const sections = (row.sections as any[] || []).map((s: any) => ({
@@ -47,7 +60,7 @@ function rowToLessonData(row: typeof lessons.$inferSelect): LessonData {
   } : { questionsPerAttempt: 5, passingScore: 70, timeLimitMinutes: 15, questionPool: [] };
 
   return {
-    id: row.slug,
+    id: canonicalLessonId(row.slug),
     title: row.title,
     category: row.category,
     difficulty: row.difficulty,
@@ -68,14 +81,19 @@ function rowToLessonData(row: typeof lessons.$inferSelect): LessonData {
 }
 
 export async function loadLesson(slug: string): Promise<LessonData | null> {
-  const [row] = await db
-    .select()
-    .from(lessons)
-    .where(eq(lessons.slug, slug))
-    .limit(1);
+  for (const candidate of lessonSlugCandidates(slug)) {
+    const [row] = await db
+      .select()
+      .from(lessons)
+      .where(eq(lessons.slug, candidate))
+      .limit(1);
 
-  if (!row || row.status !== "published") return null;
-  return rowToLessonData(row);
+    if (row && row.status === "published") {
+      return rowToLessonData(row);
+    }
+  }
+
+  return null;
 }
 
 export async function loadAllLessonMeta(): Promise<LessonMeta[]> {

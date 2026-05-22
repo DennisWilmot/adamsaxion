@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { lessons } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { resolveLessonThumbnail } from "@/lib/lesson-thumbnail";
 
 export async function GET(
   request: Request,
@@ -15,7 +16,20 @@ export async function GET(
       return NextResponse.json({ error: "Lesson not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ lesson });
+    return NextResponse.json({
+      lesson: {
+        ...lesson,
+        thumbnail: resolveLessonThumbnail(
+          {
+            title: lesson.title,
+            category: lesson.category,
+            difficulty: lesson.difficulty,
+            description: lesson.description,
+          },
+          lesson.thumbnail
+        ),
+      },
+    });
   } catch (error) {
     console.error("GET /api/admin/lessons/[id] error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

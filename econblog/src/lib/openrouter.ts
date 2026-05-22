@@ -2,7 +2,7 @@ import { getOrComputeCachedValue } from "@/lib/admin/generation-cache";
 
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 const IMAGE_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 365;
-const IMAGE_CACHE_VERSION = "v2-human";
+const IMAGE_CACHE_VERSION = "v4-iconic-varied";
 const OPENROUTER_MIN_RETRY_TOKENS = 256;
 const OPENROUTER_RETRY_TOKEN_BUFFER = 64;
 
@@ -21,6 +21,8 @@ interface OpenRouterImageOptions {
   model?: string;
   aspectRatio?: string;
   imageSize?: string;
+  /** Skip DB cache — use for thumbnails where each lesson must get a fresh image. */
+  skipCache?: boolean;
 }
 
 type OpenRouterErrorPayload = {
@@ -254,6 +256,55 @@ export async function generateImageDataUrl(
     process.env.OPENROUTER_IMAGE_MODEL ||
     "google/gemini-2.5-flash-image";
 
+  const generate = async () => {
+    const body: Record<string, unknown> = {
+      model,
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      modalities: ["image", "text"],
+      image_config: {
+        aspect_ratio: options.aspectRatio ?? "16:9",
+        image_size: options.imageSize ?? "1K",
+      },
+    };
+
+    const res = await fetch(OPENROUTER_API_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer":
+          process.env.NEXT_PUBLIC_SUPABASE_URL || "http://localhost:3000",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`OpenRouter image API error (${res.status}): ${err}`);
+    }
+
+    const data = await res.json();
+    const message = data.choices?.[0]?.message;
+    const image =
+      message?.images?.[0]?.image_url?.url ??
+      message?.images?.[0]?.imageUrl?.url;
+
+    if (!image || typeof image !== "string") {
+      throw new Error("OpenRouter image API returned no image");
+    }
+
+    return image;
+  };
+
+  if (options.skipCache) {
+    return generate();
+  }
+
   return getOrComputeCachedValue({
     kind: "openrouter-image",
     version: IMAGE_CACHE_VERSION,
@@ -264,49 +315,6 @@ export async function generateImageDataUrl(
       imageSize: options.imageSize ?? "1K",
     },
     ttlMs: IMAGE_CACHE_TTL_MS,
-    compute: async () => {
-      const body: Record<string, unknown> = {
-        model,
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        modalities: ["image", "text"],
-        image_config: {
-          aspect_ratio: options.aspectRatio ?? "16:9",
-          image_size: options.imageSize ?? "1K",
-        },
-      };
-
-      const res = await fetch(OPENROUTER_API_URL, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer":
-            process.env.NEXT_PUBLIC_SUPABASE_URL || "http://localhost:3000",
-        },
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) {
-        const err = await res.text();
-        throw new Error(`OpenRouter image API error (${res.status}): ${err}`);
-      }
-
-      const data = await res.json();
-      const message = data.choices?.[0]?.message;
-      const image =
-        message?.images?.[0]?.image_url?.url ??
-        message?.images?.[0]?.imageUrl?.url;
-
-      if (!image || typeof image !== "string") {
-        throw new Error("OpenRouter image API returned no image");
-      }
-
-      return image;
-    },
+    compute: generate,
   });
 }

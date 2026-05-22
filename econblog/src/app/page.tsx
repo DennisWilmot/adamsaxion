@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { FloatingIcons } from "@/components/FloatingIcons";
+import { lessonZeroPath } from "@/lib/constants/lessons";
 
 export default function HomePage() {
   return (
@@ -26,7 +27,7 @@ export default function HomePage() {
 
           <div className="flex flex-col items-start gap-md sm:flex-row sm:items-center sm:gap-lg">
             <Link
-              href="/lessons"
+              href={lessonZeroPath()}
               className="inline-flex items-center px-xl py-md font-body text-sm font-semibold text-surface-raised bg-primary hover:bg-primary-hover transition-colors rounded-lg shadow-sm"
             >
               Start with Lesson Zero
@@ -171,7 +172,7 @@ export default function HomePage() {
             before you commit.
           </p>
           <Link
-            href="/lessons"
+            href={lessonZeroPath()}
             className="inline-flex items-center px-xl py-md font-body text-sm font-semibold text-surface-raised bg-primary hover:bg-primary-hover transition-colors rounded-lg shadow-sm"
           >
             Start Learning
