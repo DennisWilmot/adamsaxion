@@ -7,6 +7,26 @@ type LessonThumbnailInput = {
 
 import { generateImageDataUrl } from "./openrouter";
 
+const THUMBNAIL_GENERATION_TIMEOUT_MS = 20_000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`${label} timed out after ${ms}ms`));
+    }, ms);
+
+    promise
+      .then((value) => {
+        clearTimeout(timer);
+        resolve(value);
+      })
+      .catch((error) => {
+        clearTimeout(timer);
+        reject(error);
+      });
+  });
+}
+
 type Theme = {
   background: [string, string];
   stroke: string;
@@ -96,7 +116,7 @@ export function buildLessonThumbnailPrompt(input: LessonThumbnailInput) {
 
   return [
     "Create a minimalist editorial lesson thumbnail.",
-    "Style: abstract, geometric, clean, modern, premium, no characters, no photorealism, no text, no logos, no interface chrome.",
+    "Style: abstract, geometric, clean, modern, premium, painterly gradients, no photorealism, no text, no logos, no interface chrome.",
     `Lesson title inspiration: "${input.title}".`,
     `Category context: ${input.category}.`,
     input.difficulty ? `Difficulty tone: ${input.difficulty}.` : null,
@@ -105,9 +125,11 @@ export function buildLessonThumbnailPrompt(input: LessonThumbnailInput) {
       : null,
     `Visual direction: use a ${theme.motif} motif with restrained geometry, soft gradients, and one clear focal composition.`,
     `The image should feel abstract but recognizably inspired by the title phrase "${theme.accent || input.title}".`,
+    "Include subtle humanity through abstract human presence — silhouettes, hands, posture, profiles, or symbolic figures integrated into the geometry. Keep faces minimal and non-photorealistic.",
+    "Humanity should feel thoughtful and editorial, not stock-photo literal. Prefer one human gesture or figure over crowds.",
     "Make it distinct from generic economics cover art by choosing one specific visual metaphor rather than a collage of concepts.",
     "Use only 2-4 main shapes with strong hierarchy and generous negative space.",
-    "Avoid charts with labels, clip-art, coins, textbooks, people, flags, or literal icons unless they are transformed into abstract geometric forms.",
+    "Avoid charts with labels, clip-art, coins, textbooks, flags, or literal icon sets unless transformed into abstract geometric forms.",
     "Composition: 16:9 horizontal thumbnail, generous negative space, premium course-cover feel.",
   ]
     .filter(Boolean)
@@ -251,10 +273,14 @@ export async function createLessonThumbnail(
   }
 
   try {
-    return await generateImageDataUrl(buildLessonThumbnailPrompt(input), {
-      aspectRatio: "16:9",
-      imageSize: "1K",
-    });
+    return await withTimeout(
+      generateImageDataUrl(buildLessonThumbnailPrompt(input), {
+        aspectRatio: "16:9",
+        imageSize: "1K",
+      }),
+      THUMBNAIL_GENERATION_TIMEOUT_MS,
+      "OpenRouter thumbnail generation"
+    );
   } catch (error) {
     console.error("[thumbnail] OpenRouter image generation failed:", error);
     return generateLessonThumbnailDataUrl(input);

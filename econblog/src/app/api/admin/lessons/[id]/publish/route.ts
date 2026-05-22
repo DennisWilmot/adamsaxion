@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { lessons } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { isLessonReadyToPublish } from "@/lib/admin/publish";
 import { createLessonThumbnail } from "@/lib/lesson-thumbnail";
+
+export const maxDuration = 60;
 
 export async function POST(
   request: Request,
@@ -16,22 +19,29 @@ export async function POST(
       return NextResponse.json({ error: "Lesson not found" }, { status: 404 });
     }
 
-    if (lesson.status !== "review" && lesson.status !== "archived") {
+    if (!isLessonReadyToPublish(lesson)) {
       return NextResponse.json(
-        { error: `Cannot publish a lesson in "${lesson.status}" status. Must be in "review" first.` },
+        {
+          error: `Cannot publish a lesson in "${lesson.status}" status. Finish generation and move to review first.`,
+        },
         { status: 400 }
       );
     }
 
-    const thumbnail = await createLessonThumbnail(
-      {
-        title: lesson.title,
-        category: lesson.category,
-        difficulty: lesson.difficulty,
-        description: lesson.description,
-      },
-      lesson.thumbnail
-    );
+    let thumbnail = lesson.thumbnail;
+    try {
+      thumbnail = await createLessonThumbnail(
+        {
+          title: lesson.title,
+          category: lesson.category,
+          difficulty: lesson.difficulty,
+          description: lesson.description,
+        },
+        lesson.thumbnail
+      );
+    } catch (thumbnailError) {
+      console.error("POST /api/admin/lessons/[id]/publish thumbnail error:", thumbnailError);
+    }
 
     const [updated] = await db
       .update(lessons)
@@ -47,6 +57,9 @@ export async function POST(
     return NextResponse.json({ lesson: updated });
   } catch (error) {
     console.error("POST /api/admin/lessons/[id]/publish error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Internal server error" },
+      { status: 500 }
+    );
   }
 }

@@ -9,6 +9,7 @@ import {
 import Link from "next/link";
 import { LessonPlayer } from "@/components/lesson/LessonPlayer";
 import type { LessonData } from "@/lib/types/lesson";
+import { isLessonReadyToPublish } from "@/lib/admin/publish";
 import {
   getJobStageSummary,
   type LessonGenerationJobState,
@@ -68,6 +69,7 @@ export default function LessonWorkspace() {
   const [generating, setGenerating] = useState(false);
   const [genStatus, setGenStatus] = useState("");
   const [error, setError] = useState("");
+  const [publishing, setPublishing] = useState(false);
   const [jobs, setJobs] = useState<GenerationJob[]>([]);
   const [activeJob, setActiveJob] = useState<GenerationJob | null>(null);
   const [hasRemainingWork, setHasRemainingWork] = useState(false);
@@ -188,11 +190,22 @@ export default function LessonWorkspace() {
   }
 
   async function publish() {
-    const res = await fetch(`/api/admin/lessons/${id}/publish`, { method: "POST" });
-    if (res.ok) await loadLesson();
-    else {
-      const data = await res.json();
-      setError(data.error || "Publish failed");
+    setPublishing(true);
+    setError("");
+
+    try {
+      const res = await fetch(`/api/admin/lessons/${id}/publish`, { method: "POST" });
+      const data = (await res.json()) as { error?: string };
+
+      if (!res.ok) {
+        throw new Error(data.error || "Publish failed");
+      }
+
+      await loadLesson();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Publish failed");
+    } finally {
+      setPublishing(false);
     }
   }
 
@@ -233,6 +246,11 @@ export default function LessonWorkspace() {
       setError(err instanceof Error ? err.message : "Failed to cancel job");
     }
   }
+
+  const canPublish =
+    lesson != null &&
+    isLessonReadyToPublish(lesson) &&
+    lesson.status !== "published";
 
   if (loading || !lesson) {
     return <div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
@@ -279,9 +297,14 @@ export default function LessonWorkspace() {
               {resumeAvailable ? "Resume Job" : "Generate the Rest"}
             </button>
           ) : null}
-          {lesson.status === "review" && (
-            <button onClick={publish} className="flex items-center gap-sm px-lg py-md rounded-lg bg-green-600 text-white font-body text-sm font-semibold hover:bg-green-700 transition-colors">
-              <Send className="h-4 w-4" /> Publish
+          {canPublish && (
+            <button
+              onClick={publish}
+              disabled={publishing}
+              className="flex items-center gap-sm px-lg py-md rounded-lg bg-green-600 text-white font-body text-sm font-semibold hover:bg-green-700 transition-colors disabled:opacity-50"
+            >
+              <Send className="h-4 w-4" />
+              {publishing ? "Publishing..." : "Publish"}
             </button>
           )}
         </div>
