@@ -39,7 +39,8 @@ export async function POST(
           difficulty: lesson.difficulty,
           description: lesson.description,
         },
-        lesson.thumbnail
+        lesson.thumbnail,
+        { forceRegenerate: true }
       );
     } catch (thumbnailError) {
       console.error("POST /api/admin/lessons/[id]/publish thumbnail error:", thumbnailError);

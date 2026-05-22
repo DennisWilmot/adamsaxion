@@ -2,7 +2,7 @@ import { getOrComputeCachedValue } from "@/lib/admin/generation-cache";
 
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 const IMAGE_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 365;
-const IMAGE_CACHE_VERSION = "v1";
+const IMAGE_CACHE_VERSION = "v2-human";
 const OPENROUTER_MIN_RETRY_TOKENS = 256;
 const OPENROUTER_RETRY_TOKEN_BUFFER = 64;
 

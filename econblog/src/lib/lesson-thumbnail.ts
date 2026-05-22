@@ -7,7 +7,9 @@ type LessonThumbnailInput = {
 
 import { generateImageDataUrl } from "./openrouter";
 
-const THUMBNAIL_GENERATION_TIMEOUT_MS = 20_000;
+export const THUMBNAIL_PROMPT_VERSION = "v2-human";
+
+const THUMBNAIL_GENERATION_TIMEOUT_MS = 25_000;
 
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -29,6 +31,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
 
 type Theme = {
   background: [string, string];
+  warmAccent: string;
   stroke: string;
   fill: string;
   motif: "curves" | "network" | "bars" | "flow" | "rings";
@@ -37,23 +40,27 @@ type Theme = {
 
 const CATEGORY_THEMES: Record<string, Omit<Theme, "motif" | "accent">> = {
   Microeconomics: {
-    background: ["#173d7a", "#3c70c8"],
-    stroke: "#d8e7ff",
+    background: ["#1a3560", "#4a7fd4"],
+    warmAccent: "#e8b86d",
+    stroke: "#f5e6cc",
     fill: "#8eb8ff",
   },
   Macroeconomics: {
-    background: ["#0f5e50", "#24a18d"],
-    stroke: "#d9fff6",
+    background: ["#0f4a40", "#2cb8a3"],
+    warmAccent: "#f0c987",
+    stroke: "#fff1dd",
     fill: "#8af1df",
   },
   Trade: {
-    background: ["#9a4c14", "#e78a2f"],
-    stroke: "#fff1dd",
+    background: ["#7a3a10", "#e09545"],
+    warmAccent: "#ffe4b8",
+    stroke: "#fff8ef",
     fill: "#ffd09c",
   },
   Finance: {
-    background: ["#4d2d96", "#8c63e8"],
-    stroke: "#efe7ff",
+    background: ["#3a2278", "#7b55d9"],
+    warmAccent: "#f2d18b",
+    stroke: "#f3ecff",
     fill: "#cfbcff",
   },
 };
@@ -100,6 +107,40 @@ function chooseAccent(title: string) {
   return words.slice(0, 2).join(" ");
 }
 
+function chooseHumanMoment(title: string, description?: string) {
+  const haystack = `${title} ${description ?? ""}`.toLowerCase();
+
+  if (/(game|strategy|nash|incentive|coordination|prisoner)/.test(haystack)) {
+    return "two abstract figures facing each other across a table or divide, weighing a hard choice together";
+  }
+
+  if (/(budget|constraint|tradeoff|choice|scarcity)/.test(haystack)) {
+    return "a lone figure at a crossroads or balancing scales in their hands, feeling the weight of a tradeoff";
+  }
+
+  if (/(preference|utility|consumer|demand|substitution|income)/.test(haystack)) {
+    return "a contemplative figure in profile, hand on chin or reaching toward two paths, expressing inner deliberation";
+  }
+
+  if (/(keynes|recession|stimulus|unemployment|macro|growth)/.test(haystack)) {
+    return "a small crowd or pair of figures under changing skies, suggesting collective economic pressure and recovery";
+  }
+
+  if (/(trade|tariff|exchange|global|import|export)/.test(haystack)) {
+    return "figures exchanging objects or reaching across a divide, symbolizing connection and exchange between people";
+  }
+
+  if (/(finance|bank|interest|capital|risk|invest)/.test(haystack)) {
+    return "a figure standing at the edge of an abstract landscape, looking forward with cautious hope";
+  }
+
+  if (/(supply|equilibrium|market|price)/.test(haystack)) {
+    return "a buyer and seller as soft silhouettes meeting in the middle of flowing abstract forms";
+  }
+
+  return "one expressive human silhouette as the emotional center — posture should suggest curiosity, struggle, or discovery";
+}
+
 function getTheme(input: LessonThumbnailInput): Theme {
   const base =
     CATEGORY_THEMES[input.category] ?? CATEGORY_THEMES.Microeconomics;
@@ -113,95 +154,96 @@ function getTheme(input: LessonThumbnailInput): Theme {
 
 export function buildLessonThumbnailPrompt(input: LessonThumbnailInput) {
   const theme = getTheme(input);
+  const humanMoment = chooseHumanMoment(input.title, input.description);
 
   return [
-    "Create a minimalist editorial lesson thumbnail.",
-    "Style: abstract, geometric, clean, modern, premium, painterly gradients, no photorealism, no text, no logos, no interface chrome.",
-    `Lesson title inspiration: "${input.title}".`,
-    `Category context: ${input.category}.`,
-    input.difficulty ? `Difficulty tone: ${input.difficulty}.` : null,
+    `Editorial course-cover illustration for the economics lesson "${input.title}".`,
+    "",
+    "MOOD (most important): Warm, alive, human, thoughtful. This should feel like art made for real learners wrestling with hard ideas — not a cold corporate slide, not a sterile infographic, not neon tech wallpaper.",
+    "",
+    "HUMANITY (required — never skip): The image MUST include a clear human emotional anchor:",
+    humanMoment + ".",
+    "Use semi-abstract silhouettes, gestures, posture, hands, profiles, or small groups — painterly and expressive, never photorealistic stock photography.",
+    "The human element should carry feeling: curiosity, tension, tradeoffs, discovery, responsibility, or connection.",
+    "",
+    "STYLE: Abstract editorial illustration with organic painterly gradients, soft cinematic light, warm amber/gold highlights against deep blues and greens.",
+    `Include a subtle abstract ${theme.motif} motif in the environment around the figure — economics as context, not the whole image.`,
+    "Brush-like edges, emotional color, one strong focal composition. Semi-abstract, tasteful, premium.",
+    "",
+    `Category: ${input.category}.`,
+    input.difficulty ? `Tone: ${input.difficulty}.` : null,
     input.description
-      ? `Use the lesson description as secondary inspiration: ${input.description.slice(0, 220)}`
+      ? `Lesson context: ${input.description.slice(0, 240)}`
       : null,
-    `Visual direction: use a ${theme.motif} motif with restrained geometry, soft gradients, and one clear focal composition.`,
-    `The image should feel abstract but recognizably inspired by the title phrase "${theme.accent || input.title}".`,
-    "Include subtle humanity through abstract human presence — silhouettes, hands, posture, profiles, or symbolic figures integrated into the geometry. Keep faces minimal and non-photorealistic.",
-    "Humanity should feel thoughtful and editorial, not stock-photo literal. Prefer one human gesture or figure over crowds.",
-    "Make it distinct from generic economics cover art by choosing one specific visual metaphor rather than a collage of concepts.",
-    "Use only 2-4 main shapes with strong hierarchy and generous negative space.",
-    "Avoid charts with labels, clip-art, coins, textbooks, flags, or literal icon sets unless transformed into abstract geometric forms.",
-    "Composition: 16:9 horizontal thumbnail, generous negative space, premium course-cover feel.",
+    "",
+    "AVOID: lifeless geometric wallpaper, glowing network graphs, labeled charts, 3D corporate renders, clip-art icons, coins, textbooks, flags, neon cyber aesthetics, empty shapes with no human presence, symmetrical tech diagrams, AI slop.",
+    "",
+    "No text, no logos, no watermarks. 16:9 horizontal composition.",
   ]
     .filter(Boolean)
-    .join(" ");
+    .join("\n");
+}
+
+function renderHumanSilhouette(warmAccent: string) {
+  return `
+    <g opacity="0.92">
+      <ellipse cx="520" cy="560" rx="210" ry="28" fill="rgba(0,0,0,0.18)" />
+      <path
+        d="M520 470 C478 470 452 430 452 392 C452 352 478 318 520 318 C562 318 588 352 588 392 C588 430 562 470 520 470 Z"
+        fill="${warmAccent}"
+        opacity="0.95"
+      />
+      <path
+        d="M470 478 C456 520 448 560 440 610 C440 628 456 640 472 640 L568 640 C584 640 600 628 600 610 C592 560 584 520 570 478 C552 492 488 492 470 478 Z"
+        fill="${warmAccent}"
+        opacity="0.88"
+      />
+      <path
+        d="M598 410 C630 392 662 404 676 438 C684 462 674 486 648 496"
+        stroke="${warmAccent}"
+        stroke-width="14"
+        stroke-linecap="round"
+        fill="none"
+        opacity="0.75"
+      />
+    </g>`;
 }
 
 function renderMotif(theme: Theme) {
   switch (theme.motif) {
     case "network":
       return `
-        <g opacity="0.92" stroke="${theme.stroke}" stroke-width="6" fill="none" stroke-linecap="round">
-          <path d="M270 470 L500 250 L760 360 L930 210" opacity="0.55" />
-          <path d="M340 240 L500 250 L640 130 L930 210" opacity="0.45" />
-          <path d="M270 470 L480 520 L760 360" opacity="0.35" />
-        </g>
-        <g fill="${theme.fill}">
-          <circle cx="270" cy="470" r="26" />
-          <circle cx="340" cy="240" r="18" opacity="0.9" />
-          <circle cx="500" cy="250" r="34" />
-          <circle cx="640" cy="130" r="16" opacity="0.8" />
-          <circle cx="760" cy="360" r="24" />
-          <circle cx="930" cy="210" r="20" />
-          <circle cx="480" cy="520" r="14" opacity="0.75" />
+        <g opacity="0.35" stroke="${theme.stroke}" stroke-width="4" fill="none" stroke-linecap="round">
+          <path d="M270 470 L500 250 L760 360 L930 210" />
+          <path d="M340 240 L500 250 L640 130 L930 210" />
         </g>`;
     case "bars":
       return `
-        <g opacity="0.95">
-          <rect x="250" y="350" width="110" height="170" rx="24" fill="${theme.fill}" opacity="0.38" />
-          <rect x="400" y="280" width="110" height="240" rx="24" fill="${theme.fill}" opacity="0.52" />
-          <rect x="550" y="220" width="110" height="300" rx="24" fill="${theme.fill}" opacity="0.72" />
-          <rect x="700" y="300" width="110" height="220" rx="24" fill="${theme.fill}" opacity="0.48" />
-        </g>
-        <g stroke="${theme.stroke}" stroke-width="8" fill="none" stroke-linecap="round">
-          <path d="M220 470 C360 430, 470 210, 620 250 C760 290, 860 220, 970 150" />
+        <g opacity="0.28">
+          <rect x="250" y="350" width="110" height="170" rx="24" fill="${theme.fill}" />
+          <rect x="400" y="280" width="110" height="240" rx="24" fill="${theme.fill}" />
+          <rect x="700" y="300" width="110" height="220" rx="24" fill="${theme.fill}" />
         </g>`;
     case "flow":
       return `
-        <g stroke="${theme.stroke}" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
+        <g stroke="${theme.stroke}" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.35">
           <path d="M170 250 H590" />
-          <path d="M560 220 L620 250 L560 280" />
-          <path d="M320 430 H890" opacity="0.65" />
-          <path d="M860 400 L920 430 L860 460" opacity="0.65" />
-        </g>
-        <g fill="${theme.fill}" opacity="0.8">
-          <circle cx="270" cy="250" r="58" opacity="0.3" />
-          <circle cx="760" cy="430" r="72" opacity="0.24" />
-          <rect x="610" y="150" width="180" height="180" rx="42" opacity="0.18" />
+          <path d="M320 430 H890" />
         </g>`;
     case "rings":
       return `
-        <g fill="none" stroke="${theme.stroke}" stroke-width="10" opacity="0.85">
-          <circle cx="520" cy="320" r="170" />
-          <circle cx="520" cy="320" r="115" opacity="0.75" />
-          <circle cx="520" cy="320" r="58" opacity="0.6" />
-        </g>
-        <g fill="${theme.fill}" opacity="0.9">
-          <circle cx="760" cy="240" r="32" />
-          <circle cx="860" cy="180" r="18" opacity="0.72" />
-          <circle cx="250" cy="450" r="26" opacity="0.72" />
+        <g fill="none" stroke="${theme.stroke}" stroke-width="8" opacity="0.3">
+          <circle cx="820" cy="220" r="120" />
+          <circle cx="820" cy="220" r="78" />
         </g>`;
     case "curves":
     default:
       return `
-        <g fill="none" stroke-linecap="round">
+        <g fill="none" stroke-linecap="round" opacity="0.38">
           <path d="M160 470 C300 420, 430 350, 560 210 C670 100, 810 115, 1030 180"
-            stroke="${theme.stroke}" stroke-width="12" opacity="0.9" />
+            stroke="${theme.stroke}" stroke-width="10" />
           <path d="M190 180 C320 250, 450 340, 610 430 C760 510, 900 490, 1030 420"
-            stroke="${theme.fill}" stroke-width="12" opacity="0.72" />
-        </g>
-        <g fill="${theme.fill}" opacity="0.22">
-          <circle cx="830" cy="185" r="92" />
-          <circle cx="340" cy="390" r="72" />
+            stroke="${theme.fill}" stroke-width="10" />
         </g>`;
   }
 }
@@ -219,24 +261,18 @@ export function generateLessonThumbnailDataUrl(input: LessonThumbnailInput) {
           <stop stop-color="${theme.background[0]}" />
           <stop offset="1" stop-color="${theme.background[1]}" />
         </linearGradient>
-        <radialGradient id="glow-${lessonId}" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse"
-          gradientTransform="translate(910 145) rotate(135) scale(420 360)">
-          <stop stop-color="#FFFFFF" stop-opacity="0.26" />
-          <stop offset="1" stop-color="#FFFFFF" stop-opacity="0" />
+        <radialGradient id="warm-${lessonId}" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse"
+          gradientTransform="translate(520 360) rotate(90) scale(380 320)">
+          <stop stop-color="${theme.warmAccent}" stop-opacity="0.22" />
+          <stop offset="1" stop-color="${theme.warmAccent}" stop-opacity="0" />
         </radialGradient>
       </defs>
 
       <rect width="1200" height="675" rx="48" fill="url(#bg-${lessonId})" />
-      <rect width="1200" height="675" rx="48" fill="url(#glow-${lessonId})" />
-      <rect x="42" y="42" width="1116" height="591" rx="36" stroke="rgba(255,255,255,0.14)" />
+      <rect width="1200" height="675" rx="48" fill="url(#warm-${lessonId})" />
 
       ${renderMotif(theme)}
-
-      <g opacity="0.42">
-        <rect x="92" y="92" width="170" height="30" rx="999" fill="rgba(255,255,255,0.16)" />
-        <circle cx="1068" cy="110" r="6" fill="rgba(255,255,255,0.48)" />
-        <circle cx="1092" cy="110" r="6" fill="rgba(255,255,255,0.3)" />
-      </g>
+      ${renderHumanSilhouette(theme.warmAccent)}
     </svg>
   `.trim();
 
@@ -249,8 +285,6 @@ export function resolveLessonThumbnail(
 ) {
   const thumbnail = existingThumbnail?.trim() ?? "";
 
-  // Legacy course images look visually inconsistent with the new abstract system,
-  // so we replace them with generated lesson art.
   if (!thumbnail || thumbnail.startsWith("/thumbnails/")) {
     return generateLessonThumbnailDataUrl(input);
   }
@@ -258,13 +292,20 @@ export function resolveLessonThumbnail(
   return thumbnail;
 }
 
+interface CreateLessonThumbnailOptions {
+  forceRegenerate?: boolean;
+}
+
 export async function createLessonThumbnail(
   input: LessonThumbnailInput,
-  existingThumbnail?: string | null
+  existingThumbnail?: string | null,
+  options: CreateLessonThumbnailOptions = {}
 ) {
   const thumbnail = existingThumbnail?.trim() ?? "";
+  const { forceRegenerate = false } = options;
 
   if (
+    !forceRegenerate &&
     thumbnail &&
     !thumbnail.startsWith("/thumbnails/") &&
     !thumbnail.startsWith("data:image/svg+xml")
