@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   Plus, FileText, Trash2, Layers, Zap, Search, LayoutGrid, List,
 } from "lucide-react";
+import { resolveLessonMetadata } from "@/lib/admin/infer-lesson-metadata";
 
 interface LessonSummary {
   id: string;
@@ -151,8 +152,6 @@ export default function AdminPage() {
   const [newDifficulty, setNewDifficulty] = useState("Intermediate");
   const [creating, setCreating] = useState(false);
   const [batchInput, setBatchInput] = useState("");
-  const [batchCategory, setBatchCategory] = useState("Microeconomics");
-  const [batchDifficulty, setBatchDifficulty] = useState("Intermediate");
   const [batchCreating, setBatchCreating] = useState(false);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
@@ -161,6 +160,13 @@ export default function AdminPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("list");
 
   const parsedBatchLessons = parseBatchLessons(batchInput);
+
+  const resolvedBatchLessons = useMemo(() => {
+    return parsedBatchLessons.map((lesson) => {
+      const { category, difficulty } = resolveLessonMetadata(lesson);
+      return { ...lesson, category, difficulty };
+    });
+  }, [parsedBatchLessons]);
 
   useEffect(() => {
     const saved = localStorage.getItem("admin-lessons-view");
@@ -230,24 +236,15 @@ export default function AdminPage() {
   }
 
   async function handleBatchCreate() {
-    if (parsedBatchLessons.length === 0) return;
+    if (resolvedBatchLessons.length === 0) return;
 
     setBatchCreating(true);
-
-    const payload = parsedBatchLessons.map((lesson) => ({
-      title: lesson.title,
-      description: lesson.description,
-      category: lesson.category || batchCategory,
-      difficulty: lesson.difficulty || batchDifficulty,
-    }));
 
     const res = await fetch("/api/admin/lessons/batch", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        lessons: payload,
-        defaultCategory: batchCategory,
-        defaultDifficulty: batchDifficulty,
+        lessons: resolvedBatchLessons,
         autoQueue: true,
       }),
     });
@@ -304,12 +301,11 @@ export default function AdminPage() {
                 Batch Queue Lessons
               </h2>
               <p className="mt-xs max-w-2xl font-body text-sm text-foreground-secondary">
-                Paste lesson titles separated by commas and the worker will keep
-                pulling jobs until the queue is empty. If you want per-lesson
-                description, category, or difficulty, use
-                <code className="mx-1 rounded bg-surface-sunken px-1.5 py-0.5 text-xs">Title | Description</code>
-                or tab-separated rows from a spreadsheet. Category and difficulty
-                can be added as the 3rd and 4th columns.
+                Paste lesson titles separated by commas or newlines. Category
+                and difficulty are inferred automatically from each title. To
+                override, use structured rows:
+                <code className="mx-1 rounded bg-surface-sunken px-1.5 py-0.5 text-xs">Title | Description | Category | Difficulty</code>
+                or tab-separated columns from a spreadsheet.
               </p>
             </div>
             <span className="inline-flex items-center gap-xs rounded-full bg-amber-50 px-sm py-xs font-body text-xs font-medium text-amber-800">
@@ -318,53 +314,41 @@ export default function AdminPage() {
             </span>
           </div>
 
-          <div className="grid grid-cols-1 gap-lg sm:grid-cols-2 mb-lg">
-            <div>
-              <label className="mb-xs block font-body text-xs font-semibold uppercase tracking-wide text-foreground-secondary">
-                Default Category
-              </label>
-              <select
-                value={batchCategory}
-                onChange={(e) => setBatchCategory(e.target.value)}
-                className="w-full rounded-lg border border-border bg-surface px-lg py-md font-body text-sm"
-              >
-                {CATEGORIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="mb-xs block font-body text-xs font-semibold uppercase tracking-wide text-foreground-secondary">
-                Default Difficulty
-              </label>
-              <select
-                value={batchDifficulty}
-                onChange={(e) => setBatchDifficulty(e.target.value)}
-                className="w-full rounded-lg border border-border bg-surface px-lg py-md font-body text-sm"
-              >
-                {DIFFICULTIES.map((d) => (
-                  <option key={d} value={d}>
-                    {d}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
           <textarea
             value={batchInput}
             onChange={(e) => setBatchInput(e.target.value)}
             rows={10}
-            placeholder={`Game Theory, Keynesian Economics, International Trade\n\nOr use structured rows:\nGame Theory | Strategic interaction, incentives, and equilibrium across real-world decisions\nInternational Trade\tComparative advantage, tariffs, and global exchange\tTrade\tIntermediate`}
+            placeholder={`Game Theory, Keynesian Economics, International Trade, How a Currency Dies: Zimbabwe's Hyperinflation\n\nOr structured rows:\nGame Theory | Strategic interaction and equilibrium\nInternational Trade\tComparative advantage and tariffs\tTrade\tIntermediate`}
             className="mb-md w-full rounded-lg border border-border bg-surface px-lg py-md font-body text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
 
+          {resolvedBatchLessons.length > 0 ? (
+            <div className="mb-lg max-h-56 overflow-y-auto rounded-lg border border-border">
+              <table className="w-full text-left font-body text-xs">
+                <thead className="sticky top-0 bg-surface-sunken text-foreground-secondary">
+                  <tr>
+                    <th className="px-md py-sm font-semibold">Title</th>
+                    <th className="px-md py-sm font-semibold">Category</th>
+                    <th className="px-md py-sm font-semibold">Level</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {resolvedBatchLessons.map((lesson) => (
+                    <tr key={lesson.title} className="border-t border-border-subtle">
+                      <td className="px-md py-sm text-foreground">{lesson.title}</td>
+                      <td className="px-md py-sm text-foreground-muted">{lesson.category}</td>
+                      <td className="px-md py-sm text-foreground-muted">{lesson.difficulty}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : null}
+
           <div className="flex flex-wrap items-center justify-between gap-md">
             <p className="font-body text-sm text-foreground-muted">
-              {parsedBatchLessons.length}{" "}
-              {parsedBatchLessons.length === 1 ? "lesson" : "lessons"} ready to
+              {resolvedBatchLessons.length}{" "}
+              {resolvedBatchLessons.length === 1 ? "lesson" : "lessons"} ready to
               create and queue
             </p>
             <div className="flex gap-md">
@@ -376,12 +360,12 @@ export default function AdminPage() {
               </button>
               <button
                 onClick={handleBatchCreate}
-                disabled={parsedBatchLessons.length === 0 || batchCreating}
+                disabled={resolvedBatchLessons.length === 0 || batchCreating}
                 className="rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 px-xl py-md font-body text-sm font-semibold text-white transition-all hover:from-amber-600 hover:to-orange-600 disabled:opacity-50"
               >
                 {batchCreating
                   ? "Queueing Lessons..."
-                  : `Create + Queue ${parsedBatchLessons.length || ""}`.trim()}
+                  : `Create + Queue ${resolvedBatchLessons.length || ""}`.trim()}
               </button>
             </div>
           </div>

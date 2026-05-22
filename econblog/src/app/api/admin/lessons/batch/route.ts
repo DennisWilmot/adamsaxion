@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { lessons } from "@/db/schema";
 import { queueLessonGenerationJob } from "@/lib/admin/lesson-generation-runner";
+import { resolveLessonMetadata } from "@/lib/admin/infer-lesson-metadata";
 
 type BatchLessonInput = {
   title?: string;
@@ -47,8 +48,6 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const lessonInputs = Array.isArray(body.lessons) ? body.lessons : [];
-    const defaultCategory = String(body.defaultCategory || "Microeconomics");
-    const defaultDifficulty = String(body.defaultDifficulty || "Intermediate");
     const autoQueue = body.autoQueue !== false;
 
     if (lessonInputs.length === 0) {
@@ -66,20 +65,19 @@ export async function POST(request: Request) {
     }
 
     const normalized = lessonInputs
-      .map((lesson: BatchLessonInput) => ({
-        title: String(lesson.title || lesson.topic || "").trim(),
-        description: String(lesson.description || "").trim(),
-        category: String(lesson.category || defaultCategory).trim(),
-        difficulty: String(lesson.difficulty || defaultDifficulty).trim(),
-      }))
-      .filter(
-        (lesson: {
-          title: string;
-          description: string;
-          category: string;
-          difficulty: string;
-        }) => lesson.title
-      );
+      .map((lesson: BatchLessonInput) => {
+        const title = String(lesson.title || lesson.topic || "").trim();
+        const description = String(lesson.description || "").trim();
+        const { category, difficulty } = resolveLessonMetadata({
+          title,
+          description,
+          category: lesson.category,
+          difficulty: lesson.difficulty,
+        });
+
+        return { title, description, category, difficulty };
+      })
+      .filter((lesson: { title: string }) => lesson.title);
 
     if (normalized.length === 0) {
       return NextResponse.json(
