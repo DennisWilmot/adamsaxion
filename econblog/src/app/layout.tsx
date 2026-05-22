@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Source_Serif_4, Hanken_Grotesk } from "next/font/google";
 import "./globals.css";
+import { AuthNotice } from "@/components/AuthNotice";
 import { Header } from "@/components/Header";
 
 const sourceSerif = Source_Serif_4({
@@ -31,7 +33,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${sourceSerif.variable} ${hankenGrotesk.variable}`}>
       <body className="font-body bg-surface text-foreground min-h-screen antialiased">
-        <Header />
+        <Suspense fallback={null}>
+          <Header />
+        </Suspense>
+        <Suspense fallback={null}>
+          <AuthNotice />
+        </Suspense>
         <main>{children}</main>
       </body>
     </html>

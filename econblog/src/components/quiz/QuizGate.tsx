@@ -254,7 +254,9 @@ export function QuizGate({ quiz, lessonSlug, status, isAuthenticated = true, onC
                 const supabase = createClient();
                 supabase.auth.signInWithOAuth({
                   provider: "google",
-                  options: { redirectTo: `${window.location.origin}/auth/callback` },
+                  options: {
+                    redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(window.location.pathname)}`,
+                  },
                 });
               });
             }}

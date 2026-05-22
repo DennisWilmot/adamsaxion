@@ -1,7 +1,12 @@
+import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { lessonSources } from "@/db/schema";
+import { getOrComputeCachedValue } from "@/lib/admin/generation-cache";
 import { eq } from "drizzle-orm";
+
+const SOURCE_EXTRACTION_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 180;
+const SOURCE_EXTRACTION_CACHE_VERSION = "v1";
 
 export async function GET(
   request: Request,
@@ -37,22 +42,33 @@ export async function POST(
       }
 
       const buffer = Buffer.from(await file.arrayBuffer());
-      let text = "";
+      const sourceType = file.name.endsWith(".pdf") ? "pdf" : "text";
+      const contentHash = createHash("sha256").update(buffer).digest("hex");
+      const text = await getOrComputeCachedValue({
+        kind: "source-extraction",
+        version: SOURCE_EXTRACTION_CACHE_VERSION,
+        input: {
+          sourceType,
+          contentHash,
+        },
+        ttlMs: SOURCE_EXTRACTION_CACHE_TTL_MS,
+        compute: async () => {
+          if (sourceType === "pdf") {
+            const pdfParse = (await import("pdf-parse")) as any;
+            const parseFn = pdfParse.default || pdfParse;
+            const parsed = await parseFn(buffer);
+            return parsed.text as string;
+          }
 
-      if (file.name.endsWith(".pdf")) {
-        const pdfParse = (await import("pdf-parse")) as any;
-        const parseFn = pdfParse.default || pdfParse;
-        const parsed = await parseFn(buffer);
-        text = parsed.text;
-      } else {
-        text = buffer.toString("utf-8");
-      }
+          return buffer.toString("utf-8");
+        },
+      });
 
       const [source] = await db
         .insert(lessonSources)
         .values({
           lessonId: id,
-          type: file.name.endsWith(".pdf") ? "pdf" : "text",
+          type: sourceType,
           title: file.name,
           content: text,
         })

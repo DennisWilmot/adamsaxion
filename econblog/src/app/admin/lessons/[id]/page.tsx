@@ -424,6 +424,8 @@ function JobActivityPanel({
   onStart: () => void;
   onCancel: () => void;
 }) {
+  const [recentOpen, setRecentOpen] = useState(false);
+
   if (!latestJob && !hasRemainingWork) {
     return null;
   }
@@ -452,7 +454,7 @@ function JobActivityPanel({
               : "bg-surface-sunken text-foreground-muted";
 
   return (
-    <div className="rounded-xl border border-border bg-surface-raised p-lg shadow-sm">
+    <div className="max-h-[calc(100vh-8rem)] overflow-y-auto rounded-xl border border-border bg-surface-raised p-lg shadow-sm">
       <div className="flex flex-col gap-lg">
         <div className="min-w-0">
           <div className="flex items-start justify-between gap-md">
@@ -570,32 +572,49 @@ function JobActivityPanel({
 
       {jobs.length > 0 ? (
         <div className="mt-lg border-t border-border pt-lg">
-          <h4 className="font-body text-xs font-semibold uppercase tracking-wide text-foreground-secondary">
-            Recent Runs
-          </h4>
-          <div className="mt-md space-y-sm">
-            {jobs.slice(0, 5).map((job) => (
-              <div
-                key={job.id}
-                className="flex flex-col gap-xs rounded-lg bg-surface-sunken p-md sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div>
-                  <p className="font-body text-sm font-medium text-foreground">
-                    {job.currentStep ?? "No step recorded"}
-                  </p>
-                  <p className="font-body text-xs text-foreground-muted">
-                    {getJobStageSummary(job)} ·{" "}
-                    {new Date(job.createdAt).toLocaleString()}
-                  </p>
-                </div>
-                <span
-                  className={`inline-flex w-fit rounded px-sm py-[2px] text-[10px] font-semibold uppercase tracking-wider ${job.status === "completed" ? "bg-green-100 text-green-800" : job.status === "failed" ? "bg-red-100 text-red-800" : job.status === "cancelled" ? "bg-gray-100 text-gray-700" : "bg-blue-100 text-blue-800"}`}
+          <button
+            onClick={() => setRecentOpen((prev) => !prev)}
+            className="flex w-full items-center justify-between gap-sm text-left"
+          >
+            <div className="flex items-center gap-sm">
+              <h4 className="font-body text-xs font-semibold uppercase tracking-wide text-foreground-secondary">
+                Recent Runs
+              </h4>
+              <span className="rounded-full bg-surface-sunken px-sm py-[2px] font-body text-[10px] text-foreground-muted">
+                {jobs.length}
+              </span>
+            </div>
+            <ChevronRight
+              className={`h-4 w-4 text-foreground-muted transition-transform ${
+                recentOpen ? "rotate-90" : ""
+              }`}
+            />
+          </button>
+          {recentOpen ? (
+            <div className="mt-md space-y-sm">
+              {jobs.slice(0, 5).map((job) => (
+                <div
+                  key={job.id}
+                  className="flex flex-col gap-xs rounded-lg bg-surface-sunken p-md sm:flex-row sm:items-center sm:justify-between"
                 >
-                  {job.status}
-                </span>
-              </div>
-            ))}
-          </div>
+                  <div>
+                    <p className="font-body text-sm font-medium text-foreground">
+                      {job.currentStep ?? "No step recorded"}
+                    </p>
+                    <p className="font-body text-xs text-foreground-muted">
+                      {getJobStageSummary(job)} ·{" "}
+                      {new Date(job.createdAt).toLocaleString()}
+                    </p>
+                  </div>
+                  <span
+                    className={`inline-flex w-fit rounded px-sm py-[2px] text-[10px] font-semibold uppercase tracking-wider ${job.status === "completed" ? "bg-green-100 text-green-800" : job.status === "failed" ? "bg-red-100 text-red-800" : job.status === "cancelled" ? "bg-gray-100 text-gray-700" : "bg-blue-100 text-blue-800"}`}
+                  >
+                    {job.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : null}
         </div>
       ) : null}
     </div>

@@ -1,15 +1,27 @@
-import { chat, chatJSON } from "@/lib/openrouter";
+import { chat, chatJSON, OpenRouterApiError } from "@/lib/openrouter";
 import { searchMultiple } from "@/lib/serper";
+import { getOrComputeCachedValue } from "./generation-cache";
 import * as prompts from "./prompts";
 
 const MAX_RETRIES = 3;
 const RETRY_DELAYS = [1000, 3000, 8000];
+const RESEARCH_SYNTHESIS_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 30;
+const RESEARCH_SYNTHESIS_CACHE_VERSION = "v1";
 
 async function withRetry<T>(fn: () => Promise<T>, label: string): Promise<T> {
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
       return await fn();
     } catch (err) {
+      const isOpenRouterCreditError =
+        err instanceof OpenRouterApiError && err.status === 402;
+      const isSerperAuthError =
+        err instanceof Error && err.message.includes("Serper API error (403)");
+
+      if (isOpenRouterCreditError || isSerperAuthError) {
+        throw err;
+      }
+
       const isLast = attempt === MAX_RETRIES - 1;
       if (isLast) throw err;
       const delay = RETRY_DELAYS[attempt] ?? 8000;
@@ -49,15 +61,32 @@ export async function runResearch(
     uploadedSources.map((s) => s.content)
   );
 
-  const notes = await withRetry(
-    () => chat([
-      { role: "system", content: prompt.system },
-      { role: "user", content: prompt.user },
-    ], { temperature: 0.4, maxTokens: 4096 }),
-    "research-synthesis"
-  );
+  return getOrComputeCachedValue({
+    kind: "research-synthesis",
+    version: RESEARCH_SYNTHESIS_CACHE_VERSION,
+    input: {
+      topic,
+      searchResults,
+      uploadedSources: uploadedSources.map((source) => source.content),
+      prompt,
+    },
+    ttlMs: RESEARCH_SYNTHESIS_CACHE_TTL_MS,
+    compute: async () => {
+      const notes = await withRetry(
+        () =>
+          chat(
+            [
+              { role: "system", content: prompt.system },
+              { role: "user", content: prompt.user },
+            ],
+            { temperature: 0.4, maxTokens: 4096 }
+          ),
+        "research-synthesis"
+      );
 
-  return { notes, searchResults };
+      return { notes, searchResults };
+    },
+  });
 }
 
 interface OutlineSection {

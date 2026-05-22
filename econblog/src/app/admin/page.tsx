@@ -32,7 +32,28 @@ const CATEGORIES = ["Microeconomics", "Macroeconomics", "Trade", "Finance"];
 const DIFFICULTIES = ["Beginner", "Intermediate", "Advanced"];
 
 function parseBatchLessons(input: string) {
-  return input
+  const normalizedInput = input.trim();
+  if (!normalizedInput) {
+    return [];
+  }
+
+  const hasStructuredRows =
+    normalizedInput.includes("|") || normalizedInput.includes("\t");
+
+  if (!hasStructuredRows) {
+    return normalizedInput
+      .split(/[,\n]/)
+      .map((title) => title.trim())
+      .filter(Boolean)
+      .map((title) => ({
+        title,
+        description: "",
+        category: "",
+        difficulty: "",
+      }));
+  }
+
+  return normalizedInput
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean)
@@ -178,11 +199,12 @@ export default function AdminPage() {
                 Batch Queue Lessons
               </h2>
               <p className="mt-xs max-w-2xl font-body text-sm text-foreground-secondary">
-                Paste one lesson per line and the worker will keep pulling jobs
-                until the queue is empty. Use either
+                Paste lesson titles separated by commas and the worker will keep
+                pulling jobs until the queue is empty. If you want per-lesson
+                description, category, or difficulty, use
                 <code className="mx-1 rounded bg-surface-sunken px-1.5 py-0.5 text-xs">Title | Description</code>
-                or tab-separated rows from a spreadsheet. You can optionally add
-                category and difficulty as the 3rd and 4th columns.
+                or tab-separated rows from a spreadsheet. Category and difficulty
+                can be added as the 3rd and 4th columns.
               </p>
             </div>
             <span className="inline-flex items-center gap-xs rounded-full bg-amber-50 px-sm py-xs font-body text-xs font-medium text-amber-800">
@@ -230,7 +252,7 @@ export default function AdminPage() {
             value={batchInput}
             onChange={(e) => setBatchInput(e.target.value)}
             rows={10}
-            placeholder={`Game Theory | Strategic interaction, incentives, and equilibrium across real-world decisions\nKeynesian Economics | Demand shortfalls, stimulus, and recovery during downturns\nInternational Trade\tComparative advantage, tariffs, and global exchange\tTrade\tIntermediate`}
+            placeholder={`Game Theory, Keynesian Economics, International Trade\n\nOr use structured rows:\nGame Theory | Strategic interaction, incentives, and equilibrium across real-world decisions\nInternational Trade\tComparative advantage, tariffs, and global exchange\tTrade\tIntermediate`}
             className="mb-md w-full rounded-lg border border-border bg-surface px-lg py-md font-body text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
 

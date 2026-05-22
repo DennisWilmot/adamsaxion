@@ -5,8 +5,8 @@ import { createClient } from "@/lib/supabase/client";
 export function SignOutButton() {
   async function handleSignOut() {
     const supabase = createClient();
-    await supabase.auth.signOut();
-    window.location.href = "/";
+    await supabase.auth.signOut({ scope: "local" });
+    window.location.assign("/");
   }
 
   return (

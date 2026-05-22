@@ -42,19 +42,40 @@ export async function middleware(request: NextRequest) {
     if (!user) {
       const url = request.nextUrl.clone();
       url.pathname = "/";
+      url.searchParams.set("next", pathname);
       return NextResponse.redirect(url);
     }
 
-    const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+    const adminEmails = (process.env.ADMIN_EMAILS || "")
+      .split(",")
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean);
     const userEmail = (user.email ?? "").toLowerCase();
 
+    if (adminEmails.length === 0) {
+      console.error("[admin] ADMIN_EMAILS is not configured");
+      if (pathname.startsWith("/api/")) {
+        return NextResponse.json(
+          { error: "Admin access is not configured" },
+          { status: 503 }
+        );
+      }
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      url.searchParams.set("error", "admin_forbidden");
+      return NextResponse.redirect(url);
+    }
+
     if (!adminEmails.includes(userEmail)) {
-      console.log(`[admin] Access denied for email: "${userEmail}" — allowed: ${JSON.stringify(adminEmails)}`);
+      console.log(
+        `[admin] Access denied for email: "${userEmail}" — allowed: ${JSON.stringify(adminEmails)}`
+      );
       if (pathname.startsWith("/api/")) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
       const url = request.nextUrl.clone();
       url.pathname = "/";
+      url.searchParams.set("error", "admin_forbidden");
       return NextResponse.redirect(url);
     }
     return supabaseResponse;

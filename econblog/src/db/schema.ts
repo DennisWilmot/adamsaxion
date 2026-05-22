@@ -94,6 +94,16 @@ export const lessonGenerationJobs = pgTable("lesson_generation_jobs", {
   finishedAt: timestamp("finished_at", { withTimezone: true }),
 });
 
+export const generationCache = pgTable("generation_cache", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  kind: text("kind").notNull(),
+  cacheKey: text("cache_key").unique().notNull(),
+  value: jsonb("value").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const lessonSources = pgTable("lesson_sources", {
   id: uuid("id").defaultRandom().primaryKey(),
   lessonId: uuid("lesson_id").references(() => lessons.id, { onDelete: "cascade" }).notNull(),
