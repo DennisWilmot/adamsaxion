@@ -1,8 +1,20 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { FloatingIcons } from "@/components/FloatingIcons";
 import { lessonZeroPath } from "@/lib/constants/lessons";
 
-export default function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ code?: string; next?: string }>;
+}) {
+  const params = await searchParams;
+  if (params.code) {
+    const qs = new URLSearchParams({ code: params.code });
+    if (params.next) qs.set("next", params.next);
+    redirect(`/auth/callback?${qs.toString()}`);
+  }
+
   return (
     <div className="min-h-[calc(100vh-3.5rem)]">
       {/* Hero */}

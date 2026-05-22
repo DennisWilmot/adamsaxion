@@ -14,6 +14,7 @@ function AuthPageContent() {
   const next = safeNextPath(searchParams.get("next"));
   const mode =
     searchParams.get("mode") === "signup" ? "signup" : "signin";
+  const authError = searchParams.get("error") === "auth";
   const [checkingSession, setCheckingSession] = useState(true);
 
   useEffect(() => {
@@ -51,6 +52,13 @@ function AuthPageContent() {
           ? "Choose a username and password, or continue with Google."
           : "Sign in with email or Google to save progress and earn XP."}
       </p>
+      {authError && (
+        <p className="mb-lg font-body text-sm text-error">
+          Sign in failed. Try again — if it keeps happening, add{" "}
+          <span className="font-mono text-xs">/auth/callback</span> to your
+          Supabase project redirect URLs.
+        </p>
+      )}
       <AuthForm nextPath={next} initialMode={mode} />
     </div>
   );
