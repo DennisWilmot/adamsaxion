@@ -11,8 +11,10 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
+  console.log(`[publish] POST /api/admin/lessons/${id}/publish`);
+
   try {
-    const { id } = await params;
     const [lesson] = await db.select().from(lessons).where(eq(lessons.id, id)).limit(1);
 
     if (!lesson) {
@@ -54,6 +56,7 @@ export async function POST(
       .where(eq(lessons.id, id))
       .returning();
 
+    console.log(`[publish] published lesson ${id} (${updated?.title ?? "unknown"})`);
     return NextResponse.json({ lesson: updated });
   } catch (error) {
     console.error("POST /api/admin/lessons/[id]/publish error:", error);

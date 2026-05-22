@@ -194,11 +194,35 @@ export default function LessonWorkspace() {
     setError("");
 
     try {
-      const res = await fetch(`/api/admin/lessons/${id}/publish`, { method: "POST" });
-      const data = (await res.json()) as { error?: string };
+      const res = await fetch(`/api/admin/lessons/${id}/publish`, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { Accept: "application/json" },
+        redirect: "manual",
+      });
+
+      if (res.type === "opaqueredirect" || (res.status >= 300 && res.status < 400)) {
+        throw new Error("Session expired. Sign in again and retry publish.");
+      }
+
+      const contentType = res.headers.get("content-type") ?? "";
+      if (!contentType.includes("application/json")) {
+        throw new Error(
+          `Unexpected server response (${res.status}). Sign in again and retry publish.`
+        );
+      }
+
+      const data = (await res.json()) as {
+        error?: string;
+        lesson?: { status?: string };
+      };
 
       if (!res.ok) {
-        throw new Error(data.error || "Publish failed");
+        throw new Error(data.error || `Publish failed (${res.status})`);
+      }
+
+      if (data.lesson?.status !== "published") {
+        throw new Error("Publish did not complete. Check Railway logs and retry.");
       }
 
       await loadLesson();
@@ -299,7 +323,8 @@ export default function LessonWorkspace() {
           ) : null}
           {canPublish && (
             <button
-              onClick={publish}
+              type="button"
+              onClick={() => void publish()}
               disabled={publishing}
               className="flex items-center gap-sm px-lg py-md rounded-lg bg-green-600 text-white font-body text-sm font-semibold hover:bg-green-700 transition-colors disabled:opacity-50"
             >
@@ -337,18 +362,20 @@ export default function LessonWorkspace() {
           </div>
 
           {/* Status bar */}
-          {(generating || error) && (
+          {(generating || publishing || error) && (
             <div
               className={`mb-lg flex items-center gap-md rounded-lg p-md ${
                 error ? "bg-red-50 text-red-700" : "bg-blue-50 text-blue-700"
               }`}
             >
-              {generating ? (
+              {generating || publishing ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <AlertCircle className="h-4 w-4" />
               )}
-              <span className="font-body text-sm">{error || genStatus}</span>
+              <span className="font-body text-sm">
+                {error || (publishing ? "Publishing lesson..." : genStatus)}
+              </span>
               {error ? (
                 <button
                   onClick={() => setError("")}
