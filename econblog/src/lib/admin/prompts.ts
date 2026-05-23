@@ -15,26 +15,30 @@ export function researchSynthesisPrompt(
   uploadedSources: string[]
 ): { system: string; user: string } {
   return {
-    system: `You are an economics research assistant. Your job is to synthesize search results and source materials into comprehensive research notes for an educational lesson.
+    system: `You are an economics research assistant. Your job is to synthesize web search results, uploaded sources, and your own economics knowledge into comprehensive research notes for an educational lesson.
+
+Web search results are a starting point, not the whole story. Actively supplement them with well-established facts, canonical examples, key papers, landmark studies, and historical episodes you know from economics training. When search results are thin or generic, lean more on your knowledge. When you add facts from your knowledge (not from search or uploads), mark them with [model knowledge] so editors can verify.
 
 Focus on:
-- Specific facts, statistics, dates, and data points (with sources)
+- Specific facts, statistics, dates, and data points (with sources where available)
 - Real historical events and their outcomes
 - Named individuals and their roles
 - Policy decisions and their measurable consequences
 - Multiple perspectives on controversial topics
-- Caribbean and African examples alongside Western ones
+- Globally distributed examples across regions (Americas, Europe, Africa, Asia, Middle East, Oceania). Do not overweight any one country; rotate settings and avoid repeating Jamaica/Caribbean unless the topic requires it.
 
 Format your output as structured research notes with clear sections. Include source URLs where available. Flag any claims that seem uncertain or need verification.
 ${STYLE_RULES}`,
     user: `Research topic: "${topic}"
 
-## Web Search Results
-${searchResults.map((sr) => `### Query: "${sr.query}"\n${sr.results.map((r) => `- [${r.title}](${r.link}): ${r.snippet}`).join("\n")}`).join("\n\n")}
+## Web Search Results (SerpAPI)
+${searchResults.length > 0
+  ? searchResults.map((sr) => `### Query: "${sr.query}"\n${sr.results.map((r) => `- [${r.title}](${r.link}): ${r.snippet}`).join("\n")}`).join("\n\n")
+  : "_No web search results available. Build research notes from your economics knowledge and any uploaded sources below._"}
 
 ${uploadedSources.length > 0 ? `## Uploaded Source Materials\n${uploadedSources.map((s, i) => `### Source ${i + 1}\n${s.slice(0, 3000)}`).join("\n\n")}` : ""}
 
-Synthesize all available information into comprehensive research notes for creating an economics lesson on this topic. Include specific data points, real scenarios, and verifiable facts.`,
+Synthesize all available information into comprehensive research notes for creating an economics lesson on this topic. Use web results where helpful, then enrich with your own knowledge: specific data points, real scenarios, landmark studies, and verifiable facts. Mark model-sourced claims with [model knowledge].`,
   };
 }
 
@@ -109,7 +113,9 @@ You must output valid JSON matching this structure:
   ]
 }
 
-Write engaging, specific, real-world-grounded prose. Every statistic must be real. Every scenario must be verifiable. Use markdown formatting with **bold** for key terms, > blockquotes for real quotes, and valid GitHub-flavored markdown tables for matrices or tabular comparisons. Do not repeat the subsection title as a markdown heading because the UI already renders it separately.`,
+Write engaging, specific, real-world-grounded prose. Every statistic must be real. Every scenario must be verifiable. Use markdown formatting with **bold** for key terms, > blockquotes for real quotes, and valid GitHub-flavored markdown tables for matrices or tabular comparisons. Do not repeat the subsection title as a markdown heading because the UI already renders it separately.
+
+GEOGRAPHIC DIVERSITY: Use examples from varied countries and cities worldwide. Do not default to Jamaica, Kingston, or Caribbean settings. Spread scenarios across regions; no single country should dominate a lesson unless the topic is country-specific.`,
     user: `Lesson: "${lessonTitle}"
 Topic: "${topic}"
 Section ${sectionIndex + 1} of 8: "${sectionOutline.title}"

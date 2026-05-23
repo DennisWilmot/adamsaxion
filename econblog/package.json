@@ -14,6 +14,10 @@
     "batch:generate": "tsx scripts/batch-generate.ts",
     "batch:resume": "tsx scripts/batch-generate.ts --resume",
     "worker:lessons": "node --import tsx scripts/lesson-generation-worker.ts",
+    "test:serpapi": "tsx scripts/test-serpapi.ts",
+    "restart:early-lessons": "tsx scripts/restart-early-lessons.ts",
+    "purge:batch": "tsx scripts/purge-and-requeue-batch.ts",
+    "resume:lessons": "tsx scripts/resume-lessons.ts",
     "react-doctor": "pnpm exec react-doctor . --yes",
     "react-doctor:verbose": "pnpm exec react-doctor . --verbose --yes",
     "react-doctor:score": "pnpm exec react-doctor . --score --yes"

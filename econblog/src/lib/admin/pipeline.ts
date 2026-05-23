@@ -1,12 +1,12 @@
 import { chat, chatJSON, OpenRouterApiError } from "@/lib/openrouter";
-import { searchMultiple } from "@/lib/serper";
+import { searchMultiple } from "@/lib/serpapi";
 import { getOrComputeCachedValue } from "./generation-cache";
 import * as prompts from "./prompts";
 
 const MAX_RETRIES = 3;
 const RETRY_DELAYS = [1000, 3000, 8000];
 const RESEARCH_SYNTHESIS_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 30;
-const RESEARCH_SYNTHESIS_CACHE_VERSION = "v1";
+const RESEARCH_SYNTHESIS_CACHE_VERSION = "v3-serpapi-knowledge";
 
 async function withRetry<T>(fn: () => Promise<T>, label: string): Promise<T> {
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
@@ -15,10 +15,10 @@ async function withRetry<T>(fn: () => Promise<T>, label: string): Promise<T> {
     } catch (err) {
       const isOpenRouterCreditError =
         err instanceof OpenRouterApiError && err.status === 402;
-      const isSerperAuthError =
-        err instanceof Error && err.message.includes("Serper API error (403)");
+      const isSerpApiAuthError =
+        err instanceof Error && err.message.includes("SerpAPI error");
 
-      if (isOpenRouterCreditError || isSerperAuthError) {
+      if (isOpenRouterCreditError || isSerpApiAuthError) {
         throw err;
       }
 
@@ -38,8 +38,8 @@ export async function runResearch(
 ): Promise<{ notes: string; searchResults: { query: string; results: { title: string; link: string; snippet: string }[] }[] }> {
   let searchResults: { query: string; results: { title: string; link: string; snippet: string }[] }[] = [];
 
-  const hasSerperKey = !!process.env.SERPER_API_KEY;
-  if (hasSerperKey) {
+  const hasSearchKey = !!process.env.SERPAPI_API_KEY?.trim();
+  if (hasSearchKey) {
     try {
       const queries = [
         `${topic} economics real world examples data`,
@@ -51,8 +51,10 @@ export async function runResearch(
         "web-search"
       );
     } catch (err) {
-      console.warn("[research] Web search failed, continuing with uploaded sources + model knowledge:", err);
+      console.warn("[research] SerpAPI search failed, continuing with model knowledge:", err);
     }
+  } else {
+    console.warn("[research] SERPAPI_API_KEY not set; using model knowledge only.");
   }
 
   const prompt = prompts.researchSynthesisPrompt(

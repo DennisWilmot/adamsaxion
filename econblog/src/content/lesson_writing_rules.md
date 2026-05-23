@@ -20,7 +20,7 @@
 - Pattern: "What you just experienced is [concept]" → formal definition → key components → examples
 - Use the format: conversational explanation → bolded formal definition → numbered key components
 - Include 2-3 relatable examples that span personal, institutional, and national scales
-- Caribbean and African examples are preferred alongside Western ones
+- **Geographic diversity (required):** Examples must span multiple regions globally (Americas, Europe, Africa, Asia, Middle East, Oceania). Rotate settings across lessons; do not default to one country or region. No single country should appear in more than 1-2 examples per lesson unless the topic is explicitly about that country. Jamaica, Kingston, or Caribbean settings are not default — use them only when the economics topic genuinely fits that context.
 
 ### Sections 4–6: Progressive Complexity
 - Build on foundations with increasingly nuanced applications
@@ -75,7 +75,7 @@
 ### Rule 1: Never Give Away the Economic Concept
 - Question stems must describe scenarios, not name theories
 - Wrong: "What happens to the demand curve when income rises?"
-- Right: "Jamaica's minimum wage doubles overnight. What happens at Kingston clothing stores?"
+- Right: "Germany's minimum wage rises 15% overnight. What happens at Berlin clothing retailers?"
 
 ### Rule 2: Make Both Options Genuinely Appealing
 - Each option must include real-world constraints that justify it
