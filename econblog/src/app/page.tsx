@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LandingPage } from "@/components/landing/LandingPage";
+import { loadAllLessonMeta } from "@/lib/lesson-loader";
 
 export const metadata: Metadata = {
   title: "Learn Economics Interactively",
@@ -16,6 +17,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function HomePage() {
-  return <LandingPage />;
+export default async function HomePage() {
+  const carouselLessons = await loadAllLessonMeta();
+
+  return <LandingPage carouselLessons={carouselLessons} />;
 }

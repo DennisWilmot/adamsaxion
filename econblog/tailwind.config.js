@@ -72,6 +72,51 @@ module.exports = {
         md: "var(--shadow-md)",
         lg: "var(--shadow-lg)",
       },
+      keyframes: {
+        "landing-fade-up": {
+          from: { opacity: "0", transform: "translateY(14px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "landing-bg-float": {
+          from: { opacity: "0", transform: "translateY(12px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "landing-bg-drift": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-6px)" },
+        },
+        "landing-bg-drift-alt": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(5px)" },
+        },
+        "landing-carousel": {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
+        "landing-shimmer": {
+          "0%, 100%": { left: "-100%" },
+          "50%": { left: "100%" },
+        },
+        "landing-pulse-dot": {
+          "0%, 100%": { opacity: "1", transform: "scale(1)" },
+          "50%": { opacity: "0.4", transform: "scale(1.4)" },
+        },
+        "how-it-works-progress": {
+          from: { transform: "scaleX(0)" },
+          to: { transform: "scaleX(1)" },
+        },
+        "outcomes-card-in": {
+          from: { opacity: "0", transform: "translateY(16px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+      },
+      animation: {
+        "landing-fade-up": "landing-fade-up 0.7s ease-out forwards",
+        "landing-carousel": "landing-carousel 40s linear infinite",
+        "landing-shimmer": "landing-shimmer 4s ease-in-out infinite",
+        "landing-pulse-dot": "landing-pulse-dot 2s ease-in-out infinite",
+        "how-it-works-progress": "how-it-works-progress 7s linear forwards",
+      },
       fontSize: {
         xs: ["var(--text-xs)", { lineHeight: "1.5" }],
         sm: ["var(--text-sm)", { lineHeight: "1.5" }],

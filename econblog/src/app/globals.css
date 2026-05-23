@@ -4,6 +4,8 @@
 
 @layer base {
   :root {
+    --header-height: 3.5rem;
+
     /* Primary: confident blue */
     --color-primary: oklch(0.50 0.16 250);
     --color-primary-hover: oklch(0.43 0.18 250);
@@ -74,6 +76,11 @@
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 3.5rem;
   }
 
   ::selection {
@@ -316,6 +323,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;

@@ -4,6 +4,7 @@ import { Source_Serif_4, Hanken_Grotesk } from "next/font/google";
 import "./globals.css";
 import { AuthNotice } from "@/components/AuthNotice";
 import { Header } from "@/components/Header";
+import { HeaderShell } from "@/components/HeaderShell";
 import { getAppUrl } from "@/lib/stripe/config";
 
 const sourceSerif = Source_Serif_4({
@@ -46,7 +47,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${sourceSerif.variable} ${hankenGrotesk.variable}`}>
       <body className="font-body bg-surface text-foreground min-h-screen antialiased">
-        <Suspense fallback={null}>
+        <Suspense fallback={<HeaderShell />}>
           <Header />
         </Suspense>
         <Suspense fallback={null}>

@@ -79,7 +79,7 @@ See `CLI_OPERATIONS.tx` for the full command reference.
 
 ## econblog
 
-**Next.js 15** interactive economics education platform with subscription model ($19.99/mo or $499 lifetime).
+**Next.js 15** interactive economics education platform with subscription model ($19.99/mo or $149 lifetime).
 
 **Student experience:** Lessons with 8 major sections → ~3 subsections each → quiz gates → mastery exam. XP system with levels and leaderboard.
 

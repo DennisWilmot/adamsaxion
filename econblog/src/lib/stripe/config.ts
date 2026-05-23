@@ -7,7 +7,7 @@ export const PLAN_LABELS: Record<CheckoutPlan, string> = {
 
 export const PLAN_PRICES: Record<CheckoutPlan, { amount: string; interval?: string }> = {
   monthly: { amount: "$19.99", interval: "/month" },
-  lifetime: { amount: "$499", interval: " one-time" },
+  lifetime: { amount: "$149", interval: " one-time" },
 };
 
 export function getAppUrl() {

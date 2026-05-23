@@ -12,7 +12,7 @@ A subscription-based interactive economics learning platform that aims to genuin
 
 **Pricing:**
 - $19.99/month subscription
-- $499 lifetime access
+- $149 lifetime access
 - Lesson Zero: free for all users (anonymous, no auth required)
 
 **Revenue model:** Subscription revenue from the platform. YouTube ad revenue covers marketing costs. Video production is fully automated via `adams-agents`.
@@ -436,7 +436,7 @@ Clean rebuild. All routes require Supabase Auth session except where noted.
 ### Phase 4: Payments *(deferred — implement last, before launch)*
 > **Prerequisite:** Create Stripe account, generate API keys, configure products/prices in Stripe Dashboard before starting this phase.
 
-- [ ] Stripe product/price setup ($19.99/month, $499 lifetime)
+- [ ] Stripe product/price setup ($19.99/month, $149 lifetime)
 - [ ] `/api/stripe/checkout` — create checkout session
 - [ ] `/api/stripe/webhook` — handle subscription lifecycle
 - [ ] `/api/stripe/portal` — customer self-service
