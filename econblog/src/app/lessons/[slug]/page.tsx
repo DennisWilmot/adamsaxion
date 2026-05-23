@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { userHasLessonAccess } from "@/lib/subscription/service";
 import { eq, or } from "drizzle-orm";
 import { loadLesson } from "@/lib/lesson-loader";
 import { LessonPlayer } from "@/components/lesson/LessonPlayer";
@@ -36,6 +37,17 @@ export default async function LessonPage({ params }: Props) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   const isAuthenticated = !!user;
+
+  if (!isLessonZeroSlug(slug)) {
+    const lessonPath = `/lessons/${slug}`;
+    if (!user) {
+      redirect(`/auth?next=${encodeURIComponent(lessonPath)}`);
+    }
+    const hasAccess = await userHasLessonAccess(user.id, user.email);
+    if (!hasAccess) {
+      redirect(`/subscribe?next=${encodeURIComponent(lessonPath)}`);
+    }
+  }
 
   let adminEditHref: string | null = null;
   if (isAdminUser(user)) {

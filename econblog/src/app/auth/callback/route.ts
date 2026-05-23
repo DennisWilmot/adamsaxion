@@ -1,21 +1,27 @@
 import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { ensureProfileForUser } from "@/lib/user-profile";
-import { safeNextPath } from "@/lib/auth/redirect";
+import {
+  getRequestOrigin,
+  readAuthNextCookie,
+  safeNextPath,
+} from "@/lib/auth/redirect";
 
-export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const origin = getRequestOrigin(request);
   const code = searchParams.get("code");
-  const cookieStore = await cookies();
-  const cookieNext = cookieStore.get("auth_next")?.value ?? null;
-  const next = safeNextPath(searchParams.get("next") ?? cookieNext);
+  const next = safeNextPath(
+    searchParams.get("next") ?? readAuthNextCookie(request)
+  );
 
   if (!code) {
-    return NextResponse.redirect(`${origin}/?error=auth`);
+    return NextResponse.redirect(
+      `${origin}/auth?error=auth&next=${encodeURIComponent(next)}`
+    );
   }
 
-  const response = NextResponse.redirect(`${origin}${next}`);
+  let response = NextResponse.redirect(`${origin}${next}`);
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -23,12 +29,16 @@ export async function GET(request: Request) {
     {
       cookies: {
         getAll() {
-          return cookieStore.getAll();
+          return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, options);
-          });
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          );
+          response = NextResponse.redirect(`${origin}${next}`);
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          );
         },
       },
     }
@@ -37,8 +47,17 @@ export async function GET(request: Request) {
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error || !data.user) {
-    console.error("GET /auth/callback error:", error?.message);
-    return NextResponse.redirect(`${origin}/?error=auth`);
+    const hasVerifier = request.cookies
+      .getAll()
+      .some((c) => c.name.includes("code-verifier"));
+    console.error(
+      "GET /auth/callback error:",
+      error?.message,
+      hasVerifier ? "(verifier cookie present)" : "(no verifier cookie — PKCE mismatch)"
+    );
+    return NextResponse.redirect(
+      `${origin}/auth?error=auth&next=${encodeURIComponent(next)}`
+    );
   }
 
   try {

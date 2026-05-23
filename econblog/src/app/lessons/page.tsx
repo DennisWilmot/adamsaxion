@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useState, useEffect, useMemo } from "react";
-import { Search, ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, ArrowRight, Lock } from "lucide-react";
 import { FloatingIcons } from "@/components/FloatingIcons";
 import { LessonsPageExtras } from "@/components/lessons/LessonsPageExtras";
+import { isLessonZeroSlug } from "@/lib/constants/lessons";
 import type { LessonMeta } from "@/lib/types/lesson";
 
 const CATEGORIES = ["All", "Microeconomics", "Macroeconomics", "Trade", "Finance"];
@@ -25,6 +26,7 @@ export default function LessonsPage() {
   const [category, setCategory] = useState("All");
   const [difficulty, setDifficulty] = useState("All");
   const [page, setPage] = useState(1);
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
 
   useEffect(() => {
     fetch("/api/lessons")
@@ -32,6 +34,13 @@ export default function LessonsPage() {
       .then((data) => setLessons(data.lessons ?? []))
       .catch(console.error)
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/user/subscription")
+      .then((r) => (r.ok ? r.json() : { subscription: { hasAccess: false } }))
+      .then((data) => setHasAccess(Boolean(data.subscription?.hasAccess)))
+      .catch(() => setHasAccess(false));
   }, []);
 
   const filtered = useMemo(() => {
@@ -139,11 +148,24 @@ export default function LessonsPage() {
         </div>
       ) : paginated.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-xl">
-          {paginated.map((lesson) => (
+          {paginated.map((lesson) => {
+            const isFree = isLessonZeroSlug(lesson.id);
+            const isLocked =
+              hasAccess === false && !isFree;
+            const lessonHref = `/lessons/${lesson.id}`;
+            const href = isLocked
+              ? `/subscribe?next=${encodeURIComponent(lessonHref)}`
+              : lessonHref;
+
+            return (
             <Link
               key={lesson.id}
-              href={`/lessons/${lesson.id}`}
-              className="group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-surface-raised transition-all hover:border-primary/30 hover:shadow-lg"
+              href={href}
+              className={`group flex h-full flex-col overflow-hidden rounded-xl border bg-surface-raised transition-all hover:shadow-lg ${
+                isLocked
+                  ? "border-border-subtle hover:border-border"
+                  : "border-border hover:border-primary/30"
+              }`}
             >
               {/* Thumbnail Area */}
               <div className="relative h-44 overflow-hidden border-b border-border-subtle">
@@ -182,6 +204,21 @@ export default function LessonsPage() {
 
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
                 <div className="absolute inset-0 ring-1 ring-inset ring-black/8" />
+                {isLocked && (
+                  <div className="absolute inset-0 bg-foreground/25 backdrop-blur-[1px]" />
+                )}
+
+                {isFree && (
+                  <span className="absolute left-md top-md flex items-center gap-xs rounded-md border border-white/25 bg-surface-raised/95 px-sm py-[3px] font-body text-[10px] font-semibold tracking-widest uppercase text-success shadow-md backdrop-blur-sm">
+                    Free
+                  </span>
+                )}
+                {isLocked && (
+                  <span className="absolute left-md top-md flex items-center gap-xs rounded-md border border-white/25 bg-surface-raised/95 px-sm py-[3px] font-body text-[10px] font-semibold tracking-widest uppercase text-foreground shadow-md backdrop-blur-sm">
+                    <Lock className="size-3" />
+                    Subscribe
+                  </span>
+                )}
 
                 {/* Category Badge */}
                 <span className="absolute right-md top-md rounded-md border border-white/25 bg-surface-raised/95 px-sm py-[3px] font-body text-[10px] font-semibold tracking-widest uppercase text-foreground shadow-md backdrop-blur-sm">
@@ -205,7 +242,13 @@ export default function LessonsPage() {
                   </span>
                 </div>
 
-                <h2 className="font-display font-bold text-lg text-foreground mb-sm leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                <h2
+                  className={`font-display font-bold text-lg mb-sm leading-snug line-clamp-2 transition-colors ${
+                    isLocked
+                      ? "text-foreground-secondary"
+                      : "text-foreground group-hover:text-primary"
+                  }`}
+                >
                   {lesson.title}
                 </h2>
 
@@ -217,13 +260,19 @@ export default function LessonsPage() {
                   <span className="font-body text-xs text-foreground-muted">
                     {lesson.sectionCount} sections · {lesson.subsectionCount} parts
                   </span>
-                  <span className="flex items-center gap-xs font-body text-xs font-semibold text-primary group-hover:gap-sm transition-all">
-                    Start <ArrowRight className="h-3.5 w-3.5" />
+                  <span
+                    className={`flex items-center gap-xs font-body text-xs font-semibold group-hover:gap-sm transition-all ${
+                      isLocked ? "text-foreground-muted" : "text-primary"
+                    }`}
+                  >
+                    {isLocked ? "Unlock" : "Start"}{" "}
+                    <ArrowRight className="h-3.5 w-3.5" />
                   </span>
                 </div>
               </div>
             </Link>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div className="py-5xl text-center">

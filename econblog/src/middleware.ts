@@ -8,12 +8,13 @@ const ADMIN_ROUTES = ["/admin", "/api/admin"];
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Code exchange must happen only in /auth/callback/route.ts — skip all auth here.
+  // OAuth code exchange happens only in /auth/callback/route.ts — never run session logic here.
   if (pathname === "/auth/callback") {
-    return NextResponse.next();
+    return NextResponse.next({ request });
   }
 
   // Supabase sometimes redirects to Site URL (/) instead of /auth/callback.
+  // Forward before getUser() so we never double-exchange the PKCE code.
   const authCode = request.nextUrl.searchParams.get("code");
   if (authCode) {
     const url = request.nextUrl.clone();
@@ -102,7 +103,7 @@ export async function middleware(request: NextRequest) {
 
   if (!user && isProtected) {
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = "/auth";
     url.searchParams.set("next", pathname);
     return NextResponse.redirect(url);
   }

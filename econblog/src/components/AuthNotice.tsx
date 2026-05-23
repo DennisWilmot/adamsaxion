@@ -47,5 +47,15 @@ export function AuthNotice() {
     );
   }
 
+  if (next) {
+    return (
+      <div className="bg-primary/10 border-b border-primary/20 px-xl py-md text-center">
+        <p className="font-body text-sm text-foreground">
+          Sign in to continue where you left off.
+        </p>
+      </div>
+    );
+  }
+
   return null;
 }

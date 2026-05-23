@@ -5,6 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { LayoutDashboard, Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { signInWithGoogle } from "@/lib/auth/client";
 import { authPageUrl } from "@/lib/auth/redirect";
 import type { User } from "@supabase/supabase-js";
 
@@ -91,16 +92,8 @@ export function Header() {
   }, [user]);
 
   async function handleSignIn() {
-    const supabase = createClient();
-    const next = searchParams.get("next") ?? "/lessons";
-    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
-
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo,
-      },
-    });
+    const next = searchParams.get("next") ?? pathname ?? "/lessons";
+    await signInWithGoogle(next);
   }
 
   function handleSignUp() {

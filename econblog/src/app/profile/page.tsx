@@ -6,6 +6,8 @@ import { SignOutButton } from "@/components/profile/SignOutButton";
 import { ProfilePageClient } from "@/components/profile/ProfilePageClient";
 import { createClient } from "@/lib/supabase/server";
 import { getUserDashboard } from "@/lib/learning/user-dashboard";
+import { getUserSubscriptionView } from "@/lib/subscription/service";
+import { ProfileBilling } from "@/components/billing/ProfileBilling";
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -45,7 +47,10 @@ export default async function ProfilePage() {
     );
   }
 
-  const dashboard = await getUserDashboard(user.id);
+  const [dashboard, subscription] = await Promise.all([
+    getUserDashboard(user.id),
+    getUserSubscriptionView(user.id, user.email),
+  ]);
   const xpInLevel = profile.totalXp % 1000;
   const levelProgress = (xpInLevel / 1000) * 100;
   const xpToNext = 1000 - xpInLevel;
@@ -107,6 +112,10 @@ export default async function ProfilePage() {
             style={{ width: `${levelProgress}%` }}
           />
         </div>
+      </div>
+
+      <div className="mb-3xl">
+        <ProfileBilling subscription={subscription} />
       </div>
 
       {dashboard && <ProfilePageClient initialDashboard={dashboard} />}

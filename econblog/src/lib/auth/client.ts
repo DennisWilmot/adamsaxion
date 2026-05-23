@@ -1,16 +1,20 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
-import { authCallbackUrl } from "@/lib/auth/redirect";
+import { authCallbackUrl, safeNextPath } from "@/lib/auth/redirect";
+
+function setAuthNextCookie(nextPath: string, maxAgeSeconds = 600) {
+  document.cookie = `auth_next=${encodeURIComponent(safeNextPath(nextPath))}; path=/; max-age=${maxAgeSeconds}; samesite=lax`;
+}
 
 export async function signInWithGoogle(nextPath: string) {
   const supabase = createClient();
   const origin = window.location.origin;
-  document.cookie = `auth_next=${encodeURIComponent(nextPath)}; path=/; max-age=600; samesite=lax`;
+  setAuthNextCookie(nextPath);
   await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: authCallbackUrl(origin, nextPath),
+      redirectTo: authCallbackUrl(origin),
     },
   });
 }
@@ -28,12 +32,13 @@ export async function signUpWithEmail(
 ) {
   const supabase = createClient();
   const origin = window.location.origin;
+  setAuthNextCookie(nextPath, 86_400);
   return supabase.auth.signUp({
     email,
     password,
     options: {
       data: { username },
-      emailRedirectTo: authCallbackUrl(origin, nextPath),
+      emailRedirectTo: authCallbackUrl(origin),
     },
   });
 }
