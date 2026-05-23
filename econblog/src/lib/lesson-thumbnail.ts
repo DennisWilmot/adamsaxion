@@ -393,6 +393,13 @@ export async function createLessonThumbnail(
     }
   } catch (error) {
     console.error("[thumbnail] OpenRouter image generation failed:", error);
-    return generateLessonThumbnailDataUrl(input);
+    const message =
+      error instanceof Error ? error.message : "Thumbnail generation failed";
+    if (message.includes("402") || /credits/i.test(message)) {
+      throw new Error(
+        "OpenRouter is out of credits. Add credits at openrouter.ai/settings/credits, then regenerate."
+      );
+    }
+    throw error instanceof Error ? error : new Error(message);
   }
 }

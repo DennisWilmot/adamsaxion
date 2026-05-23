@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import type { QuizQuestion } from "@/lib/types/lesson";
+import { parseEmbeddedQuizOptions } from "@/lib/lesson/quiz-question";
 import { SignInPrompt } from "@/components/auth/SignInPrompt";
+import { SubscribePrompt } from "@/components/billing/SubscribePrompt";
 
 interface QuizStatus {
   answered: boolean;
@@ -19,10 +21,51 @@ interface QuizGateProps {
   lessonSlug: string;
   status?: QuizStatus;
   isAuthenticated?: boolean;
+  hasLessonAccess?: boolean;
   onComplete: (correct: boolean, xpEarned: number) => void;
 }
 
-export function QuizGate({ quiz, lessonSlug, status, isAuthenticated = true, onComplete }: QuizGateProps) {
+function QuizQuestionDisplay({
+  question,
+  className = "font-display text-lg font-semibold text-foreground mb-xl leading-snug",
+}: {
+  question: string;
+  className?: string;
+}) {
+  const parsed = parseEmbeddedQuizOptions(question);
+
+  if (!parsed) {
+    return <p className={className}>{question}</p>;
+  }
+
+  return (
+    <div className="mb-xl space-y-md">
+      <div className="rounded-md border border-border-subtle bg-surface-sunken/70 px-lg py-md space-y-sm">
+        {parsed.contextOptions.map((option, i) => (
+          <div
+            key={i}
+            className="flex gap-sm font-body text-sm text-foreground-secondary leading-relaxed"
+          >
+            <span className="font-semibold text-foreground-muted shrink-0">
+              {String.fromCharCode(65 + i)}.
+            </span>
+            <span>{option}</span>
+          </div>
+        ))}
+      </div>
+      <p className={className}>{parsed.stem}</p>
+    </div>
+  );
+}
+
+export function QuizGate({
+  quiz,
+  lessonSlug,
+  status,
+  isAuthenticated = true,
+  hasLessonAccess = true,
+  onComplete,
+}: QuizGateProps) {
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<{
@@ -72,9 +115,10 @@ export function QuizGate({ quiz, lessonSlug, status, isAuthenticated = true, onC
             Locked
           </span>
         </div>
-        <p className="font-display text-base font-semibold text-foreground mb-sm">
-          {quiz.question}
-        </p>
+        <QuizQuestionDisplay
+          question={quiz.question}
+          className="font-display text-base font-semibold text-foreground leading-snug"
+        />
         <p className="font-body text-sm text-foreground-secondary">
           Come back in {hoursLeft}h {minutesLeft}m. You can continue to the next section.
         </p>
@@ -116,9 +160,10 @@ export function QuizGate({ quiz, lessonSlug, status, isAuthenticated = true, onC
           </span>
         </div>
 
-        <p className="font-display text-base font-semibold text-foreground mb-lg">
-          {quiz.question}
-        </p>
+        <QuizQuestionDisplay
+          question={quiz.question}
+          className="font-display text-base font-semibold text-foreground leading-snug mb-lg"
+        />
 
         <div className="space-y-sm mb-lg">
           {quiz.options.map((option, i) => (
@@ -220,9 +265,7 @@ export function QuizGate({ quiz, lessonSlug, status, isAuthenticated = true, onC
         )}
       </div>
 
-      <p className="font-display text-lg font-semibold text-foreground mb-xl leading-snug">
-        {quiz.question}
-      </p>
+      <QuizQuestionDisplay question={quiz.question} />
 
       <div className="space-y-sm mb-xl">
         {quiz.options.map((option, i) => (
@@ -245,7 +288,9 @@ export function QuizGate({ quiz, lessonSlug, status, isAuthenticated = true, onC
       </div>
 
       {!isAuthenticated ? (
-        <SignInPrompt />
+        <SignInPrompt message="Sign in to submit your answer and track your progress." />
+      ) : !hasLessonAccess ? (
+        <SubscribePrompt message="Subscribe to take quizzes and unlock the rest of this lesson." />
       ) : (
         <button
           onClick={handleSubmit}

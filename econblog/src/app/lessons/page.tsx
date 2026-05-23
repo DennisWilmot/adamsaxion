@@ -1,329 +1,41 @@
-"use client";
-
+import type { Metadata } from "next";
 import Link from "next/link";
-import { useState, useEffect, useMemo } from "react";
-import { Search, ChevronLeft, ChevronRight, ArrowRight, Lock } from "lucide-react";
-import { FloatingIcons } from "@/components/FloatingIcons";
-import { LessonsPageExtras } from "@/components/lessons/LessonsPageExtras";
-import { isLessonZeroSlug } from "@/lib/constants/lessons";
-import type { LessonMeta } from "@/lib/types/lesson";
+import { LessonsCatalog } from "@/components/lessons/LessonsCatalog";
+import { loadAllLessonMeta } from "@/lib/lesson-loader";
 
-const CATEGORIES = ["All", "Microeconomics", "Macroeconomics", "Trade", "Finance"];
-const DIFFICULTIES = ["All", "Beginner", "Intermediate", "Advanced"];
-const PER_PAGE = 9;
+export const revalidate = 3600;
 
-const CARD_GRADIENTS: Record<string, string> = {
-  Microeconomics: "from-blue-600 to-indigo-700",
-  Macroeconomics: "from-emerald-600 to-teal-700",
-  Trade: "from-amber-500 to-orange-600",
-  Finance: "from-violet-600 to-purple-700",
+export const metadata: Metadata = {
+  title: "Economics Lessons",
+  description:
+    "Browse interactive economics lessons covering microeconomics, macroeconomics, trade, and finance. Learn through quizzes and mastery exams.",
+  alternates: {
+    canonical: "/lessons",
+  },
+  openGraph: {
+    title: "Economics Lessons",
+    description:
+      "Browse interactive economics lessons covering microeconomics, macroeconomics, trade, and finance.",
+    url: "/lessons",
+    type: "website",
+  },
 };
 
-export default function LessonsPage() {
-  const [lessons, setLessons] = useState<LessonMeta[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("All");
-  const [difficulty, setDifficulty] = useState("All");
-  const [page, setPage] = useState(1);
-  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    fetch("/api/lessons")
-      .then((r) => r.json())
-      .then((data) => setLessons(data.lessons ?? []))
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
-
-  useEffect(() => {
-    fetch("/api/user/subscription")
-      .then((r) => (r.ok ? r.json() : { subscription: { hasAccess: false } }))
-      .then((data) => setHasAccess(Boolean(data.subscription?.hasAccess)))
-      .catch(() => setHasAccess(false));
-  }, []);
-
-  const filtered = useMemo(() => {
-    return lessons.filter((l) => {
-      if (category !== "All" && l.category !== category) return false;
-      if (difficulty !== "All" && l.difficulty !== difficulty) return false;
-      if (search) {
-        const q = search.toLowerCase();
-        return (
-          l.title.toLowerCase().includes(q) ||
-          l.description.toLowerCase().includes(q) ||
-          l.category.toLowerCase().includes(q)
-        );
-      }
-      return true;
-    });
-  }, [lessons, search, category, difficulty]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
-  const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
-
-  useEffect(() => {
-    setPage(1);
-  }, [search, category, difficulty]);
+export default async function LessonsPage() {
+  const lessons = await loadAllLessonMeta();
 
   return (
-    <div className="max-w-[72rem] mx-auto px-xl py-3xl">
-      {/* Header */}
-      <div className="relative mb-2xl overflow-hidden rounded-xl bg-surface-sunken p-xl">
-        <FloatingIcons count={18} />
-        <div className="relative z-10">
-          <h1 className="font-display font-bold text-3xl text-foreground mb-sm">
-            Lessons
-          </h1>
-          <p className="font-body text-base text-foreground-secondary max-w-lg">
-            Choose a topic. Each lesson has gated sections, quizzes, and a
-            mastery exam.
-          </p>
-        </div>
-      </div>
-
-      <LessonsPageExtras />
-
-      {/* Search + Filters */}
-      <div className="flex flex-col sm:flex-row gap-md mb-2xl">
-        {/* Search */}
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-md top-1/2 -translate-y-1/2 h-4 w-4 text-foreground-muted" />
-          <input
-            type="text"
-            placeholder="Search lessons..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-2xl pr-lg py-sm rounded-lg border border-border bg-surface-raised font-body text-sm text-foreground placeholder:text-foreground-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-colors"
-          />
-        </div>
-
-        {/* Category Filter */}
-        <div className="flex gap-xs overflow-x-auto">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setCategory(cat)}
-              className={`px-md py-xs rounded-md font-body text-xs font-medium whitespace-nowrap transition-colors ${
-                category === cat
-                  ? "bg-primary text-surface-raised"
-                  : "bg-surface-sunken text-foreground-muted hover:text-foreground"
-              }`}
-            >
-              {cat}
-            </button>
+    <>
+      <nav aria-label="All economics lessons" className="sr-only">
+        <ul>
+          {lessons.map((lesson) => (
+            <li key={lesson.id}>
+              <Link href={`/lessons/${lesson.id}`}>{lesson.title}</Link>
+            </li>
           ))}
-        </div>
-
-        {/* Difficulty Filter */}
-        <select
-          value={difficulty}
-          onChange={(e) => setDifficulty(e.target.value)}
-          className="px-md py-sm rounded-lg border border-border bg-surface-raised font-body text-xs text-foreground-secondary focus:outline-none focus:border-primary cursor-pointer"
-        >
-          {DIFFICULTIES.map((d) => (
-            <option key={d} value={d}>
-              {d === "All" ? "All Levels" : d}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Cards Grid */}
-      {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-xl">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="rounded-xl border border-border bg-surface-raised overflow-hidden animate-pulse"
-            >
-              <div className="h-44 bg-surface-sunken" />
-              <div className="p-xl space-y-sm">
-                <div className="h-4 bg-surface-sunken rounded w-1/3" />
-                <div className="h-5 bg-surface-sunken rounded w-3/4" />
-                <div className="h-4 bg-surface-sunken rounded w-full" />
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : paginated.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-xl">
-          {paginated.map((lesson) => {
-            const isFree = isLessonZeroSlug(lesson.id);
-            const isLocked =
-              hasAccess === false && !isFree;
-            const lessonHref = `/lessons/${lesson.id}`;
-            const href = isLocked
-              ? `/subscribe?next=${encodeURIComponent(lessonHref)}`
-              : lessonHref;
-
-            return (
-            <Link
-              key={lesson.id}
-              href={href}
-              className={`group flex h-full flex-col overflow-hidden rounded-xl border bg-surface-raised transition-all hover:shadow-lg ${
-                isLocked
-                  ? "border-border-subtle hover:border-border"
-                  : "border-border hover:border-primary/30"
-              }`}
-            >
-              {/* Thumbnail Area */}
-              <div className="relative h-44 overflow-hidden border-b border-border-subtle">
-                {lesson.thumbnail ? (
-                  <img
-                    src={lesson.thumbnail}
-                    alt={`${lesson.title} thumbnail`}
-                    loading="lazy"
-                    decoding="async"
-                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                  />
-                ) : (
-                  <div
-                    className={`absolute inset-0 bg-gradient-to-br ${
-                      CARD_GRADIENTS[lesson.category] ?? "from-gray-600 to-gray-700"
-                    } flex items-center justify-center`}
-                  >
-                    <div className="text-center text-white/90">
-                      <p className="font-display font-bold text-4xl opacity-20">
-                        {lesson.id.match(/lesson-(\d+)/)?.[1] ?? "?"}
-                      </p>
-                    </div>
-
-                    <div className="absolute inset-0 opacity-10">
-                      <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                          <pattern id={`grid-${lesson.id}`} width="24" height="24" patternUnits="userSpaceOnUse">
-                            <circle cx="1" cy="1" r="1" fill="currentColor" className="text-white" />
-                          </pattern>
-                        </defs>
-                        <rect width="100%" height="100%" fill={`url(#grid-${lesson.id})`} />
-                      </svg>
-                    </div>
-                  </div>
-                )}
-
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-                <div className="absolute inset-0 ring-1 ring-inset ring-black/8" />
-                {isLocked && (
-                  <div className="absolute inset-0 bg-foreground/25 backdrop-blur-[1px]" />
-                )}
-
-                {isFree && (
-                  <span className="absolute left-md top-md flex items-center gap-xs rounded-md border border-white/25 bg-surface-raised/95 px-sm py-[3px] font-body text-[10px] font-semibold tracking-widest uppercase text-success shadow-md backdrop-blur-sm">
-                    Free
-                  </span>
-                )}
-                {isLocked && (
-                  <span className="absolute left-md top-md flex items-center gap-xs rounded-md border border-white/25 bg-surface-raised/95 px-sm py-[3px] font-body text-[10px] font-semibold tracking-widest uppercase text-foreground shadow-md backdrop-blur-sm">
-                    <Lock className="size-3" />
-                    Subscribe
-                  </span>
-                )}
-
-                {/* Category Badge */}
-                <span className="absolute right-md top-md rounded-md border border-white/25 bg-surface-raised/95 px-sm py-[3px] font-body text-[10px] font-semibold tracking-widest uppercase text-foreground shadow-md backdrop-blur-sm">
-                  {lesson.category}
-                </span>
-              </div>
-
-              {/* Card Body */}
-              <div className="flex flex-1 flex-col p-xl">
-                <div className="mb-sm flex flex-wrap items-center gap-x-md gap-y-xs">
-                  <span className="font-body text-xs text-foreground-muted">
-                    {lesson.difficulty}
-                  </span>
-                  <span className="text-border">·</span>
-                  <span className="font-body text-xs text-foreground-muted">
-                    {lesson.estimatedMinutes} min
-                  </span>
-                  <span className="text-border">·</span>
-                  <span className="font-body text-xs font-semibold text-gold tabular-nums">
-                    {lesson.totalXp.toLocaleString()} XP
-                  </span>
-                </div>
-
-                <h2
-                  className={`font-display font-bold text-lg mb-sm leading-snug line-clamp-2 transition-colors ${
-                    isLocked
-                      ? "text-foreground-secondary"
-                      : "text-foreground group-hover:text-primary"
-                  }`}
-                >
-                  {lesson.title}
-                </h2>
-
-                <p className="mb-lg flex-1 font-body text-sm leading-relaxed text-foreground-muted line-clamp-3">
-                  {lesson.description}
-                </p>
-
-                <div className="mt-auto flex items-center justify-between gap-md border-t border-border-subtle pt-md">
-                  <span className="font-body text-xs text-foreground-muted">
-                    {lesson.sectionCount} sections · {lesson.subsectionCount} parts
-                  </span>
-                  <span
-                    className={`flex items-center gap-xs font-body text-xs font-semibold group-hover:gap-sm transition-all ${
-                      isLocked ? "text-foreground-muted" : "text-primary"
-                    }`}
-                  >
-                    {isLocked ? "Unlock" : "Start"}{" "}
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </span>
-                </div>
-              </div>
-            </Link>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="py-5xl text-center">
-          <p className="font-display text-xl text-foreground-muted mb-sm">
-            No lessons found
-          </p>
-          <p className="font-body text-sm text-foreground-muted">
-            Try adjusting your search or filters.
-          </p>
-        </div>
-      )}
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-sm mt-3xl">
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className="p-sm rounded-md border border-border text-foreground-muted hover:text-foreground hover:border-foreground-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-            <button
-              key={p}
-              onClick={() => setPage(p)}
-              className={`h-8 w-8 rounded-md font-body text-sm font-medium transition-colors ${
-                p === page
-                  ? "bg-primary text-surface-raised"
-                  : "text-foreground-muted hover:text-foreground hover:bg-surface-sunken"
-              }`}
-            >
-              {p}
-            </button>
-          ))}
-
-          <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            className="p-sm rounded-md border border-border text-foreground-muted hover:text-foreground hover:border-foreground-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
-        </div>
-      )}
-
-      {/* Results count */}
-      <p className="font-body text-xs text-foreground-muted text-center mt-lg">
-        {filtered.length} {filtered.length === 1 ? "lesson" : "lessons"} available
-      </p>
-    </div>
+        </ul>
+      </nav>
+      <LessonsCatalog lessons={lessons} />
+    </>
   );
 }

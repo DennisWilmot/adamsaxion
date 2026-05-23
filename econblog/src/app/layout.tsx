@@ -4,6 +4,7 @@ import { Source_Serif_4, Hanken_Grotesk } from "next/font/google";
 import "./globals.css";
 import { AuthNotice } from "@/components/AuthNotice";
 import { Header } from "@/components/Header";
+import { getAppUrl } from "@/lib/stripe/config";
 
 const sourceSerif = Source_Serif_4({
   subsets: ["latin"],
@@ -20,9 +21,21 @@ const hankenGrotesk = Hanken_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Adam's Axioms - Economics Learning Platform",
+  metadataBase: new URL(getAppUrl()),
+  title: {
+    default: "Adam's Axioms — Economics Learning Platform",
+    template: "%s | Adam's Axioms",
+  },
   description:
-    "Learn economics through interactive lessons and gamified learning",
+    "Learn economics through interactive lessons, quizzes, and mastery exams. Free intro lesson plus a full curriculum in micro, macro, trade, and finance.",
+  openGraph: {
+    type: "website",
+    siteName: "Adam's Axioms",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
 };
 
 export default function RootLayout({

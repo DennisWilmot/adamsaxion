@@ -122,11 +122,14 @@
 
 .prose-custom h3 {
   font-family: var(--font-display), Georgia, serif;
-  font-size: var(--text-lg);
-  font-weight: 600;
+  font-size: var(--text-xl);
+  font-weight: 700;
   color: var(--color-foreground);
-  margin: var(--space-xl) 0 var(--space-sm);
-  line-height: 1.3;
+  margin: var(--space-2xl) 0 var(--space-md);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--color-border-subtle);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
 }
 
 .prose-custom h4 {
@@ -138,8 +141,12 @@
 }
 
 .prose-custom p {
-  margin: 0 0 var(--space-lg);
+  margin: 0 0 var(--space-xl);
   max-width: 70ch;
+}
+
+.prose-custom p + p {
+  margin-top: var(--space-xs);
 }
 
 .prose-custom strong {
@@ -151,14 +158,82 @@
   font-style: italic;
 }
 
-.prose-custom ul {
-  margin: var(--space-md) 0 var(--space-lg);
+.prose-custom ul,
+.prose-custom ol {
+  margin: var(--space-lg) 0 var(--space-xl);
   padding-left: var(--space-xl);
+}
+
+.prose-custom ul {
   list-style: disc;
 }
 
+.prose-custom ol {
+  list-style: decimal;
+}
+
 .prose-custom li {
-  margin-bottom: var(--space-xs);
+  margin-bottom: var(--space-md);
+  padding-left: var(--space-xs);
+  line-height: 1.7;
+}
+
+.prose-custom li::marker {
+  color: var(--color-primary);
+}
+
+.prose-custom .lesson-key-point {
+  margin: 0 0 var(--space-md);
+  padding: var(--space-sm) 0 var(--space-sm) var(--space-lg);
+  border-left: 2px solid var(--color-border);
+  max-width: 70ch;
+  line-height: 1.65;
+}
+
+.prose-custom .lesson-key-point strong {
+  display: inline;
+  color: var(--color-foreground);
+}
+
+.prose-custom .lesson-definition-callout {
+  margin: var(--space-xl) 0 var(--space-2xl);
+  padding: var(--space-lg) var(--space-xl);
+  border-radius: var(--radius-lg);
+  border: 1px solid oklch(0.50 0.16 250 / 0.25);
+  background: var(--color-primary-subtle);
+  max-width: 70ch;
+}
+
+.prose-custom .lesson-definition-term {
+  margin: 0 0 var(--space-sm);
+  font-family: var(--font-display), Georgia, serif;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.prose-custom .lesson-definition-body {
+  margin: 0;
+  color: var(--color-foreground);
+  line-height: 1.7;
+}
+
+.prose-custom .lesson-definition-body strong {
+  font-weight: 600;
+}
+
+.prose-custom .lesson-recap-callout {
+  margin: 0 0 var(--space-xl);
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--color-gold);
+  background: var(--color-gold-subtle);
+  font-size: 0.95em;
+  color: var(--color-foreground-secondary);
+  max-width: 70ch;
+  line-height: 1.65;
 }
 
 .prose-custom a {
@@ -168,11 +243,14 @@
 }
 
 .prose-custom blockquote {
-  margin: 0 0 var(--space-lg);
+  margin: var(--space-xl) 0 var(--space-2xl);
   border-left: 3px solid var(--color-primary);
-  padding-left: var(--space-lg);
+  padding: var(--space-md) var(--space-lg);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  background: var(--color-primary-subtle);
   color: var(--color-foreground);
-  font-style: italic;
+  font-style: normal;
+  max-width: 70ch;
 }
 
 .prose-custom table {

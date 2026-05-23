@@ -1391,7 +1391,7 @@ function PreviewTab({ lesson }: { lesson: LessonRecord }) {
         <h3 className="font-display font-semibold text-lg">Student Preview</h3>
       </div>
       <div className="border border-border rounded-xl overflow-hidden bg-surface">
-        <LessonPlayer lesson={previewData} isAuthenticated={false} />
+        <LessonPlayer lesson={previewData} isAuthenticated={false} accessMode="full" />
       </div>
     </div>
   );

@@ -57,9 +57,9 @@ export async function POST(
     });
   } catch (error) {
     console.error("POST /api/admin/lessons/[id]/thumbnail error:", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal server error" },
-      { status: 500 }
-    );
+    const message =
+      error instanceof Error ? error.message : "Internal server error";
+    const status = /credits/i.test(message) ? 402 : 500;
+    return NextResponse.json({ error: message }, { status });
   }
 }
