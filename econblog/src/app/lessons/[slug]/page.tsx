@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { userHasLessonAccess } from "@/lib/subscription/service";
 import { eq, or } from "drizzle-orm";
-import { loadLesson, loadAllLessonMeta } from "@/lib/lesson-loader";
+import { loadLesson, loadPublishedLessonSlugs } from "@/lib/lesson-loader";
 import { LessonPlayer, type LessonAccessMode } from "@/components/lesson/LessonPlayer";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { createClient } from "@/lib/supabase/server";
@@ -23,8 +23,8 @@ interface Props {
 }
 
 export async function generateStaticParams() {
-  const allLessons = await loadAllLessonMeta();
-  return allLessons.map((lesson) => ({ slug: lesson.id }));
+  const slugs = await loadPublishedLessonSlugs();
+  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -47,38 +47,50 @@ export default async function LessonPage({ params }: Props) {
     redirect(`/lessons/${LESSON_ZERO_SLUG}`);
   }
 
-  const lesson = await loadLesson(slug);
+  const [lesson, supabase] = await Promise.all([
+    loadLesson(slug),
+    createClient(),
+  ]);
 
   if (!lesson) {
     notFound();
   }
 
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   const isAuthenticated = !!user;
 
   const isFreeLesson = isLessonZeroSlug(slug);
   let hasLessonAccess = isFreeLesson;
-  if (user && !isFreeLesson) {
-    hasLessonAccess = await userHasLessonAccess(user.id, user.email);
-  }
-
-  const accessMode: LessonAccessMode = hasLessonAccess ? "full" : "preview";
-
   let adminEditHref: string | null = null;
-  if (isAdminUser(user)) {
+
+  if (user) {
     const slugCandidates = isLessonZeroSlug(slug)
       ? [LESSON_ZERO_SLUG, ...LEGACY_LESSON_ZERO_SLUGS]
       : [slug];
-    const [row] = await db
-      .select({ id: lessons.id })
-      .from(lessons)
-      .where(or(...slugCandidates.map((s) => eq(lessons.slug, s))))
-      .limit(1);
-    if (row) {
-      adminEditHref = `/admin/lessons/${row.id}`;
-    }
+
+    const [access, adminHref] = await Promise.all([
+      isFreeLesson
+        ? Promise.resolve(true)
+        : userHasLessonAccess(user.id, user.email),
+      isAdminUser(user)
+        ? db
+            .select({ id: lessons.id })
+            .from(lessons)
+            .where(or(...slugCandidates.map((s) => eq(lessons.slug, s))))
+            .limit(1)
+            .then(([row]) =>
+              row ? `/admin/lessons/${row.id}` : null
+            )
+        : Promise.resolve(null),
+    ]);
+
+    hasLessonAccess = access;
+    adminEditHref = adminHref;
   }
+
+  const accessMode: LessonAccessMode = hasLessonAccess ? "full" : "preview";
 
   return (
     <>

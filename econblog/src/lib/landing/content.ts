@@ -21,7 +21,7 @@ export const AUDIENCE = [
     description:
       "Get ahead of micro, macro, and applied courses with structured lessons that test whether you can use the ideas, not just recall definitions.",
     image: {
-      src: "/audience/undergrad.png",
+      src: "/audience/undergrad.webp",
       label: "Course prep",
     },
   },
@@ -30,7 +30,7 @@ export const AUDIENCE = [
     description:
       "Build frameworks for pricing, incentives, and tradeoffs you can apply at work, in debates, and when reading the news.",
     image: {
-      src: "/audience/career-policy.png",
+      src: "/audience/career-policy.webp",
       label: "Real decisions",
     },
   },
@@ -39,7 +39,7 @@ export const AUDIENCE = [
     description:
       "A full curriculum with depth beyond YouTube summaries, without the cost or rigidity of a formal program.",
     image: {
-      src: "/audience/self-study.png",
+      src: "/audience/self-study.webp",
       label: "Deep study",
     },
   },
@@ -49,7 +49,7 @@ export const HOW_IT_WORKS = [
   {
     step: "Step 1",
     title: "Context",
-    icon: "/how-it-works/context.png",
+    icon: "/how-it-works/context.webp",
     summary:
       "A real-world scenario grounds the concept before the model appears.",
     detail:
@@ -58,7 +58,7 @@ export const HOW_IT_WORKS = [
   {
     step: "Step 2",
     title: "Mechanism",
-    icon: "/how-it-works/mechanism.png",
+    icon: "/how-it-works/mechanism.webp",
     summary:
       "The economic logic unfolds step by step: cause, effect, equilibrium.",
     detail:
@@ -67,7 +67,7 @@ export const HOW_IT_WORKS = [
   {
     step: "Step 3",
     title: "Quiz gate",
-    icon: "/how-it-works/quiz-gate.png",
+    icon: "/how-it-works/quiz-gate.webp",
     summary:
       "Apply what you just learned before you can move on.",
     detail:
@@ -76,7 +76,7 @@ export const HOW_IT_WORKS = [
   {
     step: "Step 4",
     title: "Mastery",
-    icon: "/how-it-works/mastery.png",
+    icon: "/how-it-works/mastery.webp",
     summary:
       "Pass a timed exam drawn from a large randomized question pool.",
     detail:
@@ -85,7 +85,7 @@ export const HOW_IT_WORKS = [
   {
     step: "Step 5",
     title: "Game",
-    icon: "/how-it-works/game.png",
+    icon: "/how-it-works/game.webp",
     comingSoon: true,
     summary:
       "Strategic 1v1 games to reinforce what you just learned.",

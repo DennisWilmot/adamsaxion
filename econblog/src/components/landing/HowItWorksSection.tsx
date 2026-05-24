@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { HOW_IT_WORKS } from "@/lib/landing/content";
 import { CircleHighlight } from "@/components/landing/CircleHighlight";
+import { LandingImage } from "@/components/landing/LandingImage";
 
 const AUTO_ADVANCE_MS = 1500;
 
@@ -111,13 +111,19 @@ export function HowItWorksSection() {
           <div className="flex-[1_1_340px] min-w-[280px] lg:sticky lg:top-24 lg:self-start">
             <article className="overflow-hidden rounded-xl border border-border bg-surface-raised shadow-sm">
               <div className="relative aspect-[5/4] overflow-hidden border-b border-border-subtle bg-surface-sunken">
-                <Image
-                  src={active.icon}
-                  alt=""
-                  fill
-                  sizes="(max-width: 768px) 100vw, 400px"
-                  className="object-cover object-center transition-opacity duration-700 ease-in-out"
-                />
+                {HOW_IT_WORKS.map((step, index) => (
+                  <LandingImage
+                    key={step.icon}
+                    src={step.icon}
+                    alt=""
+                    fill
+                    sizes="(max-width: 768px) 100vw, 400px"
+                    priority={index === 0}
+                    className={`object-cover object-center transition-opacity duration-700 ease-in-out ${
+                      index === activeStep ? "opacity-100" : "opacity-0"
+                    }`}
+                  />
+                ))}
               </div>
 
               <div className="p-xl">

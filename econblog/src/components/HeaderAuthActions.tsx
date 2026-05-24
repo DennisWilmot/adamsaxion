@@ -11,7 +11,12 @@ import type { User } from "@supabase/supabase-js";
 
 function AuthActionsSkeleton() {
   return (
-    <div className="h-8 w-24 shrink-0 rounded-lg bg-surface-sunken animate-pulse" />
+    <Link
+      href="/profile"
+      className="flex h-8 items-center justify-center rounded-lg bg-surface-sunken px-md text-sm font-medium text-foreground-muted"
+    >
+      <span className="hidden sm:inline">Profile</span>
+    </Link>
   );
 }
 
@@ -43,7 +48,14 @@ function HeaderAuthActionsInner({
   }
 
   if (loading) {
-    return <AuthActionsSkeleton />;
+    return (
+      <Link
+        href="/profile"
+        className="flex h-8 items-center justify-center gap-sm rounded-lg bg-surface-sunken px-md text-sm font-medium text-foreground-muted transition-colors hover:bg-border hover:text-foreground"
+      >
+        <span className="hidden sm:inline">Profile</span>
+      </Link>
+    );
   }
 
   if (user) {

@@ -178,12 +178,10 @@ export function LessonPlayer({
     masteryPassed: false,
   });
   const [quizStatuses, setQuizStatuses] = useState<QuizStatuses>({});
-  const [loading, setLoading] = useState(isAuthenticated && hasLessonAccess);
   const [pathSetupOpen, setPathSetupOpen] = useState(false);
 
   const fetchProgress = useCallback(async () => {
     if (!isAuthenticated || !hasLessonAccess) {
-      setLoading(false);
       return;
     }
     try {
@@ -209,8 +207,6 @@ export function LessonPlayer({
       }
     } catch (err) {
       console.error("Failed to fetch progress:", err);
-    } finally {
-      setLoading(false);
     }
   }, [hasLessonAccess, isAuthenticated, lesson.id, lesson.sections]);
 
@@ -287,16 +283,6 @@ export function LessonPlayer({
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
     }
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="font-body text-foreground-muted animate-pulse">
-          Loading lesson...
-        </p>
-      </div>
-    );
   }
 
   const sectionSubsTotal =

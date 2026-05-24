@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { LandingImage } from "@/components/landing/LandingImage";
 import { AUDIENCE } from "@/lib/landing/content";
 import { ScrollReveal } from "@/components/landing/ScrollReveal";
 
@@ -9,11 +9,12 @@ export function AudienceCards() {
         <ScrollReveal key={item.title} delay={index * 0.1}>
           <article className="group h-full overflow-hidden rounded-xl border border-border bg-surface-raised transition-all duration-300 hover:-translate-y-1.5 hover:border-primary/30 hover:shadow-lg">
             <div className="relative aspect-[5/4] overflow-hidden border-b border-border-subtle bg-surface-sunken">
-              <Image
+              <LandingImage
                 src={item.image.src}
                 alt=""
                 fill
                 sizes="(max-width: 768px) 100vw, 300px"
+                priority={index === 0}
                 className="object-cover object-center transition-transform duration-500 ease-out group-hover:scale-[1.04] motion-reduce:transform-none"
               />
               <div

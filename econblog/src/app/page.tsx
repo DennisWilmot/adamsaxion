@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const carouselLessons = await loadAllLessonMeta();
+  const carouselLessons = (await loadAllLessonMeta()).slice(0, 12);
 
   return <LandingPage carouselLessons={carouselLessons} />;
 }

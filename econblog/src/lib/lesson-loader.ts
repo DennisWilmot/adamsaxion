@@ -1,8 +1,8 @@
+import { cache } from "react";
 import { db } from "@/db";
 import { lessons } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
 import type { LessonData, LessonMeta, Section, MasteryQuiz } from "./types/lesson";
-import { calculateLessonXp } from "./types/lesson";
 import { resolveLessonThumbnail } from "./lesson-thumbnail";
 import {
   isLessonZeroSlug,
@@ -18,7 +18,33 @@ function lessonSlugCandidates(slug: string): string[] {
   return [slug];
 }
 
-function rowToLessonData(row: typeof lessons.$inferSelect): LessonData {
+const lessonContentColumns = {
+  slug: lessons.slug,
+  title: lessons.title,
+  category: lessons.category,
+  difficulty: lessons.difficulty,
+  estimatedMinutes: lessons.estimatedMinutes,
+  description: lessons.description,
+  thumbnail: lessons.thumbnail,
+  status: lessons.status,
+  sections: lessons.sections,
+  masteryQuiz: lessons.masteryQuiz,
+} as const;
+
+type LessonContentRow = {
+  slug: string;
+  title: string;
+  category: string;
+  difficulty: string;
+  estimatedMinutes: number;
+  description: string;
+  thumbnail: string;
+  status: string;
+  sections: unknown;
+  masteryQuiz: unknown;
+};
+
+function rowToLessonData(row: LessonContentRow): LessonData {
   const sections = (row.sections as any[] || []).map((s: any) => ({
     id: s.id,
     title: s.title,
@@ -80,10 +106,10 @@ function rowToLessonData(row: typeof lessons.$inferSelect): LessonData {
   };
 }
 
-export async function loadLesson(slug: string): Promise<LessonData | null> {
+async function loadLessonUncached(slug: string): Promise<LessonData | null> {
   for (const candidate of lessonSlugCandidates(slug)) {
     const [row] = await db
-      .select()
+      .select(lessonContentColumns)
       .from(lessons)
       .where(eq(lessons.slug, candidate))
       .limit(1);
@@ -96,33 +122,127 @@ export async function loadLesson(slug: string): Promise<LessonData | null> {
   return null;
 }
 
-export async function loadAllLessonMeta(): Promise<LessonMeta[]> {
+/** Per-request dedupe for generateMetadata + page render. */
+export const loadLesson = cache(loadLessonUncached);
+
+function metaFromContentRow(row: LessonContentRow): LessonMeta {
+  const sections = (row.sections as { subsections?: unknown[] }[]) || [];
+  let subsectionCount = 0;
+  let quizXp = 0;
+
+  for (const section of sections) {
+    const subs = (section.subsections || []) as { quiz?: { xpReward?: number } }[];
+    subsectionCount += subs.length;
+    for (const sub of subs) {
+      if (sub.quiz?.xpReward) {
+        quizXp += sub.quiz.xpReward;
+      }
+    }
+  }
+
+  const mastery = (row.masteryQuiz as {
+    questionsPerAttempt?: number;
+    questionPool?: { xpReward?: number }[];
+  } | null) ?? {};
+  const masteryXpPerQuestion = mastery.questionPool?.[0]?.xpReward ?? 30;
+  const questionsPerAttempt = mastery.questionsPerAttempt ?? 5;
+
+  return {
+    id: canonicalLessonId(row.slug),
+    title: row.title,
+    category: row.category,
+    difficulty: row.difficulty,
+    estimatedMinutes: row.estimatedMinutes,
+    description: row.description,
+    thumbnail: resolveLessonThumbnail(
+      {
+        title: row.title,
+        category: row.category,
+        difficulty: row.difficulty,
+        description: row.description,
+      },
+      row.thumbnail
+    ),
+    totalXp: quizXp + masteryXpPerQuestion * questionsPerAttempt,
+    sectionCount: sections.length,
+    subsectionCount,
+  };
+}
+
+/** Question IDs only — avoids loading subsection markdown for quiz status. */
+export async function loadLessonQuestionIds(
+  slug: string
+): Promise<string[] | null> {
+  for (const candidate of lessonSlugCandidates(slug)) {
+    const [row] = await db
+      .select({
+        sections: lessons.sections,
+        masteryQuiz: lessons.masteryQuiz,
+        status: lessons.status,
+      })
+      .from(lessons)
+      .where(eq(lessons.slug, candidate))
+      .limit(1);
+
+    if (!row || row.status !== "published") {
+      continue;
+    }
+
+    const ids: string[] = [];
+    for (const section of (row.sections as { subsections?: { quiz?: { id?: string } }[] }[]) || []) {
+      for (const sub of section.subsections || []) {
+        if (sub.quiz?.id) {
+          ids.push(sub.quiz.id);
+        }
+      }
+    }
+    for (const q of (row.masteryQuiz as { questionPool?: { id?: string }[] } | null)?.questionPool || []) {
+      if (q.id) {
+        ids.push(q.id);
+      }
+    }
+    return ids;
+  }
+
+  return null;
+}
+
+export async function loadPublishedLessonSlugs(): Promise<string[]> {
   const rows = await db
-    .select()
+    .select({ slug: lessons.slug })
     .from(lessons)
     .where(eq(lessons.status, "published"))
     .orderBy(asc(lessons.sortOrder), asc(lessons.slug));
 
-  return rows.map((row) => {
-    const data = rowToLessonData(row);
-    const subsectionCount = data.sections.reduce(
-      (sum, s) => sum + s.subsections.length,
-      0
-    );
+  return rows.map((row) => canonicalLessonId(row.slug));
+}
 
-    return {
-      id: data.id,
-      title: data.title,
-      category: data.category,
-      difficulty: data.difficulty,
-      estimatedMinutes: data.estimatedMinutes,
-      description: data.description,
-      thumbnail: data.thumbnail,
-      totalXp: calculateLessonXp(data),
-      sectionCount: data.sections.length,
-      subsectionCount,
-    } satisfies LessonMeta;
-  });
+export async function loadAllLessonMeta(): Promise<LessonMeta[]> {
+  const rows = await db
+    .select(lessonContentColumns)
+    .from(lessons)
+    .where(eq(lessons.status, "published"))
+    .orderBy(asc(lessons.sortOrder), asc(lessons.slug));
+
+  return rows.map(metaFromContentRow);
+}
+
+export async function loadLessonMetaBySlug(
+  slug: string
+): Promise<LessonMeta | null> {
+  for (const candidate of lessonSlugCandidates(slug)) {
+    const [row] = await db
+      .select(lessonContentColumns)
+      .from(lessons)
+      .where(eq(lessons.slug, candidate))
+      .limit(1);
+
+    if (row && row.status === "published") {
+      return metaFromContentRow(row);
+    }
+  }
+
+  return null;
 }
 
 export function getQuestionFromLesson(

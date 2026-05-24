@@ -20,7 +20,8 @@
     "resume:lessons": "tsx scripts/resume-lessons.ts",
     "react-doctor": "pnpm exec react-doctor . --yes",
     "react-doctor:verbose": "pnpm exec react-doctor . --verbose --yes",
-    "react-doctor:score": "pnpm exec react-doctor . --score --yes"
+    "react-doctor:score": "pnpm exec react-doctor . --score --yes",
+    "optimize:landing-images": "bash scripts/optimize-landing-images.sh"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",

@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { db } from "@/db";
 import { quizAttempts } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
-import { loadLesson } from "@/lib/lesson-loader";
+import { loadLessonQuestionIds } from "@/lib/lesson-loader";
 import { lessonIdCandidates } from "@/lib/constants/lessons";
 
 export async function GET(
@@ -19,19 +19,9 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const lesson = await loadLesson(slug);
-    if (!lesson) {
+    const allQuestionIds = await loadLessonQuestionIds(slug);
+    if (!allQuestionIds) {
       return NextResponse.json({ error: "Lesson not found" }, { status: 404 });
-    }
-
-    const allQuestionIds: string[] = [];
-    for (const section of lesson.sections) {
-      for (const sub of section.subsections) {
-        if (sub.quiz) allQuestionIds.push(sub.quiz.id);
-      }
-    }
-    for (const q of lesson.masteryQuiz.questionPool) {
-      allQuestionIds.push(q.id);
     }
 
     const attempts = await db
