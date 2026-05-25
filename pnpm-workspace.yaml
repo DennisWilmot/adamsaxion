@@ -1,0 +1,15 @@
+packages:
+  - "apps/*"
+
+allowBuilds:
+  "@sentry/cli": true
+  core-js: true
+  esbuild: true
+  protobufjs: true
+  sharp: true
+
+onlyBuiltDependencies:
+  - core-js
+  - esbuild
+  - protobufjs
+  - sharp

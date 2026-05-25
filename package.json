@@ -1,11 +1,21 @@
 {
-  "dependencies": {
-    "@supabase/ssr": "^0.10.2",
-    "@supabase/supabase-js": "^2.105.1",
-    "drizzle-orm": "^0.45.2",
-    "postgres": "^3.4.9"
+  "name": "adamsaxion",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm -F @adamsaxion/econblog dev",
+    "build": "pnpm -F @adamsaxion/econblog build",
+    "typecheck": "pnpm -F @adamsaxion/econblog typecheck",
+    "lint": "pnpm -F @adamsaxion/econblog lint"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.31.10"
+    "typescript": "^5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "core-js",
+      "esbuild",
+      "protobufjs",
+      "sharp"
+    ]
   }
 }
