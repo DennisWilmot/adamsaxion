@@ -1,7 +1,11 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Check } from "lucide-react";
-import type { UserDashboard } from "@/lib/learning/user-dashboard";
+import type {
+  UserDashboard,
+  UserProgressSection,
+} from "@/lib/learning/user-dashboard";
 import { ProfileActivityHeatmap } from "@/components/profile/ProfileActivityHeatmap";
 
 interface ProfileProgressTabProps {
@@ -24,13 +28,51 @@ export function ProfileProgressTab({
   currentLevel,
   xpToNext,
 }: ProfileProgressTabProps) {
-  const { progress, path } = dashboard;
-  const rankLabel = progress.rank
-    ? `#${progress.rank}`
-    : "—";
+  const { path } = dashboard;
+  const [progress, setProgress] = useState<UserProgressSection | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadProgress() {
+      try {
+        const response = await fetch("/api/profile/progress");
+        if (!response.ok) {
+          throw new Error("Failed to load progress");
+        }
+        const data = (await response.json()) as UserProgressSection;
+        if (!cancelled) {
+          setProgress(data);
+        }
+      } catch {
+        if (!cancelled) {
+          setError("We couldn't load your progress right now.");
+        }
+      }
+    }
+
+    void loadProgress();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const monthLabel = new Date()
     .toLocaleDateString("en-US", { month: "short" })
     .toUpperCase();
+
+  if (error) {
+    return (
+      <p className="font-body text-sm text-foreground-muted">{error}</p>
+    );
+  }
+
+  if (!progress) {
+    return <ProfileProgressSkeleton />;
+  }
+
+  const rankLabel = progress.rank ? `#${progress.rank}` : "—";
 
   return (
     <div className="space-y-2xl">
@@ -58,11 +100,10 @@ export function ProfileProgressTab({
       </div>
 
       <section className="rounded-xl border border-border bg-surface-raised p-lg">
-        <div className="mb-md flex items-center justify-between gap-md">
+        <div className="mb-md">
           <h2 className="font-display text-lg font-semibold text-foreground">
             Activity · last 100 days
           </h2>
-          <span className="font-body text-xs text-foreground-muted">Mon — Sun</span>
         </div>
         <ProfileActivityHeatmap days={progress.activityDays} />
       </section>
@@ -108,6 +149,23 @@ export function ProfileProgressTab({
       <p className="font-body text-xs text-foreground-muted">
         {xpToNext.toLocaleString()} XP until level {currentLevel + 1}.
       </p>
+    </div>
+  );
+}
+
+function ProfileProgressSkeleton() {
+  return (
+    <div className="animate-pulse space-y-2xl">
+      <div className="grid grid-cols-2 gap-md lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div
+            key={index}
+            className="h-24 rounded-xl border border-border bg-surface-sunken"
+          />
+        ))}
+      </div>
+      <div className="h-48 rounded-xl border border-border bg-surface-sunken" />
+      <div className="h-64 rounded-xl border border-border bg-surface-sunken" />
     </div>
   );
 }

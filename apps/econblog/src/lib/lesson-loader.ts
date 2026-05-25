@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { db } from "@/db";
 import { lessons } from "@/db/schema";
-import { eq, asc, sql } from "drizzle-orm";
+import { eq, asc, sql, inArray, and } from "drizzle-orm";
 import type { LessonData, LessonMeta, Section, MasteryQuiz } from "./types/lesson";
 import { resolveLessonThumbnail } from "./lesson-thumbnail";
 import {
@@ -74,6 +74,13 @@ const lessonListColumns = {
   ...lessonListStats,
 } as const;
 
+const lessonCardColumns = {
+  ...lessonCarouselColumns,
+  quizXp: lessonListStats.quizXp,
+  questionsPerAttempt: lessonListStats.questionsPerAttempt,
+  masteryXpPerQuestion: lessonListStats.masteryXpPerQuestion,
+} as const;
+
 type LessonCarouselRow = {
   slug: string;
   title: string;
@@ -87,6 +94,12 @@ type LessonCarouselRow = {
 type LessonListRow = LessonCarouselRow & {
   sectionCount: number;
   subsectionCount: number;
+  quizXp: number;
+  questionsPerAttempt: number;
+  masteryXpPerQuestion: number;
+};
+
+type LessonCardRow = LessonCarouselRow & {
   quizXp: number;
   questionsPerAttempt: number;
   masteryXpPerQuestion: number;
@@ -224,7 +237,7 @@ export async function loadLessonQuestionIds(
   return null;
 }
 
-export async function loadPublishedLessonSlugs(): Promise<string[]> {
+export const loadPublishedLessonSlugs = cache(async (): Promise<string[]> => {
   const rows = await db
     .select({ slug: lessons.slug })
     .from(lessons)
@@ -232,6 +245,29 @@ export async function loadPublishedLessonSlugs(): Promise<string[]> {
     .orderBy(asc(lessons.sortOrder), asc(lessons.slug));
 
   return rows.map((row) => canonicalLessonId(row.slug));
+});
+
+function rowToCardMeta(row: LessonCardRow): LessonMeta {
+  return {
+    id: canonicalLessonId(row.slug),
+    title: row.title,
+    category: row.category,
+    difficulty: row.difficulty,
+    estimatedMinutes: row.estimatedMinutes,
+    description: row.description,
+    thumbnail: resolveLessonThumbnail(
+      {
+        title: row.title,
+        category: row.category,
+        difficulty: row.difficulty,
+        description: row.description,
+      },
+      row.thumbnail
+    ),
+    totalXp: row.quizXp + row.masteryXpPerQuestion * row.questionsPerAttempt,
+    sectionCount: 0,
+    subsectionCount: 0,
+  };
 }
 
 function rowToListMeta(row: LessonListRow): LessonMeta {
@@ -270,15 +306,51 @@ export async function loadAllLessonMeta(): Promise<LessonMeta[]> {
 export async function loadLessonMetaBySlug(
   slug: string
 ): Promise<LessonMeta | null> {
+  const map = await loadLessonMetaBySlugs([slug]);
+  return map.get(canonicalLessonId(slug)) ?? null;
+}
+
+export async function loadLessonMetaBySlugs(
+  slugs: string[]
+): Promise<Map<string, LessonMeta>> {
+  const uniqueSlugs = [...new Set(slugs.map(canonicalLessonId))];
+  if (uniqueSlugs.length === 0) {
+    return new Map();
+  }
+
+  const candidateSlugs = [
+    ...new Set(uniqueSlugs.flatMap((slug) => lessonSlugCandidates(slug))),
+  ];
+
+  const rows = await db
+    .select({ ...lessonListColumns, status: lessons.status })
+    .from(lessons)
+    .where(
+      and(
+        inArray(lessons.slug, candidateSlugs),
+        eq(lessons.status, "published")
+      )
+    );
+
+  const map = new Map<string, LessonMeta>();
+  for (const row of rows) {
+    map.set(canonicalLessonId(row.slug), rowToListMeta(row));
+  }
+  return map;
+}
+
+export async function loadLessonCardBySlug(
+  slug: string
+): Promise<LessonMeta | null> {
   for (const candidate of lessonSlugCandidates(slug)) {
     const [row] = await db
-      .select({ ...lessonListColumns, status: lessons.status })
+      .select({ ...lessonCardColumns, status: lessons.status })
       .from(lessons)
       .where(eq(lessons.slug, candidate))
       .limit(1);
 
     if (row && row.status === "published") {
-      return rowToListMeta(row);
+      return rowToCardMeta(row);
     }
   }
 

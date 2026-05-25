@@ -1,7 +1,11 @@
 import { db } from "@/db";
 import { lessonProgress, profiles, userPreferences } from "@/db/schema";
-import { eq } from "drizzle-orm";
-import { loadLessonMetaBySlug, loadPublishedLessonSlugs } from "@/lib/lesson-loader";
+import { and, eq } from "drizzle-orm";
+import {
+  loadLessonCardBySlug,
+  loadLessonMetaBySlugs,
+  loadPublishedLessonSlugs,
+} from "@/lib/lesson-loader";
 import { canonicalLessonId, isLessonZeroSlug } from "@/lib/constants/lessons";
 import {
   buildLearningPath,
@@ -10,9 +14,8 @@ import {
 } from "./path-engine";
 import { getInterestTag, type InterestTagId } from "./interest-tags";
 import {
-  buildActivityDays,
   computeStreakDays,
-  fetchRecentActivityDates,
+  fetchActivityDays,
   getUserLeaderboardRank,
   type ActivityDay,
   type CompletedLessonRecord,
@@ -51,6 +54,13 @@ export interface ContinueLessonCard {
   listIndex: number;
 }
 
+export interface UserProgressSection {
+  completedLessons: CompletedLessonRecord[];
+  activityDays: ActivityDay[];
+  streakDays: number;
+  rank: number | null;
+}
+
 export interface UserDashboard {
   profile: {
     username: string;
@@ -80,15 +90,16 @@ export interface UserDashboard {
     /** Full curriculum slots including not-yet-published. */
     plannedCount: number;
   };
-  progress: {
-    completedLessons: CompletedLessonRecord[];
-    activityDays: ActivityDay[];
-    streakDays: number;
-    rank: number | null;
-  };
 }
 
 type ProfileRow = typeof profiles.$inferSelect;
+
+function activitySinceDate() {
+  const since = new Date();
+  since.setDate(since.getDate() - 99);
+  since.setHours(0, 0, 0, 0);
+  return since;
+}
 
 function buildWhyDescription(
   primaryId: InterestTagId | null,
@@ -133,7 +144,7 @@ function resolvePathLessonState(
   return "up_next";
 }
 
-export async function getUserDashboard(
+export async function getUserPathDashboard(
   userId: string,
   profile?: ProfileRow,
   options?: { hasLessonAccess?: boolean }
@@ -152,25 +163,22 @@ export async function getUserDashboard(
 
   const hasLessonAccess = options?.hasLessonAccess ?? false;
 
-  const since = new Date();
-  since.setDate(since.getDate() - 99);
-  since.setHours(0, 0, 0, 0);
-
-  const [prefsRows, publishedSlugs, progressRows, activityDates, rank] =
-    await Promise.all([
-      db
-        .select()
-        .from(userPreferences)
-        .where(eq(userPreferences.userId, userId))
-        .limit(1),
-      loadPublishedLessonSlugs(),
-      db
-        .select()
-        .from(lessonProgress)
-        .where(eq(lessonProgress.userId, userId)),
-      fetchRecentActivityDates(userId, since),
-      getUserLeaderboardRank(userId, resolvedProfile.totalXp),
-    ]);
+  const [prefsRows, publishedSlugs, progressRows] = await Promise.all([
+    db
+      .select()
+      .from(userPreferences)
+      .where(eq(userPreferences.userId, userId))
+      .limit(1),
+    loadPublishedLessonSlugs(),
+    db
+      .select({
+        lessonId: lessonProgress.lessonId,
+        masteryPassed: lessonProgress.masteryPassed,
+        completedSubsections: lessonProgress.completedSubsections,
+      })
+      .from(lessonProgress)
+      .where(eq(lessonProgress.userId, userId)),
+  ]);
 
   const prefs = prefsRows[0];
 
@@ -261,7 +269,7 @@ export async function getUserDashboard(
 
   let continueCard: ContinueLessonCard | null = null;
   if (continueItem?.slug) {
-    const meta = await loadLessonMetaBySlug(continueItem.slug);
+    const meta = await loadLessonCardBySlug(continueItem.slug);
     if (meta) {
       continueCard = {
         slug: meta.id,
@@ -275,39 +283,6 @@ export async function getUserDashboard(
       };
     }
   }
-
-  const completedProgress = progressRows.filter((p) => p.masteryPassed);
-  const completedSlugSet = completedProgress.map((p) => canonicalLessonId(p.lessonId));
-  const titleBySlug = new Map(
-    pathPublished.map((l) => [canonicalLessonId(l.slug!), l.title])
-  );
-
-  const missingSlugs = completedSlugSet.filter((slug) => !titleBySlug.has(slug));
-  if (missingSlugs.length > 0) {
-    const metaRows = await Promise.all(
-      missingSlugs.map((slug) => loadLessonMetaBySlug(slug))
-    );
-    for (const meta of metaRows) {
-      if (meta) titleBySlug.set(meta.id, meta.title);
-    }
-  }
-
-  const completedLessons: CompletedLessonRecord[] = completedProgress
-    .map((row) => ({
-      slug: canonicalLessonId(row.lessonId),
-      title: titleBySlug.get(canonicalLessonId(row.lessonId)) ?? row.lessonId,
-      completedAt: (row.completedAt ?? row.updatedAt).toISOString(),
-      xpEarned: row.totalXpEarned,
-    }))
-    .sort(
-      (a, b) =>
-        new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime()
-    );
-
-  const activityDays = buildActivityDays(
-    activityDates.attemptDates,
-    activityDates.progressDates
-  );
 
   return {
     profile: {
@@ -336,11 +311,73 @@ export async function getUserDashboard(
       totalCount: pathLessons.length,
       plannedCount: path.lessons.length,
     },
-    progress: {
-      completedLessons,
-      activityDays,
-      streakDays: computeStreakDays(activityDays),
-      rank,
-    },
   };
+}
+
+export async function getUserProgressSection(
+  userId: string,
+  totalXp: number
+): Promise<UserProgressSection> {
+  const since = activitySinceDate();
+
+  const [completedRows, activityDays, rank] = await Promise.all([
+    db
+      .select({
+        lessonId: lessonProgress.lessonId,
+        totalXpEarned: lessonProgress.totalXpEarned,
+        completedAt: lessonProgress.completedAt,
+        updatedAt: lessonProgress.updatedAt,
+      })
+      .from(lessonProgress)
+      .where(
+        and(
+          eq(lessonProgress.userId, userId),
+          eq(lessonProgress.masteryPassed, true)
+        )
+      ),
+    fetchActivityDays(userId, since),
+    getUserLeaderboardRank(userId, totalXp),
+  ]);
+
+  const slugs = completedRows.map((row) => canonicalLessonId(row.lessonId));
+  const metaBySlug = await loadLessonMetaBySlugs(slugs);
+
+  const completedLessons: CompletedLessonRecord[] = completedRows
+    .map((row) => {
+      const slug = canonicalLessonId(row.lessonId);
+      return {
+        slug,
+        title: metaBySlug.get(slug)?.title ?? slug,
+        completedAt: (row.completedAt ?? row.updatedAt).toISOString(),
+        xpEarned: row.totalXpEarned,
+      };
+    })
+    .sort(
+      (a, b) =>
+        new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime()
+    );
+
+  return {
+    completedLessons,
+    activityDays,
+    streakDays: computeStreakDays(activityDays),
+    rank,
+  };
+}
+
+/** @deprecated Use getUserPathDashboard for initial profile load. */
+export async function getUserDashboard(
+  userId: string,
+  profile?: ProfileRow,
+  options?: { hasLessonAccess?: boolean }
+): Promise<(UserDashboard & { progress: UserProgressSection }) | null> {
+  const pathDashboard = await getUserPathDashboard(userId, profile, options);
+  if (!pathDashboard) return null;
+
+  const progress = await getUserProgressSection(
+    userId,
+    pathDashboard.profile.totalXp
+  );
+
+  return { ...pathDashboard, progress };
 }

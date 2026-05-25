@@ -1,10 +1,9 @@
-import { Suspense } from "react";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { profiles } from "@/db/schema";
 import { ProfilePageClient } from "@/components/profile/ProfilePageClient";
 import { createClient } from "@/lib/supabase/server";
-import { getUserDashboard } from "@/lib/learning/user-dashboard";
+import { getUserPathDashboard } from "@/lib/learning/user-dashboard";
 import { getUserSubscriptionView } from "@/lib/subscription/service";
 
 export default async function ProfilePage() {
@@ -29,11 +28,10 @@ export default async function ProfilePage() {
     );
   }
 
-  const [profile] = await db
-    .select()
-    .from(profiles)
-    .where(eq(profiles.id, user.id))
-    .limit(1);
+  const [[profile], subscription] = await Promise.all([
+    db.select().from(profiles).where(eq(profiles.id, user.id)).limit(1),
+    getUserSubscriptionView(user.id, user.email),
+  ]);
 
   if (!profile) {
     return (
@@ -45,9 +43,7 @@ export default async function ProfilePage() {
     );
   }
 
-  const subscription = await getUserSubscriptionView(user.id, user.email);
-
-  const dashboard = await getUserDashboard(user.id, profile, {
+  const dashboard = await getUserPathDashboard(user.id, profile, {
     hasLessonAccess: subscription.hasAccess,
   });
 
@@ -68,19 +64,17 @@ export default async function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-[72rem] px-xl py-3xl">
-      <Suspense fallback={null}>
-        <ProfilePageClient
-          username={profile.username}
-          email={user.email ?? ""}
-          avatarUrl={avatarUrl}
-          totalXp={profile.totalXp}
-          currentLevel={profile.currentLevel}
-          xpToNext={xpToNext}
-          levelProgress={levelProgress}
-          dashboard={dashboard}
-          subscription={subscription}
-        />
-      </Suspense>
+      <ProfilePageClient
+        username={profile.username}
+        email={user.email ?? ""}
+        avatarUrl={avatarUrl}
+        totalXp={profile.totalXp}
+        currentLevel={profile.currentLevel}
+        xpToNext={xpToNext}
+        levelProgress={levelProgress}
+        dashboard={dashboard}
+        subscription={subscription}
+      />
     </div>
   );
 }

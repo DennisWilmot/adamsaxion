@@ -1,6 +1,5 @@
 import { db } from "@/db";
-import { quizAttempts } from "@/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 
 export interface ActivityDay {
   date: string;
@@ -46,7 +45,9 @@ export function buildActivityDays(
 export function computeStreakDays(activityDays: ActivityDay[]): number {
   let streak = 0;
   for (let i = activityDays.length - 1; i >= 0; i--) {
-    if (activityDays[i].count > 0) {
+    const day = activityDays[i];
+    if (!day) break;
+    if (day.count > 0) {
       streak++;
     } else if (i < activityDays.length - 1) {
       break;
@@ -74,29 +75,52 @@ export async function getUserLeaderboardRank(
   return Number(row.rank);
 }
 
-export async function fetchRecentActivityDates(userId: string, since: Date) {
+/** Aggregates activity in SQL instead of pulling every attempt/progress row. */
+export async function fetchActivityDays(
+  userId: string,
+  since: Date,
+  days = 100
+): Promise<ActivityDay[]> {
   const sinceIso = since.toISOString();
-  const [attemptRows, progressRows] = await Promise.all([
-    db
-      .select({ attemptedAt: quizAttempts.attemptedAt })
-      .from(quizAttempts)
-      .where(
-        sql`${quizAttempts.userId} = ${userId} AND ${quizAttempts.attemptedAt} >= ${sinceIso}`
-      ),
-    db.execute<{ updated_at: Date; completed_at: Date | null }>(sql`
-      SELECT updated_at, completed_at
+  const rows = await db.execute<{ activity_date: string; event_count: string }>(sql`
+    SELECT activity_date::text AS activity_date, COUNT(*)::text AS event_count
+    FROM (
+      SELECT DATE(attempted_at) AS activity_date
+      FROM quiz_attempts
+      WHERE user_id = ${userId}
+        AND attempted_at >= ${sinceIso}::timestamptz
+      UNION ALL
+      SELECT DATE(updated_at) AS activity_date
       FROM lesson_progress
       WHERE user_id = ${userId}
-        AND (updated_at >= ${sinceIso} OR completed_at >= ${sinceIso})
-    `),
-  ]);
+        AND updated_at >= ${sinceIso}::timestamptz
+      UNION ALL
+      SELECT DATE(completed_at) AS activity_date
+      FROM lesson_progress
+      WHERE user_id = ${userId}
+        AND completed_at IS NOT NULL
+        AND completed_at >= ${sinceIso}::timestamptz
+    ) AS events
+    GROUP BY activity_date
+  `);
 
-  const attemptDates = attemptRows.map((r) => r.attemptedAt);
-  const progressDates: Date[] = [];
-  for (const row of progressRows as { updated_at: Date; completed_at: Date | null }[]) {
-    if (row.updated_at) progressDates.push(new Date(row.updated_at));
-    if (row.completed_at) progressDates.push(new Date(row.completed_at));
+  const counts = new Map<string, number>();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    counts.set(toDateKey(d), 0);
   }
 
-  return { attemptDates, progressDates };
+  for (const row of rows as { activity_date?: string; event_count?: string }[]) {
+    if (!row.activity_date) continue;
+    const key = row.activity_date.slice(0, 10);
+    if (counts.has(key)) {
+      counts.set(key, Number(row.event_count ?? 0));
+    }
+  }
+
+  return [...counts.entries()].map(([date, count]) => ({ date, count }));
 }
