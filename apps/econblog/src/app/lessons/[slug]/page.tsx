@@ -23,8 +23,17 @@ interface Props {
 }
 
 export async function generateStaticParams() {
-  const slugs = await loadPublishedLessonSlugs();
-  return slugs.map((slug) => ({ slug }));
+  if (!process.env.DATABASE_URL) {
+    return [];
+  }
+
+  try {
+    const slugs = await loadPublishedLessonSlugs();
+    return slugs.map((slug) => ({ slug }));
+  } catch (error) {
+    console.warn("[lessons] generateStaticParams DB lookup failed:", error);
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
