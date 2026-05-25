@@ -9,10 +9,10 @@
       "commands": ["..."]
     },
     "build": {
-      "commands": ["pnpm build"]
+      "commands": ["pnpm --filter @adamsaxion/econblog build"]
     }
   },
   "deploy": {
-    "startCommand": "pnpm start"
+    "startCommand": "pnpm --filter @adamsaxion/econblog start"
   }
 }

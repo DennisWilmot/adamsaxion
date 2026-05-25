@@ -1,11 +1,18 @@
+# Build from the monorepo root so Railpack sees pnpm-lock.yaml, pnpm-workspace.yaml,
+# and packageManager. Do NOT set Root Directory to apps/econblog in Railway settings.
 [build]
 builder = "RAILPACK"
-# Dependencies are installed by Railpack's install step (pnpm + frozen lockfile).
-# Do not run `pnpm install` here — pnpm is not on PATH until after that step.
-buildCommand = "pnpm build"
+buildCommand = "pnpm --filter @adamsaxion/econblog build"
+watchPatterns = [
+  "apps/econblog/**",
+  "pnpm-lock.yaml",
+  "pnpm-workspace.yaml",
+  "package.json",
+  "railpack.json",
+]
 
 [deploy]
-startCommand = "pnpm start"
+startCommand = "pnpm --filter @adamsaxion/econblog start"
 healthcheckPath = "/"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
