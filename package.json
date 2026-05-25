@@ -1,6 +1,7 @@
 {
   "name": "adamsaxion",
   "private": true,
+  "packageManager": "pnpm@11.0.8",
   "scripts": {
     "dev": "pnpm -F @adamsaxion/econblog dev",
     "build": "pnpm -F @adamsaxion/econblog build",
