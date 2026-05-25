@@ -163,7 +163,12 @@ export default function AdminPage() {
 
   const resolvedBatchLessons = useMemo(() => {
     return parsedBatchLessons.map((lesson) => {
-      const { category, difficulty } = resolveLessonMetadata(lesson);
+      const { category, difficulty } = resolveLessonMetadata({
+        title: lesson.title ?? "",
+        description: lesson.description,
+        category: lesson.category,
+        difficulty: lesson.difficulty,
+      });
       return { ...lesson, category, difficulty };
     });
   }, [parsedBatchLessons]);
@@ -276,6 +281,12 @@ export default function AdminPage() {
           </p>
         </div>
         <div className="flex items-center gap-sm">
+          <Link
+            href="/admin/pricewar"
+            className="flex items-center gap-sm rounded-lg border border-border bg-surface-raised px-lg py-md font-body text-sm font-semibold text-foreground transition-colors hover:border-primary/40 hover:text-primary"
+          >
+            Price War
+          </Link>
           <button
             onClick={() => setShowBatchCreate(!showBatchCreate)}
             className="flex items-center gap-sm rounded-lg border border-border bg-surface-raised px-lg py-md font-body text-sm font-semibold text-foreground transition-colors hover:border-primary/40 hover:text-primary"

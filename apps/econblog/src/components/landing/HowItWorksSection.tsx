@@ -10,7 +10,7 @@ const AUTO_ADVANCE_MS = 1500;
 export function HowItWorksSection() {
   const [activeStep, setActiveStep] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const active = HOW_IT_WORKS[activeStep];
+  const active = HOW_IT_WORKS[activeStep] ?? HOW_IT_WORKS[0]!;
   const progressPct = ((activeStep + 1) / HOW_IT_WORKS.length) * 100;
 
   useEffect(() => {

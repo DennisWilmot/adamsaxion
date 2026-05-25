@@ -172,7 +172,9 @@ export function LessonPlayer({
   const [showMastery, setShowMastery] = useState(false);
   const [progress, setProgress] = useState<LessonProgress>({
     completedSubsections: [],
-    unlockedSections: [lesson.sections[0]?.id],
+    unlockedSections: [lesson.sections[0]?.id].filter(
+      (id): id is string => Boolean(id)
+    ),
     totalXpEarned: 0,
     masteryAttempted: false,
     masteryPassed: false,
@@ -195,7 +197,7 @@ export function LessonPlayer({
           completedSubsections: data.completedSubsections ?? [],
           unlockedSections: data.unlockedSections?.length
             ? data.unlockedSections
-            : [lesson.sections[0]?.id],
+            : [lesson.sections[0]?.id].filter((id): id is string => Boolean(id)),
           totalXpEarned: data.totalXpEarned ?? 0,
           masteryAttempted: data.masteryAttempted ?? false,
           masteryPassed: data.masteryPassed ?? false,
@@ -251,7 +253,9 @@ export function LessonPlayer({
     }
     if (!isAuthenticated) return true;
     if (subIdx === 0) return true;
-    const prevSub = lesson.sections[sectionIdx].subsections[subIdx - 1];
+    const section = lesson.sections[sectionIdx];
+    const prevSub = section?.subsections[subIdx - 1];
+    if (!prevSub) return true;
     if (!prevSub.quiz) return true;
     const status = quizStatuses[prevSub.quiz.id];
     return status?.isCorrect || status?.locked || isSubCompleted(prevSub.id);
@@ -272,12 +276,14 @@ export function LessonPlayer({
 
   function goToNextSubsection() {
     const section = lesson.sections[activeSection];
+    if (!section) return;
+
     if (activeSubsection < section.subsections.length - 1) {
       setActiveSubsection(activeSubsection + 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else if (!isPreview && activeSection < lesson.sections.length - 1) {
-      const nextSectionId = lesson.sections[activeSection + 1].id;
-      if (isSectionUnlocked(nextSectionId)) {
+      const nextSection = lesson.sections[activeSection + 1];
+      if (nextSection && isSectionUnlocked(nextSection.id)) {
         setActiveSection(activeSection + 1);
         setActiveSubsection(0);
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -306,7 +312,7 @@ export function LessonPlayer({
 
   function selectSection(idx: number) {
     const section = lesson.sections[idx];
-    if (!isSectionUnlocked(section.id)) return;
+    if (!section || !isSectionUnlocked(section.id)) return;
     setShowMastery(false);
     setActiveSection(idx);
     setActiveSubsection(0);
@@ -623,7 +629,9 @@ export function LessonPlayer({
                     <QuizGate
                       quiz={currentSub.quiz}
                       lessonSlug={lesson.id}
-                      status={quizStatuses[currentSub.quiz.id]}
+                      {...(quizStatuses[currentSub.quiz.id] !== undefined
+                        ? { status: quizStatuses[currentSub.quiz.id] }
+                        : {})}
                       isAuthenticated={isAuthenticated}
                       hasLessonAccess={hasLessonAccess}
                       onComplete={handleQuizComplete}

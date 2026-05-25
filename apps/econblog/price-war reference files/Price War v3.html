@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Price War · v3 · 13 missing screens + feedback folded in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Patrick+Hand&family=Kalam:wght@400;700&family=Gloria+Hallelujah&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="pricewar.css" />
+<style>
+  html, body { background: #ece4d4; height: 100%; margin: 0; overflow: hidden; }
+  #app { height: 100vh; }
+  /* Inside canvas artboards, drop the page-level max-width so screens use the artboard width. */
+  .frame .page, .frame > .crumbs, .frame > .title-row, .frame > .notes { max-width: none; padding: 0; margin: 0; }
+  .frame h2 { font-size: 32px; }
+  .frame .stat-num { font-family: 'Caveat', cursive; font-weight: 700; font-size: 24px; line-height: 1; }
+  .frame .stat-label { font-family: 'Patrick Hand', cursive; color: var(--ink-3); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<!-- Design canvas wrapper -->
+<script type="text/babel" src="design-canvas.jsx"></script>
+
+<!-- Existing v2 atoms (Btn, Chip, KV, DomBadge, RoundDots, ActionCard, Tooltip, etc.) -->
+<script type="text/babel" src="pricewar-v2-core.jsx"></script>
+<!-- v2 Library + Decide (DecideV2 reused under DecideV3) -->
+<script type="text/babel" src="pricewar-v2-library.jsx"></script>
+<script type="text/babel" src="pricewar-v2-decide.jsx"></script>
+
+<!-- v3 refined + new screens -->
+<script type="text/babel" src="pricewar-v3-refined-a.jsx"></script>
+<script type="text/babel" src="pricewar-v3-refined-b.jsx"></script>
+<script type="text/babel" src="pricewar-v3-new-prematch.jsx"></script>
+<script type="text/babel" src="pricewar-v3-new-midmatch.jsx"></script>
+<script type="text/babel" src="pricewar-v3-new-terminal.jsx"></script>
+<script type="text/babel" src="pricewar-v3-new-meta.jsx"></script>
+<script type="text/babel" src="pricewar-v3-new-onboarding.jsx"></script>
+
+<!-- The canvas app -->
+<script type="text/babel" src="pricewar-v3-app.jsx"></script>
+
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="200" fill="#f6f1e7"/>
+  <g transform="translate(60 56)">
+    <rect width="80" height="55" rx="6" fill="none" stroke="#2a1f17" stroke-width="3"/>
+    <rect x="6" y="44" width="80" height="55" rx="6" fill="#fff8ec" stroke="#2a1f17" stroke-width="3"/>
+    <rect x="12" y="86" width="80" height="55" rx="6" fill="#fef2f2" stroke="#c46b3f" stroke-width="3"/>
+    <text x="44" y="158" text-anchor="middle" font-family="Caveat,cursive" font-size="22" font-weight="700" fill="#2a1f17">v3</text>
+  </g>
+</svg>
+</template>
+</body>
+</html>

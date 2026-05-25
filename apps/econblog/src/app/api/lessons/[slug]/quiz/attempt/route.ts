@@ -210,16 +210,21 @@ function computeUnlockedSections(
   lesson: NonNullable<Awaited<ReturnType<typeof loadLesson>>>,
   completedSubsections: string[]
 ): string[] {
-  const unlocked: string[] = [lesson.sections[0]?.id].filter(Boolean);
+  const unlocked: string[] = [lesson.sections[0]?.id].filter(
+    (id): id is string => Boolean(id)
+  );
 
   for (let i = 0; i < lesson.sections.length; i++) {
     const section = lesson.sections[i];
+    if (!section) continue;
+
     const allSubsCompleted = section.subsections.every((sub) =>
       completedSubsections.includes(sub.id)
     );
 
-    if (allSubsCompleted && i + 1 < lesson.sections.length) {
-      const nextSectionId = lesson.sections[i + 1].id;
+    const nextSection = lesson.sections[i + 1];
+    if (allSubsCompleted && nextSection) {
+      const nextSectionId = nextSection.id;
       if (!unlocked.includes(nextSectionId)) {
         unlocked.push(nextSectionId);
       }

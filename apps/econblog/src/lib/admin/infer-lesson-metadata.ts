@@ -98,16 +98,17 @@ export function resolveLessonMetadata(input: {
   category?: string;
   difficulty?: string;
 }) {
+  const title = input.title.trim();
   const explicitCategory = input.category?.trim() ?? "";
   const explicitDifficulty = input.difficulty?.trim() ?? "";
 
   const category = isLessonCategory(explicitCategory)
     ? explicitCategory
-    : inferLessonCategory(input.title, input.description);
+    : inferLessonCategory(title, input.description);
 
   const difficulty = isLessonDifficulty(explicitDifficulty)
     ? explicitDifficulty
-    : inferLessonDifficulty(input.title, input.description);
+    : inferLessonDifficulty(title, input.description);
 
   return { category, difficulty };
 }

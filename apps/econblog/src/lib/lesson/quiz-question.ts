@@ -12,6 +12,8 @@ export function parseEmbeddedQuizOptions(question: string): {
   if (!match) return null;
 
   const [, prefix, optionsText, suffix] = match;
+  if (!prefix || !optionsText || !suffix) return null;
+
   const contextOptions = optionsText
     .split(/,\s*(?:or\s+)?|,\s*or\s+/i)
     .map((item) => item.trim())

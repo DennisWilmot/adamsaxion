@@ -40,6 +40,13 @@ export async function POST(
       .where(eq(lessons.id, id))
       .returning();
 
+    if (!updated) {
+      return NextResponse.json(
+        { error: "Failed to update lesson thumbnail" },
+        { status: 500 }
+      );
+    }
+
     console.log(`[thumbnail] regenerated thumbnail for lesson ${id}`);
     return NextResponse.json({
       lesson: {

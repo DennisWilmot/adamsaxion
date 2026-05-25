@@ -25,7 +25,7 @@ async def test_google_tts():
     print(f"📋 Configuration Check:")
     print(f"   Project ID: {'✅ Set' if GOOGLE_CLOUD_PROJECT_ID else '❌ Missing'}")
     print(f"   Service Account Key: {'✅ Set' if GOOGLE_SERVICE_ACCOUNT_KEY else '❌ Missing'}")
-    print(f"   Voice Style: {GOOGLE_TTS_VOICE_SETTINGS['voice_style']}")
+    print(f"   Voice: Puck (en-US-Chirp3-HD-Puck)")
     print(f"   Speaking Rate: {GOOGLE_TTS_VOICE_SETTINGS['speaking_rate']}")
     print()
     
@@ -57,32 +57,29 @@ async def test_google_tts():
         
         print(f"🎤 Testing audio generation...")
         print(f"   Text length: {len(test_text)} characters")
-        print(f"   Voice: {GOOGLE_TTS_VOICE_SETTINGS['voice_style']}")
+        print(f"   Voice: Puck (en-US-Chirp3-HD-Puck)")
         print()
         
-        # Generate audio
+        # Generate audio (returns MP3 bytes)
         audio_buffer = await tts_client.generate_long_audio(
             text=test_text,
-            voice_style=GOOGLE_TTS_VOICE_SETTINGS['voice_style'],
             audio_settings={
                 "speaking_rate": GOOGLE_TTS_VOICE_SETTINGS['speaking_rate'],
                 "pitch": GOOGLE_TTS_VOICE_SETTINGS['pitch'],
                 "volume_gain_db": GOOGLE_TTS_VOICE_SETTINGS['volume_gain_db'],
                 "sample_rate_hertz": GOOGLE_TTS_VOICE_SETTINGS['sample_rate'],
-                "audio_encoding": GOOGLE_TTS_VOICE_SETTINGS['audio_encoding']
             }
         )
         
         print(f"✅ Audio generated successfully!")
-        print(f"   Audio size: {len(audio_buffer)} bytes")
-        print(f"   Audio duration: ~{len(audio_buffer) / (24000 * 2):.1f} seconds (estimated)")
+        print(f"   Audio size: {len(audio_buffer)} bytes (MP3)")
         print()
         
         # Save test audio file
         test_output_dir = project_root / "test_output"
         test_output_dir.mkdir(exist_ok=True)
         
-        test_audio_file = test_output_dir / "test_google_tts_audio.wav"
+        test_audio_file = test_output_dir / "test_google_tts_audio.mp3"
         with open(test_audio_file, 'wb') as f:
             f.write(audio_buffer)
         
@@ -90,12 +87,9 @@ async def test_google_tts():
         print()
         
         # Test voice configuration
-        print("🎭 Testing voice configurations...")
-        voice_configs = ['chirp3-female', 'chirp3-male']
-        
-        for voice_style in voice_configs:
-            config = tts_client.get_voice_config(voice_style)
-            print(f"   {voice_style}: {config['name']} ({config['ssml_gender']})")
+        print("🎭 Testing voice configuration...")
+        config = tts_client.get_voice_config()
+        print(f"   Puck: {config['name']} ({config['ssml_gender']})")
         
         print()
         print("🎉 All tests passed! Google Cloud TTS is ready to use.")

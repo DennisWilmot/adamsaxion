@@ -9,7 +9,7 @@ interface PathSetupBannerProps {
 
 export function PathSetupBanner({ onSetup }: PathSetupBannerProps) {
   return (
-    <div className="mb-2xl flex flex-col sm:flex-row sm:items-center gap-md rounded-lg border border-primary/25 bg-primary-subtle/40 px-xl py-lg">
+    <div className="flex h-full flex-col sm:flex-row sm:items-center gap-md rounded-lg border border-primary/25 bg-primary-subtle/40 px-xl py-lg">
       <Compass className="size-5 text-primary shrink-0" />
       <div className="flex-1">
         <p className="font-body text-sm font-semibold text-foreground">

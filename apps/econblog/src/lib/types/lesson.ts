@@ -72,10 +72,10 @@ export function calculateLessonXp(lesson: LessonData): number {
       if (sub.quiz) total += sub.quiz.xpReward;
     }
   }
-  const masteryXpPerQuestion =
-    lesson.masteryQuiz.questionPool.length > 0
-      ? lesson.masteryQuiz.questionPool[0].xpReward
-      : 30;
+  const firstMasteryQuestion = lesson.masteryQuiz.questionPool[0];
+  const masteryXpPerQuestion = firstMasteryQuestion
+    ? firstMasteryQuestion.xpReward
+    : 30;
   total += masteryXpPerQuestion * lesson.masteryQuiz.questionsPerAttempt;
   return total;
 }

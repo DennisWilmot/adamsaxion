@@ -250,6 +250,9 @@ function chooseAccent(title: string) {
 function getTheme(input: LessonThumbnailInput): Theme {
   const base =
     CATEGORY_THEMES[input.category] ?? CATEGORY_THEMES.Microeconomics;
+  if (!base) {
+    throw new Error("Missing default lesson thumbnail theme");
+  }
 
   return {
     ...base,

@@ -16,7 +16,11 @@ function shuffleArray<T>(arr: T[]): T[] {
   const copy = [...arr];
   for (let i = copy.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
+    const current = copy[i];
+    const swap = copy[j];
+    if (current === undefined || swap === undefined) continue;
+    copy[i] = swap;
+    copy[j] = current;
   }
   return copy;
 }
@@ -98,6 +102,7 @@ export function MasteryExam({
     setSubmitting(true);
 
     const question = questions[currentIdx];
+    if (!question) return;
     answers.set(question.id, selectedAnswer);
     setAnswers(new Map(answers));
 
@@ -210,6 +215,8 @@ export function MasteryExam({
 
   // Active exam
   const question = questions[currentIdx];
+  if (!question) return null;
+
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
 

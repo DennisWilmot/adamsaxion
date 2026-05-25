@@ -173,6 +173,10 @@ export async function queueLessonGenerationJob(lessonId: string) {
     })
     .returning();
 
+  if (!job) {
+    throw new Error("Failed to queue generation job");
+  }
+
   return { job, created: true };
 }
 
@@ -495,7 +499,10 @@ export async function runLessonGenerationJob(jobId: string) {
       const completedSectionIds = new Set(contentProgress.completedSections);
 
       for (let i = 0; i < sectionCount; i++) {
-        if (completedSectionIds.has(outlineData.sections[i].id)) {
+        const outlineSection = outlineData.sections[i];
+        if (!outlineSection) continue;
+
+        if (completedSectionIds.has(outlineSection.id)) {
           continue;
         }
 
@@ -511,7 +518,7 @@ export async function runLessonGenerationJob(jobId: string) {
         await setJobProgress(
           jobId,
           "content",
-          `Writing section ${i + 1} of ${sectionCount}: "${outlineData.sections[i].title}"`,
+          `Writing section ${i + 1} of ${sectionCount}: "${outlineSection.title}"`,
           completedSteps,
           totalSteps
         );
@@ -536,14 +543,14 @@ export async function runLessonGenerationJob(jobId: string) {
           current.title,
           lessonTitle,
           researchNotes,
-          outlineData.sections[i] as Parameters<typeof generateSectionContent>[3],
+          outlineSection as Parameters<typeof generateSectionContent>[3],
           i,
           previousContent
         );
 
         currentSections[i] = {
-          id: outlineData.sections[i].id,
-          title: outlineData.sections[i].title,
+          id: outlineSection.id,
+          title: outlineSection.title,
           subsections: result.subsections.map((sub) => ({
             id: sub.id,
             title: sub.title,
@@ -551,8 +558,8 @@ export async function runLessonGenerationJob(jobId: string) {
           })),
         };
 
-        contentProgress.completedSections.push(outlineData.sections[i].id);
-        completedSectionIds.add(outlineData.sections[i].id);
+        contentProgress.completedSections.push(outlineSection.id);
+        completedSectionIds.add(outlineSection.id);
 
         const allContentDone =
           contentProgress.completedSections.length >= sectionCount;
@@ -581,8 +588,10 @@ export async function runLessonGenerationJob(jobId: string) {
       const completedQuestionIds = new Set(questionsProgress.completedSections);
 
       for (let i = 0; i < sectionCount; i++) {
-        if (!currentSections[i]) continue;
-        if (completedQuestionIds.has(currentSections[i].id)) continue;
+        const outlineSection = outlineData.sections[i];
+        const currentSection = currentSections[i];
+        if (!outlineSection || !currentSection) continue;
+        if (completedQuestionIds.has(currentSection.id)) continue;
 
         if (await checkCancellation(jobId)) {
           await markCancelled(
@@ -596,30 +605,30 @@ export async function runLessonGenerationJob(jobId: string) {
         await setJobProgress(
           jobId,
           "questions",
-          `Generating questions for section ${i + 1} of ${sectionCount}: "${outlineData.sections[i].title}"`,
+          `Generating questions for section ${i + 1} of ${sectionCount}: "${outlineSection.title}"`,
           completedSteps,
           totalSteps
         );
 
-        const subsWithHints = currentSections[i].subsections.map((sub, j) => ({
+        const subsWithHints = currentSection.subsections.map((sub, j) => ({
           id: sub.id,
           title: sub.title,
           content: sub.content,
           quizType:
-            outlineData.sections[i].subsections[j]?.quizType || "in-lesson",
-          quizHint: outlineData.sections[i].subsections[j]?.quizHint || "",
+            outlineSection.subsections[j]?.quizType || "in-lesson",
+          quizHint: outlineSection.subsections[j]?.quizHint || "",
         }));
 
         const result = await generateSectionQuestions(
           subsWithHints,
           lessonTitle,
-          currentSections[i].title,
+          currentSection.title,
           i
         );
 
         currentSections[i] = {
-          ...currentSections[i],
-          subsections: currentSections[i].subsections.map((sub) => {
+          ...currentSection,
+          subsections: currentSection.subsections.map((sub) => {
             const question = result.questions.find(
               (generatedQuestion) => generatedQuestion.subsectionId === sub.id
             );
@@ -627,8 +636,8 @@ export async function runLessonGenerationJob(jobId: string) {
           }),
         } as (typeof currentSections)[number];
 
-        questionsProgress.completedSections.push(currentSections[i].id);
-        completedQuestionIds.add(currentSections[i].id);
+        questionsProgress.completedSections.push(currentSection.id);
+        completedQuestionIds.add(currentSection.id);
 
         const allQuestionsDone =
           questionsProgress.completedSections.length >= sectionCount;

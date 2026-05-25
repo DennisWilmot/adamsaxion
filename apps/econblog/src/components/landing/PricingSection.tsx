@@ -92,7 +92,7 @@ export function PricingSection() {
     if (!node) return;
 
     const observer = new IntersectionObserver(
-      ([entry]) => setInView(entry.isIntersecting),
+      ([entry]) => setInView(entry?.isIntersecting ?? false),
       { threshold: 0.2 }
     );
     observer.observe(node);
@@ -133,85 +133,80 @@ export function PricingSection() {
           </p>
         </ScrollReveal>
 
-        <ScrollReveal delay={0.1}>
-          <div className="mb-3xl flex justify-center">
-            <div
-              className="relative inline-flex rounded-full border border-border bg-surface-sunken p-1"
-              role="tablist"
-              aria-label="Billing preference"
-            >
-              <span
-                aria-hidden
-                className="pointer-events-none absolute bottom-1 top-1 w-[calc(50%-0.25rem)] rounded-full bg-surface-raised shadow-sm transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"
-                style={{
-                  transform:
-                    billing === "monthly"
-                      ? "translateX(0.25rem)"
-                      : "translateX(calc(100% + 0.25rem))",
-                }}
-              />
-              <button
-                type="button"
-                role="tab"
-                aria-selected={billing === "monthly"}
-                onClick={() => setBilling("monthly")}
-                className={`relative z-10 rounded-full px-xl py-sm font-body text-sm font-semibold transition-colors duration-300 ${
+        <div className="mb-3xl flex justify-center">
+          <div
+            className="relative grid grid-cols-2 rounded-full border border-border bg-surface-sunken p-1"
+            role="tablist"
+            aria-label="Billing preference"
+          >
+            <span
+              aria-hidden
+              className="pointer-events-none absolute bottom-1 top-1 w-[calc(50%-0.25rem)] rounded-full bg-surface-raised shadow-sm transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"
+              style={{
+                transform:
                   billing === "monthly"
-                    ? "text-foreground"
-                    : "text-foreground-muted hover:text-foreground-secondary"
-                }`}
-              >
-                Monthly
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={billing === "lifetime"}
-                onClick={() => setBilling("lifetime")}
-                className={`relative z-10 flex items-center gap-sm rounded-full px-xl py-sm font-body text-sm font-semibold transition-colors duration-300 ${
-                  billing === "lifetime"
-                    ? "text-foreground"
-                    : "text-foreground-muted hover:text-foreground-secondary"
-                }`}
-              >
-                Lifetime
-                <span className="rounded-md bg-gold-subtle px-sm py-0.5 font-body text-[10px] font-bold uppercase tracking-wide text-gold">
-                  Save
-                </span>
-              </button>
-            </div>
+                    ? "translateX(0.25rem)"
+                    : "translateX(calc(100% + 0.25rem))",
+              }}
+            />
+            <button
+              type="button"
+              role="tab"
+              aria-selected={billing === "monthly"}
+              onClick={() => setBilling("monthly")}
+              className={`relative z-10 rounded-full px-xl py-sm font-body text-sm font-semibold transition-colors duration-300 ${
+                billing === "monthly"
+                  ? "text-foreground"
+                  : "text-foreground-muted hover:text-foreground-secondary"
+              }`}
+            >
+              Monthly
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={billing === "lifetime"}
+              onClick={() => setBilling("lifetime")}
+              className={`relative z-10 flex items-center justify-center gap-sm rounded-full px-xl py-sm font-body text-sm font-semibold transition-colors duration-300 ${
+                billing === "lifetime"
+                  ? "text-foreground"
+                  : "text-foreground-muted hover:text-foreground-secondary"
+              }`}
+            >
+              Lifetime
+              <span className="rounded-md bg-gold-subtle px-sm py-0.5 font-body text-[10px] font-bold uppercase tracking-wide text-gold">
+                Save
+              </span>
+            </button>
           </div>
-        </ScrollReveal>
+        </div>
 
         <div className="grid items-end gap-xl lg:grid-cols-3">
-          {PLANS.map((plan, index) => (
-            <ScrollReveal key={plan.id} delay={0.15 + index * 0.1}>
-              <PricingCard
-                plan={plan}
-                featured={plan.id === featuredId}
-                billing={billing}
-              />
-            </ScrollReveal>
+          {PLANS.map((plan) => (
+            <PricingCard
+              key={plan.id}
+              plan={plan}
+              featured={plan.id === featuredId}
+              billing={billing}
+            />
           ))}
         </div>
 
-        <ScrollReveal delay={0.45}>
-          <div className="mt-3xl flex justify-center border-t border-border-subtle pt-3xl">
-            <Link
-              href={lessonZeroPath()}
-              className="group relative inline-flex items-center justify-center gap-md overflow-hidden rounded-full bg-primary px-2xl py-lg font-display text-xl font-semibold text-surface-raised shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-lg sm:px-3xl sm:py-xl sm:text-[1.75rem]"
-            >
-              <span
-                aria-hidden
-                className="absolute inset-0 animate-landing-shimmer bg-gradient-to-r from-transparent via-white/15 to-transparent"
-              />
-              <span className="relative z-10 flex items-center gap-md">
-                Start with Lesson Zero
-                <ArrowRight className="size-5 transition-transform group-hover:translate-x-0.5" />
-              </span>
-            </Link>
-          </div>
-        </ScrollReveal>
+        <div className="mt-3xl flex justify-center border-t border-border-subtle pt-3xl">
+          <Link
+            href={lessonZeroPath()}
+            className="group relative inline-flex items-center justify-center gap-md overflow-hidden rounded-full bg-primary px-2xl py-lg font-display text-xl font-semibold text-surface-raised shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-lg sm:px-3xl sm:py-xl sm:text-[1.75rem]"
+          >
+            <span
+              aria-hidden
+              className="absolute inset-0 animate-landing-shimmer bg-gradient-to-r from-transparent via-white/15 to-transparent"
+            />
+            <span className="relative z-10 flex items-center gap-md">
+              Start with Lesson Zero
+              <ArrowRight className="size-5 transition-transform group-hover:translate-x-0.5" />
+            </span>
+          </Link>
+        </div>
       </div>
     </section>
   );

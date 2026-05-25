@@ -34,8 +34,8 @@ type OpenRouterErrorPayload = {
 
 export class OpenRouterApiError extends Error {
   status: number;
-  code?: string;
-  affordableMaxTokens?: number;
+  code?: string | undefined;
+  affordableMaxTokens?: number | undefined;
 
   constructor(
     message: string,
@@ -78,8 +78,8 @@ function buildOpenRouterApiError(status: number, raw: string) {
 
   return new OpenRouterApiError(`OpenRouter API error (${status}): ${errorMessage}`, {
     status,
-    code: payload?.error?.code,
-    affordableMaxTokens: affordableMaxTokens ?? undefined,
+    ...(payload?.error?.code !== undefined ? { code: payload.error.code } : {}),
+    ...(affordableMaxTokens !== null ? { affordableMaxTokens } : {}),
   });
 }
 

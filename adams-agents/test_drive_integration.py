@@ -40,7 +40,7 @@ def test_google_drive_setup():
     required_keys = {
         "OPENAI_API_KEY": "OpenAI API key for content generation",
         "GOOGLE_GEMINI_API_KEY": "Google Gemini API key for script processing",
-        "ELEVENLABS_API_KEY": "ElevenLabs API key for audio generation"
+        "GOOGLE_CLOUD_PROJECT_ID": "Google Cloud project ID for TTS",
     }
     
     missing_keys = []

@@ -23,7 +23,7 @@ interface FloatingItem {
 function generateItems(count: number): FloatingItem[] {
   return Array.from({ length: count }, (_, i) => ({
     id: i,
-    icon: ICONS[i % ICONS.length],
+    icon: ICONS[i % ICONS.length] ?? ICONS[0] ?? "📈",
     x: Math.random() * 100,
     y: Math.random() * 100,
     size: 18 + Math.random() * 20,

@@ -1,16 +1,32 @@
 import openai
 from pathlib import Path
 import json
+import uuid
+import time
 from datetime import datetime
 from typing import Dict, List, Optional
+
+from config import OPENAI_BASE_URL, OPENAI_MODEL
+
+
+def _make_openai_client(api_key: str) -> openai.OpenAI:
+    kwargs = {"api_key": api_key}
+    if OPENAI_BASE_URL:
+        kwargs["base_url"] = OPENAI_BASE_URL
+    return openai.OpenAI(**kwargs)
+
 
 class ResearchAgent:
     """Agent that researches topics and stores findings for script generation"""
     
     def __init__(self, api_key: str):
-        self.client = openai.OpenAI(api_key=api_key)
-        self.research_dir = Path("research")
-        self.research_dir.mkdir(exist_ok=True)
+        self.client = _make_openai_client(api_key)
+        self.research_dir = None  # Set via set_project_dir before saving
+
+    def set_project_dir(self, project_dir: Path):
+        """Set the research directory under a specific project."""
+        self.research_dir = Path(project_dir) / "research"
+        self.research_dir.mkdir(parents=True, exist_ok=True)
     
     def _is_economics_topic(self, topic: str) -> bool:
         """Check if topic is economics-related"""
@@ -88,7 +104,7 @@ class ResearchAgent:
         
         try:
             response = self.client.chat.completions.create(
-                model="gpt-4o",
+                model=OPENAI_MODEL,
                 messages=[
                     {"role": "system", "content": "You are an expert researcher who finds specific, factual information for educational content."},
                     {"role": "user", "content": prompt}
@@ -100,7 +116,14 @@ class ResearchAgent:
             return f"Error during research: {str(e)}"
     
     def save_research(self, topic: str, research_data: str) -> str:
-        """Save research findings to a file"""
+        """Save research findings to a file under the project's research directory."""
+        if self.research_dir is None:
+            raise RuntimeError(
+                "ResearchAgent.set_project_dir() must be called before saving research. "
+                "Pass the project directory from ProjectManager."
+            )
+        self.research_dir.mkdir(parents=True, exist_ok=True)
+
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"{topic.lower().replace(' ', '_')}_{timestamp}.txt"
         filepath = self.research_dir / filename
@@ -115,13 +138,15 @@ class ResearchAgent:
     
     def get_latest_research(self, topic: str) -> Optional[str]:
         """Get the most recent research file for a topic"""
+        if self.research_dir is None or not self.research_dir.exists():
+            return None
+
         topic_pattern = topic.lower().replace(' ', '_')
         research_files = list(self.research_dir.glob(f"{topic_pattern}_*.txt"))
         
         if not research_files:
             return None
         
-        # Get the most recent file
         latest_file = max(research_files, key=lambda x: x.stat().st_mtime)
         
         with open(latest_file, 'r', encoding='utf-8') as f:
@@ -131,8 +156,13 @@ class SimpleContentAgent:
     """Content creation agent that uses research data"""
     
     def __init__(self, api_key: str):
-        self.client = openai.OpenAI(api_key=api_key)
+        self.client = _make_openai_client(api_key)
         self.research_agent = ResearchAgent(api_key)
+
+    def set_project_dir(self, project_dir: Path):
+        """Set the project directory for research output and script saving."""
+        self.project_dir = Path(project_dir)
+        self.research_agent.set_project_dir(self.project_dir)
     
     def validate_outline(self, outline: str, research_data: str) -> dict:
         """Validate outline quality and reject if too generic"""
@@ -162,7 +192,7 @@ class SimpleContentAgent:
         
         try:
             response = self.client.chat.completions.create(
-                model="gpt-4o",
+                model=OPENAI_MODEL,
                 messages=[
                     {"role": "system", "content": "You are a content quality validator who ensures outlines meet high standards for specificity and educational value."},
                     {"role": "user", "content": prompt}
@@ -205,6 +235,10 @@ class SimpleContentAgent:
             COMPLETE STORYTELLING RULES (Follow These Exactly):
 
             {self._load_storytelling_rules()}
+
+            STYLE GUIDE (Follow This Tone & Voice):
+
+            {self._load_style_guide()}
 
             OUTLINE REQUIREMENTS:
             - Target video length: 17-22 minutes
@@ -287,7 +321,7 @@ class SimpleContentAgent:
             
             try:
                 response = self.client.chat.completions.create(
-                    model="gpt-4o",
+                    model=OPENAI_MODEL,
                     messages=[
                         {"role": "system", "content": "You are an expert content architect who creates detailed, educational outlines for YouTube videos."},
                         {"role": "user", "content": prompt}
@@ -356,6 +390,10 @@ class SimpleContentAgent:
 
         {self._load_storytelling_rules()}
 
+        STYLE GUIDE (Follow This Tone & Voice):
+
+        {self._load_style_guide()}
+
         REQUIREMENTS:
         - Tone: Dry sarcastic (not pessimistic) - like explaining to a smart friend
         - Humor: Natural, emerges from content, every few sentences when it fits
@@ -421,7 +459,7 @@ class SimpleContentAgent:
         
         try:
             response = self.client.chat.completions.create(
-                model="gpt-4o",
+                model=OPENAI_MODEL,
                 messages=[
                     {"role": "system", "content": "You are a master of economic storytelling who combines deep knowledge with engaging writing."},
                     {"role": "user", "content": prompt}
@@ -470,15 +508,266 @@ class SimpleContentAgent:
                 'content': section_content
             })
             
-            # Add to full script
-            full_script += f"\n\n**Section {i}: {section_info['title']}**\n\n"
+            # Add to full script (plain narration, no section headers)
+            if full_script:
+                full_script += "\n\n"
             full_script += section_content
             
             print(f"✅ Section {i} completed ({len(section_content.split())} words)")
         
         print(f"🎉 Full script generated: {len(full_script.split())} total words")
         return full_script
-    
+
+    def create_structured_script(self, outline: str, topic: str, project_id: str = None) -> Dict:
+        """Create a fully structured JSON script with metadata for automated video assembly.
+
+        Returns the complete script dict matching the pipeline JSON contract.
+        Also saves script.json and script.txt to the project's script/ directory.
+        """
+        sections_outline = self._parse_outline_sections(outline)
+        if not sections_outline:
+            raise ValueError("Could not parse outline sections")
+
+        research_context = ""
+        if topic:
+            research_data = self.research_agent.get_latest_research(topic)
+            if research_data:
+                research_context = f"\n\nRESEARCH DATA TO USE:\n{research_data}"
+
+        video_id = project_id or str(uuid.uuid4())
+        structured_sections: List[Dict] = []
+        completed_narrations: List[Dict] = []
+
+        print(f"🔧 Generating {len(sections_outline)} structured sections...")
+
+        for i, section_info in enumerate(sections_outline):
+            print(f"📝 Generating structured section {i}: {section_info['title']}")
+
+            section_data = self._generate_structured_section(
+                section_index=i,
+                section_info=section_info,
+                previous_sections=completed_narrations,
+                research_context=research_context,
+                topic=topic,
+                total_sections=len(sections_outline),
+            )
+            structured_sections.append(section_data)
+            completed_narrations.append({
+                "number": i,
+                "title": section_data["section_title"],
+                "content": section_data["narration"][:200],
+            })
+            print(f"✅ Section {i} completed ({section_data['word_count']} words)")
+
+        # Assemble top-level metadata
+        total_words = sum(s["word_count"] for s in structured_sections)
+        total_duration = sum(s["estimated_duration_seconds"] for s in structured_sections)
+
+        # Pick thumbnail grid from evenly-spaced sections
+        grid_indices = [
+            int(i * (len(structured_sections) - 1) / 5)
+            for i in range(6)
+        ] if len(structured_sections) >= 6 else list(range(len(structured_sections)))
+
+        script_json = {
+            "video_id": video_id,
+            "title": topic,
+            "description": (
+                f"An in-depth educational breakdown of {topic}. "
+                "Covering the history, mechanics, real-world impact, and what it means for you. "
+                "Like, subscribe, and hit the bell for weekly economics explainers."
+            ),
+            "tags": self._generate_tags(topic),
+            "ai_disclosure": "This video uses AI-generated narration and automated image sourcing.",
+            "thumbnail": {
+                "headline": topic.upper()[:40],
+                "sub_text": f"{topic} — the full story",
+                "grid_images_from_sections": grid_indices,
+            },
+            "saas_ad": {
+                "insert_at_seconds": 120,
+                "enabled": True,
+            },
+            "sections": structured_sections,
+            "total_word_count": total_words,
+            "estimated_total_duration_seconds": total_duration,
+            "section_count": len(structured_sections),
+        }
+
+        # Validate the JSON is serialisable
+        try:
+            json.dumps(script_json)
+        except (TypeError, ValueError) as e:
+            raise ValueError(f"Generated script JSON is invalid: {e}")
+
+        print(f"🎉 Structured script generated: {total_words} words, "
+              f"~{total_duration}s ({total_duration // 60}m {total_duration % 60}s)")
+
+        return script_json
+
+    def _generate_structured_section(
+        self,
+        section_index: int,
+        section_info: Dict,
+        previous_sections: List[Dict],
+        research_context: str,
+        topic: str,
+        total_sections: int,
+    ) -> Dict:
+        """Generate a single section as structured JSON with narration and metadata."""
+        previous_context = ""
+        if previous_sections:
+            previous_context = "\n\nPREVIOUS SECTIONS FOR CONTEXT:\n"
+            for prev in previous_sections[-2:]:
+                previous_context += f"\nSection {prev['number']}: {prev['title']}\n{prev['content']}...\n"
+
+        section_type = "hook" if section_index == 0 else (
+            "conclusion" if section_index == total_sections - 1 else "body"
+        )
+
+        prompt = f"""Generate structured JSON for section {section_index} of a YouTube video about "{topic}".
+
+        SECTION OUTLINE:
+        {section_info['content']}
+
+        {research_context}
+        {previous_context}
+
+        COMPLETE STORYTELLING RULES:
+        {self._load_storytelling_rules()}
+
+        STYLE GUIDE:
+        {self._load_style_guide()}
+
+        You MUST return ONLY valid JSON (no markdown fences, no extra text) matching this exact schema:
+
+        {{
+          "section_number": {section_index},
+          "section_type": "{section_type}",
+          "section_title": "Your title for this section",
+          "narration": "The full narration text for TTS. 300-450 words. Pure spoken text, no headers, no formatting.",
+          "word_count": <integer word count of narration>,
+          "estimated_duration_seconds": <integer, word_count / 2.5>,
+          "image_searches": [
+            {{
+              "query": "specific Google Image search query following image search term rules",
+              "purpose": "why this image is needed",
+              "fallback_query": "simpler/broader version of the query"
+            }}
+          ],
+          "onscreen_text": "Key phrase or stat shown on screen during this section",
+          "keywords_to_highlight": ["word1", "word2", "word3"],
+          "layout": "standard",
+          "visual_direction": "Brief direction for how images should be arranged"
+        }}
+
+        IMAGE SEARCH RULES:
+        - Provide 3-5 image searches per section
+        - PEOPLE: Full name + title/role — "Alan Greenspan Federal Reserve Chairman portrait"
+        - CONCEPTS: Real-world artifact — "US Federal Reserve balance sheet chart 2008-2014"
+        - EVENTS: Iconic photograph — "Lehman Brothers employees carrying boxes September 2008"
+        - INSTITUTIONS: Building or logo — "Federal Reserve Building Washington DC exterior"
+        - DATA/STATS: Actual chart — "US inflation rate graph 1970-1980 CPI"
+        - NEVER search abstract concepts directly
+        - ALWAYS add specificity: dates, locations, proper nouns
+        - First search term MUST work well cropped as a small circle (portraits, logos, iconic objects)
+        - Each search MUST have a fallback_query
+
+        LAYOUT OPTIONS (pick the best fit):
+        - "standard": narration with 1-2 images
+        - "collage-3": three related images shown together
+        - "collage-4": four related images shown together
+        - "single-focus": one dramatic full-frame image
+        - "data-chart": data visualization or chart focus
+        - "text-only": text-heavy section, minimal imagery
+
+        NARRATION RULES:
+        - 300-450 words, pure spoken text
+        - No section headers, no formatting markers, no screen directions
+        - Tone: dry sarcastic, like explaining to a smart friend
+        - Dense and information-packed with real facts, names, dates
+        - Must evoke emotion
+
+        Return ONLY the JSON object. No explanation, no markdown."""
+
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = self.client.chat.completions.create(
+                    model=OPENAI_MODEL,
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": (
+                                "You are a JSON generation engine. Return ONLY valid JSON. "
+                                "No markdown code fences. No explanatory text."
+                            ),
+                        },
+                        {"role": "user", "content": prompt},
+                    ],
+                    temperature=0.7,
+                    response_format={"type": "json_object"},
+                )
+                raw = response.choices[0].message.content
+                section = json.loads(raw)
+
+                # Normalise / enforce required fields
+                section["section_number"] = section_index
+                section["section_type"] = section.get("section_type", section_type)
+                narration = section.get("narration", "")
+                word_count = len(narration.split())
+                section["word_count"] = word_count
+                section["estimated_duration_seconds"] = round(word_count / 2.5)
+                section.setdefault("image_searches", [])
+                section.setdefault("onscreen_text", "")
+                section.setdefault("keywords_to_highlight", [])
+                section.setdefault("layout", "standard")
+                section.setdefault("visual_direction", "")
+
+                return section
+
+            except (json.JSONDecodeError, KeyError) as e:
+                print(f"⚠️ Section {section_index} JSON parse error (attempt {attempt + 1}/{max_retries}): {e}")
+                if attempt == max_retries - 1:
+                    raise ValueError(
+                        f"Failed to generate valid JSON for section {section_index} after {max_retries} attempts"
+                    )
+                time.sleep(1)
+            except Exception as e:
+                print(f"⚠️ Section {section_index} API error (attempt {attempt + 1}/{max_retries}): {e}")
+                if attempt == max_retries - 1:
+                    raise
+                time.sleep(2)
+
+    def _generate_tags(self, topic: str) -> List[str]:
+        """Generate YouTube tags from the topic."""
+        base_tags = ["economics", "explained", "education", "finance"]
+        topic_words = [w.lower() for w in topic.split() if len(w) > 3]
+        return list(dict.fromkeys(base_tags + topic_words + [topic.lower()]))
+
+    def save_script_outputs(self, script_json: Dict, project_dir: Path):
+        """Save both script.json and script.txt to the project's script/ directory."""
+        project_dir = Path(project_dir)
+        script_dir = project_dir / "script"
+        script_dir.mkdir(parents=True, exist_ok=True)
+
+        # Save structured JSON
+        json_path = script_dir / "script.json"
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump(script_json, f, indent=2, ensure_ascii=False)
+        print(f"💾 Saved script.json to {json_path}")
+
+        # Save plain-text script.txt for human readability / backward compat
+        txt_path = project_dir / "script.txt"
+        plain_text = "\n\n".join(
+            s["narration"] for s in script_json["sections"] if s.get("narration")
+        )
+        with open(txt_path, "w", encoding="utf-8") as f:
+            f.write(plain_text)
+        print(f"💾 Saved script.txt to {txt_path}")
+
+        return {"json_path": str(json_path), "txt_path": str(txt_path)}
+
     def _parse_outline_sections(self, outline: str) -> List[Dict]:
         """Parse outline to extract section information"""
         sections = []
@@ -524,6 +813,10 @@ class SimpleContentAgent:
 
         {self._load_storytelling_rules()}
 
+        STYLE GUIDE (Follow This Tone & Voice):
+
+        {self._load_style_guide()}
+
         CRITICAL REQUIREMENTS FOR THIS SECTION:
         - Length: MUST be 300-450 words (this is non-negotiable)
         - Content: DENSE and information-packed, not thin or basic
@@ -558,7 +851,7 @@ class SimpleContentAgent:
         
         try:
             response = self.client.chat.completions.create(
-                model="gpt-4o",
+                model=OPENAI_MODEL,
                 messages=[
                     {"role": "system", "content": "You are a master storyteller who creates dense, emotionally engaging content one section at a time."},
                     {"role": "user", "content": prompt}
@@ -582,6 +875,10 @@ class SimpleContentAgent:
         COMPLETE STORYTELLING RULES FOR VALIDATION:
 
         {storytelling_rules}
+
+        STYLE GUIDE FOR VALIDATION:
+
+        {self._load_style_guide()}
 
         VALIDATION CRITERIA (Based on Complete Rules):
         1. **Timing & Structure**: Does it fit 18-26 minute target with appropriate section count (9-15)?
@@ -613,7 +910,7 @@ class SimpleContentAgent:
         
         try:
             response = self.client.chat.completions.create(
-                model="gpt-4o",
+                model=OPENAI_MODEL,
                 messages=[
                     {"role": "system", "content": "You are a meticulous content validator who ensures that every piece of content meets the highest standards."},
                     {"role": "user", "content": prompt}
@@ -641,6 +938,18 @@ class SimpleContentAgent:
                 return "Storytelling rules file not found. Use default rules."
         except Exception as e:
             return f"Error loading rules: {str(e)}. Use default rules."
+
+    def _load_style_guide(self) -> str:
+        """Load the style guide from file"""
+        try:
+            guide_file = Path("style_guide.md")
+            if guide_file.exists():
+                with open(guide_file, 'r', encoding='utf-8') as f:
+                    return f.read()
+            else:
+                return "Style guide file not found. Use default style."
+        except Exception as e:
+            return f"Error loading style guide: {str(e)}. Use default style."
     
     def handle_validation_decision(self, validation_result: str) -> Dict:
         """Handle validation decision and determine next action"""
@@ -712,7 +1021,7 @@ class SimpleContentAgent:
         
         try:
             response = self.client.chat.completions.create(
-                model="gpt-4o",
+                model=OPENAI_MODEL,
                 messages=[
                     {"role": "system", "content": "You are an expert script editor who specializes in preparing content for audio generation by removing all non-speech elements."},
                     {"role": "user", "content": prompt}

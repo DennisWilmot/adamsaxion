@@ -173,7 +173,10 @@ function reasonForLesson(
   isPublished: boolean
 ): string {
   if (index === 0) {
-    const label = getInterestTag(interestIds[0])?.label ?? "your goals";
+    const firstInterest = interestIds[0];
+    const label =
+      (firstInterest ? getInterestTag(firstInterest)?.label : undefined) ??
+      "your goals";
     return `Starting point aligned with ${label.toLowerCase()}`;
   }
 

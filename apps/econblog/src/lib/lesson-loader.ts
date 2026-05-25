@@ -1,9 +1,11 @@
 import { cache } from "react";
 import { db } from "@/db";
 import { lessons } from "@/db/schema";
-import { eq, asc, sql, inArray, and } from "drizzle-orm";
+import { eq, asc, inArray, and } from "drizzle-orm";
 import type { LessonData, LessonMeta, Section, MasteryQuiz } from "./types/lesson";
 import { resolveLessonThumbnail } from "./lesson-thumbnail";
+import { catalogThumbnailPath } from "./lesson-thumbnail-urls";
+import { STATIC_CAROUSEL_LESSONS } from "./landing/carousel-manifest";
 import {
   isLessonZeroSlug,
   LESSON_ZERO_SLUG,
@@ -31,7 +33,7 @@ const lessonContentColumns = {
   masteryQuiz: lessons.masteryQuiz,
 } as const;
 
-/** Listing fields only — avoids pulling section/quiz JSON over the wire. */
+/** Listing fields only — avoids pulling section/quiz JSON or thumbnail blobs over the wire. */
 const lessonCarouselColumns = {
   slug: lessons.slug,
   title: lessons.title,
@@ -39,47 +41,11 @@ const lessonCarouselColumns = {
   difficulty: lessons.difficulty,
   estimatedMinutes: lessons.estimatedMinutes,
   description: lessons.description,
-  thumbnail: lessons.thumbnail,
 } as const;
 
-/** Aggregates computed in Postgres so subsection markdown never leaves the DB. */
-const lessonListStats = {
-  sectionCount: sql<number>`COALESCE(jsonb_array_length(${lessons.sections}), 0)::int`.mapWith(
-    Number
-  ),
-  subsectionCount: sql<number>`
-    COALESCE((
-      SELECT SUM(jsonb_array_length(COALESCE(section.elem->'subsections', '[]'::jsonb)))
-      FROM jsonb_array_elements(COALESCE(${lessons.sections}, '[]'::jsonb)) AS section(elem)
-    ), 0)::int
-  `.mapWith(Number),
-  quizXp: sql<number>`
-    COALESCE((
-      SELECT SUM(COALESCE((sub.elem->'quiz'->>'xpReward')::int, 0))
-      FROM jsonb_array_elements(COALESCE(${lessons.sections}, '[]'::jsonb)) AS section(elem),
-           jsonb_array_elements(COALESCE(section.elem->'subsections', '[]'::jsonb)) AS sub(elem)
-      WHERE sub.elem->'quiz' IS NOT NULL
-    ), 0)::int
-  `.mapWith(Number),
-  questionsPerAttempt: sql<number>`
-    COALESCE((${lessons.masteryQuiz}->>'questionsPerAttempt')::int, 5)
-  `.mapWith(Number),
-  masteryXpPerQuestion: sql<number>`
-    COALESCE((${lessons.masteryQuiz}->'questionPool'->0->>'xpReward')::int, 30)
-  `.mapWith(Number),
-} as const;
-
-const lessonListColumns = {
-  ...lessonCarouselColumns,
-  ...lessonListStats,
-} as const;
-
-const lessonCardColumns = {
-  ...lessonCarouselColumns,
-  quizXp: lessonListStats.quizXp,
-  questionsPerAttempt: lessonListStats.questionsPerAttempt,
-  masteryXpPerQuestion: lessonListStats.masteryXpPerQuestion,
-} as const;
+const catalogStatsById = new Map(
+  STATIC_CAROUSEL_LESSONS.map((lesson) => [lesson.id, lesson])
+);
 
 type LessonCarouselRow = {
   slug: string;
@@ -88,22 +54,25 @@ type LessonCarouselRow = {
   difficulty: string;
   estimatedMinutes: number;
   description: string;
-  thumbnail: string;
 };
 
-type LessonListRow = LessonCarouselRow & {
-  sectionCount: number;
-  subsectionCount: number;
-  quizXp: number;
-  questionsPerAttempt: number;
-  masteryXpPerQuestion: number;
-};
+function rowToListMeta(row: LessonCarouselRow): LessonMeta {
+  const id = canonicalLessonId(row.slug);
+  const cached = catalogStatsById.get(id);
 
-type LessonCardRow = LessonCarouselRow & {
-  quizXp: number;
-  questionsPerAttempt: number;
-  masteryXpPerQuestion: number;
-};
+  return {
+    id,
+    title: row.title,
+    category: row.category,
+    difficulty: row.difficulty,
+    estimatedMinutes: row.estimatedMinutes,
+    description: row.description,
+    thumbnail: catalogThumbnailPath(id),
+    totalXp: cached?.totalXp ?? 0,
+    sectionCount: cached?.sectionCount ?? 0,
+    subsectionCount: cached?.subsectionCount ?? 0,
+  };
+}
 
 type LessonContentRow = {
   slug: string;
@@ -247,61 +216,15 @@ export const loadPublishedLessonSlugs = cache(async (): Promise<string[]> => {
   return rows.map((row) => canonicalLessonId(row.slug));
 });
 
-function rowToCardMeta(row: LessonCardRow): LessonMeta {
-  return {
-    id: canonicalLessonId(row.slug),
-    title: row.title,
-    category: row.category,
-    difficulty: row.difficulty,
-    estimatedMinutes: row.estimatedMinutes,
-    description: row.description,
-    thumbnail: resolveLessonThumbnail(
-      {
-        title: row.title,
-        category: row.category,
-        difficulty: row.difficulty,
-        description: row.description,
-      },
-      row.thumbnail
-    ),
-    totalXp: row.quizXp + row.masteryXpPerQuestion * row.questionsPerAttempt,
-    sectionCount: 0,
-    subsectionCount: 0,
-  };
-}
-
-function rowToListMeta(row: LessonListRow): LessonMeta {
-  return {
-    id: canonicalLessonId(row.slug),
-    title: row.title,
-    category: row.category,
-    difficulty: row.difficulty,
-    estimatedMinutes: row.estimatedMinutes,
-    description: row.description,
-    thumbnail: resolveLessonThumbnail(
-      {
-        title: row.title,
-        category: row.category,
-        difficulty: row.difficulty,
-        description: row.description,
-      },
-      row.thumbnail
-    ),
-    totalXp: row.quizXp + row.masteryXpPerQuestion * row.questionsPerAttempt,
-    sectionCount: row.sectionCount,
-    subsectionCount: row.subsectionCount,
-  };
-}
-
-export async function loadAllLessonMeta(): Promise<LessonMeta[]> {
+export const loadAllLessonMeta = cache(async (): Promise<LessonMeta[]> => {
   const rows = await db
-    .select(lessonListColumns)
+    .select(lessonCarouselColumns)
     .from(lessons)
     .where(eq(lessons.status, "published"))
     .orderBy(asc(lessons.sortOrder), asc(lessons.slug));
 
   return rows.map(rowToListMeta);
-}
+});
 
 export async function loadLessonMetaBySlug(
   slug: string
@@ -323,7 +246,7 @@ export async function loadLessonMetaBySlugs(
   ];
 
   const rows = await db
-    .select({ ...lessonListColumns, status: lessons.status })
+    .select({ ...lessonCarouselColumns, status: lessons.status })
     .from(lessons)
     .where(
       and(
@@ -344,13 +267,13 @@ export async function loadLessonCardBySlug(
 ): Promise<LessonMeta | null> {
   for (const candidate of lessonSlugCandidates(slug)) {
     const [row] = await db
-      .select({ ...lessonCardColumns, status: lessons.status })
+      .select({ ...lessonCarouselColumns, status: lessons.status })
       .from(lessons)
       .where(eq(lessons.slug, candidate))
       .limit(1);
 
     if (row && row.status === "published") {
-      return rowToCardMeta(row);
+      return rowToListMeta(row);
     }
   }
 

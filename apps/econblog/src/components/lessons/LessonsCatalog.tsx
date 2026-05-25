@@ -6,11 +6,12 @@ import { Search, ChevronLeft, ChevronRight, ArrowRight, Lock } from "lucide-reac
 import { FloatingIcons } from "@/components/FloatingIcons";
 import { LessonsPageExtras } from "@/components/lessons/LessonsPageExtras";
 import { isLessonZeroSlug } from "@/lib/constants/lessons";
+import type { UserDashboard } from "@/lib/learning/user-dashboard";
 import type { LessonMeta } from "@/lib/types/lesson";
 
 const CATEGORIES = ["All", "Microeconomics", "Macroeconomics", "Trade", "Finance"];
 const DIFFICULTIES = ["All", "Beginner", "Intermediate", "Advanced"];
-const PER_PAGE = 9;
+const PER_PAGE = 6;
 
 const CARD_GRADIENTS: Record<string, string> = {
   Microeconomics: "from-blue-600 to-indigo-700",
@@ -21,21 +22,20 @@ const CARD_GRADIENTS: Record<string, string> = {
 
 interface LessonsCatalogProps {
   lessons: LessonMeta[];
+  initialDashboard: UserDashboard | null;
+  initialHasAccess: boolean | null;
 }
 
-export function LessonsCatalog({ lessons }: LessonsCatalogProps) {
+export function LessonsCatalog({
+  lessons,
+  initialDashboard,
+  initialHasAccess,
+}: LessonsCatalogProps) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [difficulty, setDifficulty] = useState("All");
   const [page, setPage] = useState(1);
-  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    fetch("/api/user/subscription")
-      .then((r) => (r.ok ? r.json() : { subscription: { hasAccess: false } }))
-      .then((data) => setHasAccess(Boolean(data.subscription?.hasAccess)))
-      .catch(() => setHasAccess(false));
-  }, []);
+  const hasAccess = initialHasAccess;
 
   const filtered = useMemo(() => {
     return lessons.filter((l) => {
@@ -75,7 +75,7 @@ export function LessonsCatalog({ lessons }: LessonsCatalogProps) {
         </div>
       </div>
 
-      <LessonsPageExtras />
+      <LessonsPageExtras initialDashboard={initialDashboard} />
 
       <div className="flex flex-col sm:flex-row gap-md mb-2xl">
         <div className="relative flex-1 max-w-md">
@@ -148,36 +148,14 @@ export function LessonsCatalog({ lessons }: LessonsCatalogProps) {
                     <div
                       className={`absolute inset-0 bg-gradient-to-br ${
                         CARD_GRADIENTS[lesson.category] ?? "from-gray-600 to-gray-700"
-                      } flex items-center justify-center`}
-                    >
-                      <div className="text-center text-white/90">
-                        <p className="font-display font-bold text-4xl opacity-20">
-                          {lesson.id.match(/lesson-(\d+)/)?.[1] ?? "?"}
-                        </p>
-                      </div>
-
-                      <div className="absolute inset-0 opacity-10">
-                        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                          <defs>
-                            <pattern
-                              id={`grid-${lesson.id}`}
-                              width="24"
-                              height="24"
-                              patternUnits="userSpaceOnUse"
-                            >
-                              <circle cx="1" cy="1" r="1" fill="currentColor" className="text-white" />
-                            </pattern>
-                          </defs>
-                          <rect width="100%" height="100%" fill={`url(#grid-${lesson.id})`} />
-                        </svg>
-                      </div>
-                    </div>
+                      }`}
+                    />
                   )}
 
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
                   <div className="absolute inset-0 ring-1 ring-inset ring-black/8" />
                   {isLocked && (
-                    <div className="absolute inset-0 bg-foreground/25 backdrop-blur-[1px]" />
+                    <div className="absolute inset-0 bg-black/30" />
                   )}
 
                   {isFree && (

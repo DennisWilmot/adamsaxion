@@ -5,6 +5,7 @@ import type { NextConfig } from "next";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
+  transpilePackages: ["@adamsaxion/pricewar-engine", "@adamsaxion/pricewar-types"],
   turbopack: {
     root: path.resolve(__dirname, "..", ".."),
   },

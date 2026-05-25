@@ -71,8 +71,8 @@ export async function POST(request: Request) {
         const { category, difficulty } = resolveLessonMetadata({
           title,
           description,
-          category: lesson.category,
-          difficulty: lesson.difficulty,
+          ...(lesson.category !== undefined ? { category: lesson.category } : {}),
+          ...(lesson.difficulty !== undefined ? { difficulty: lesson.difficulty } : {}),
         });
 
         return { title, description, category, difficulty };
@@ -105,6 +105,10 @@ export async function POST(request: Request) {
           questionsProgress: { completedSections: [] },
         })
         .returning();
+
+      if (!created) {
+        continue;
+      }
 
       if (autoQueue) {
         await queueLessonGenerationJob(created.id);

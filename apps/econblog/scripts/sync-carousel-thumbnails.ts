@@ -20,8 +20,8 @@ const ROOT = path.resolve(__dirname, "..");
 const OUT_DIR = path.join(ROOT, "public", "carousel");
 const MANIFEST_PATH = path.join(ROOT, "src/lib/landing/carousel-manifest.ts");
 
-const CAROUSEL_WIDTH = 560;
-const WEBP_QUALITY = 82;
+const CAROUSEL_WIDTH = 1280;
+const WEBP_QUALITY = 90;
 
 type ManifestLesson = {
   id: string;

@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { LayoutDashboard } from "lucide-react";
 import { signInWithGoogle } from "@/lib/auth/client";
 import { authPageUrl } from "@/lib/auth/redirect";
 import { lessonZeroPath } from "@/lib/constants/lessons";
+import { UserAccountMenu } from "@/components/UserAccountMenu";
+import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
 function AuthActionsSkeleton() {
@@ -74,27 +76,7 @@ function HeaderAuthActionsInner({
             Admin
           </Link>
         ) : null}
-        <Link
-          href="/profile"
-          className={`flex h-8 items-center justify-center gap-sm rounded-lg px-md text-sm font-medium transition-colors ${
-            pathname === "/profile"
-              ? "bg-primary text-surface-raised"
-              : "bg-surface-sunken text-foreground-muted hover:bg-border hover:text-foreground"
-          }`}
-        >
-          {user.user_metadata?.avatar_url ? (
-            <img
-              src={user.user_metadata.avatar_url}
-              alt=""
-              className="h-5 w-5 rounded-full"
-            />
-          ) : null}
-          <span className="hidden sm:inline">
-            {displayName ??
-              user.user_metadata?.full_name?.split(" ")[0] ??
-              "Profile"}
-          </span>
-        </Link>
+        <UserAccountMenu user={user} displayName={displayName} />
       </>
     );
   }
@@ -168,9 +150,41 @@ function MobileAuthActionsInner({
   onClose: () => void;
 }) {
   const searchParams = useSearchParams();
+  const router = useRouter();
 
-  if (loading || user) {
+  async function handleSignOut() {
+    onClose();
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/");
+    router.refresh();
+  }
+
+  if (loading) {
     return null;
+  }
+
+  if (user) {
+    return (
+      <>
+        <Link
+          href="/profile"
+          onClick={onClose}
+          className={`block py-sm text-sm font-medium ${
+            pathname === "/profile" ? "text-primary" : "text-foreground-secondary"
+          }`}
+        >
+          Profile
+        </Link>
+        <button
+          type="button"
+          onClick={() => void handleSignOut()}
+          className="block w-full py-sm text-left text-sm font-medium text-foreground-secondary"
+        >
+          Sign out
+        </button>
+      </>
+    );
   }
 
   async function handleSignIn() {

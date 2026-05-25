@@ -137,4 +137,23 @@ These rules will be integrated into our content generation agents to create more
 - Rules should be specific and actionable
 - Focus on techniques that work across different topics
 - Include examples where possible
-- Prioritize rules that enhance emotional engagement 
+- Prioritize rules that enhance emotional engagement
+
+## Image Search Term Rules
+
+For every section, provide 3-5 Google Image search terms. These will be used to automatically fetch real photographs. Follow these rules strictly:
+
+- PEOPLE: Full name + title/role — "Alan Greenspan Federal Reserve Chairman portrait"
+- CONCEPTS: Search for the real-world artifact — "US Federal Reserve balance sheet chart 2008-2014"
+- EVENTS: Search for the iconic photograph — "Lehman Brothers employees carrying boxes September 2008"
+- INSTITUTIONS: Search for the building or logo — "Federal Reserve Building Washington DC exterior"
+- DATA/STATS: Search for the actual chart — "US inflation rate graph 1970-1980 CPI"
+- NEVER search abstract concepts directly — "inflation" returns garbage
+- ALWAYS add specificity: dates, locations, proper nouns
+- Prefer editorial/news photography over stock photos
+- Include "high resolution" or "photograph" for portrait/event searches
+- Each search term must have a fallback_query (simpler/broader version)
+
+## Section Icon Rule
+
+The first image search result for each section will also be used as the circular section icon (top-left of frame). Make sure the first search term per section returns an image that works well cropped into a small circle (portraits, logos, and iconic objects work best; wide landscape shots do not). 

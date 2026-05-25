@@ -1,9 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getAdminEmails } from "@/lib/admin/auth";
+import { isPriceWarEnabled } from "@/server/pricewar/feature-flag";
 
-const PROTECTED_ROUTES = ["/profile"];
-const ADMIN_ROUTES = ["/admin", "/api/admin"];
+const PROTECTED_ROUTES = ["/profile", "/play"];
+const ADMIN_ROUTES = ["/admin", "/api/admin", "/api/pricewar/admin"];
+const PRICEWAR_API_PUBLIC = ["/api/pricewar/play-modes"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -100,6 +102,34 @@ export async function middleware(request: NextRequest) {
   const isProtected = PROTECTED_ROUTES.some(
     (route) => pathname === route || pathname.startsWith(route + "/")
   );
+
+  const isPricewarApi =
+    pathname === "/api/pricewar" || pathname.startsWith("/api/pricewar/");
+  const isPublicPricewarApi = PRICEWAR_API_PUBLIC.some(
+    (route) => pathname === route || pathname.startsWith(route + "/")
+  );
+  const isMetricsRoute = pathname === "/api/pricewar/metrics";
+
+  if (isPricewarApi && !isPublicPricewarApi && !isMetricsRoute && !isPriceWarEnabled()) {
+    return NextResponse.json(
+      { code: "SERVICE_UNAVAILABLE", message: "The Price War is temporarily unavailable." },
+      { status: 503 }
+    );
+  }
+
+  if (
+    !isPriceWarEnabled() &&
+    (pathname === "/play" || pathname.startsWith("/play/"))
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/lessons";
+    url.searchParams.set("notice", "pricewar_disabled");
+    return NextResponse.redirect(url);
+  }
+
+  if (!user && isPricewarApi && !isPublicPricewarApi) {
+    return NextResponse.json({ code: "FORBIDDEN", message: "Sign in required." }, { status: 401 });
+  }
 
   if (!user && isProtected) {
     const url = request.nextUrl.clone();
