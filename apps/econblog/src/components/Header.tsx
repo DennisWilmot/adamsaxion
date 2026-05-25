@@ -86,6 +86,11 @@ export function Header() {
       return;
     }
 
+    if (pathname.startsWith("/profile")) {
+      setDisplayName(null);
+      return;
+    }
+
     let cancelled = false;
     fetch("/api/user/profile")
       .then((res) => (res.ok ? res.json() : null))
@@ -99,7 +104,7 @@ export function Header() {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [user, pathname]);
 
   return (
     <header className="sticky top-0 z-50 border-b border-border-subtle bg-surface/85 backdrop-blur-lg">

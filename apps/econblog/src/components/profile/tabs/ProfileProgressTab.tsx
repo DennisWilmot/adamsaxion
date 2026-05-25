@@ -2,14 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { Check } from "lucide-react";
-import type {
-  UserDashboard,
-  UserProgressSection,
-} from "@/lib/learning/user-dashboard";
+import type { UserProgressSection } from "@/lib/learning/user-dashboard";
 import { ProfileActivityHeatmap } from "@/components/profile/ProfileActivityHeatmap";
 
 interface ProfileProgressTabProps {
-  dashboard: UserDashboard;
   totalXp: number;
   currentLevel: number;
   xpToNext: number;
@@ -23,12 +19,10 @@ function formatCompletedDate(iso: string) {
 }
 
 export function ProfileProgressTab({
-  dashboard,
   totalXp,
   currentLevel,
   xpToNext,
 }: ProfileProgressTabProps) {
-  const { path } = dashboard;
   const [progress, setProgress] = useState<UserProgressSection | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -114,7 +108,7 @@ export function ProfileProgressTab({
             Lessons completed
           </h2>
           <span className="font-body text-sm text-foreground-muted tabular-nums">
-            {path.completedCount} of {path.totalCount}
+            {progress.completedLessons.length} completed
           </span>
         </div>
 

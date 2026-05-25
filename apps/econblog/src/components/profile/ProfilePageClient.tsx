@@ -1,19 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { UserDashboard } from "@/lib/learning/user-dashboard";
 import type { UserSubscriptionView } from "@/lib/subscription/types";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import {
   ProfileTabNav,
   type ProfileTabId,
 } from "@/components/profile/ProfileTabNav";
-import { ProfileMyPathTab } from "@/components/profile/tabs/ProfileMyPathTab";
 import { ProfilePersonalTab } from "@/components/profile/tabs/ProfilePersonalTab";
 import { ProfileSubscriptionTab } from "@/components/profile/tabs/ProfileSubscriptionTab";
 import { ProfileProgressTab } from "@/components/profile/tabs/ProfileProgressTab";
 import { PathSetupModal } from "@/components/learning/PathSetupModal";
+import { ProfilePathActionsProvider } from "@/components/profile/ProfilePathActionsContext";
 
 const VALID_TABS = new Set<ProfileTabId>([
   "personal",
@@ -30,8 +29,8 @@ interface ProfilePageClientProps {
   currentLevel: number;
   xpToNext: number;
   levelProgress: number;
-  dashboard: UserDashboard;
   subscription: UserSubscriptionView;
+  pathTab: React.ReactNode;
 }
 
 export function ProfilePageClient({
@@ -42,8 +41,8 @@ export function ProfilePageClient({
   currentLevel,
   xpToNext,
   levelProgress,
-  dashboard,
   subscription,
+  pathTab,
 }: ProfilePageClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -53,20 +52,30 @@ export function ProfilePageClient({
 
   const [activeTab, setActiveTab] = useState<ProfileTabId>(initialTab);
   const [pathModalOpen, setPathModalOpen] = useState(false);
+  const [pathBadge, setPathBadge] = useState("…");
 
-  function handleTabChange(tab: ProfileTabId) {
+  const handleTabChange = useCallback((tab: ProfileTabId) => {
     setActiveTab(tab);
     const url = new URL(window.location.href);
     url.searchParams.set("tab", tab);
     window.history.replaceState(null, "", url.toString());
-  }
+  }, []);
 
-  function refresh() {
+  const refresh = useCallback(() => {
     router.refresh();
-  }
+  }, [router]);
+
+  const pathActions = useMemo(
+    () => ({
+      onBadge: setPathBadge,
+      onChangeFocus: () => setPathModalOpen(true),
+      onSetupPath: () => setPathModalOpen(true),
+    }),
+    []
+  );
 
   return (
-    <>
+    <ProfilePathActionsProvider value={pathActions}>
       <ProfileHeader
         username={username}
         email={email}
@@ -79,15 +88,9 @@ export function ProfilePageClient({
       <ProfileTabNav
         activeTab={activeTab}
         onTabChange={handleTabChange}
-        pathBadge={`${dashboard.path.completedCount}/${dashboard.path.totalCount}`}
+        pathBadge={pathBadge}
       >
-        {activeTab === "path" && (
-          <ProfileMyPathTab
-            dashboard={dashboard}
-            onChangeFocus={() => setPathModalOpen(true)}
-            onSetupPath={() => setPathModalOpen(true)}
-          />
-        )}
+        {activeTab === "path" && pathTab}
 
         {activeTab === "personal" && (
           <ProfilePersonalTab
@@ -103,7 +106,6 @@ export function ProfilePageClient({
 
         {activeTab === "progress" && (
           <ProfileProgressTab
-            dashboard={dashboard}
             totalXp={totalXp}
             currentLevel={currentLevel}
             xpToNext={xpToNext}
@@ -120,6 +122,6 @@ export function ProfilePageClient({
         }}
         entryBranch="manual"
       />
-    </>
+    </ProfilePathActionsProvider>
   );
 }

@@ -1,16 +1,15 @@
+import { Suspense } from "react";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { profiles } from "@/db/schema";
 import { ProfilePageClient } from "@/components/profile/ProfilePageClient";
-import { createClient } from "@/lib/supabase/server";
-import { getUserPathDashboard } from "@/lib/learning/user-dashboard";
+import { ProfilePathSection } from "@/components/profile/ProfilePathSection";
+import { ProfilePathSkeleton } from "@/components/profile/ProfilePathSkeleton";
+import { getSessionUser } from "@/lib/supabase/session-user";
 import { getUserSubscriptionView } from "@/lib/subscription/service";
 
 export default async function ProfilePage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
 
   if (!user) {
     return (
@@ -29,7 +28,16 @@ export default async function ProfilePage() {
   }
 
   const [[profile], subscription] = await Promise.all([
-    db.select().from(profiles).where(eq(profiles.id, user.id)).limit(1),
+    db
+      .select({
+        id: profiles.id,
+        username: profiles.username,
+        totalXp: profiles.totalXp,
+        currentLevel: profiles.currentLevel,
+      })
+      .from(profiles)
+      .where(eq(profiles.id, user.id))
+      .limit(1),
     getUserSubscriptionView(user.id, user.email),
   ]);
 
@@ -38,20 +46,6 @@ export default async function ProfilePage() {
       <div className="mx-auto max-w-[36rem] px-xl py-5xl text-center">
         <p className="font-body text-foreground-secondary">
           We couldn&apos;t find your profile yet. Try signing out and back in.
-        </p>
-      </div>
-    );
-  }
-
-  const dashboard = await getUserPathDashboard(user.id, profile, {
-    hasLessonAccess: subscription.hasAccess,
-  });
-
-  if (!dashboard) {
-    return (
-      <div className="mx-auto max-w-[36rem] px-xl py-5xl text-center">
-        <p className="font-body text-foreground-secondary">
-          We couldn&apos;t load your dashboard. Please try again.
         </p>
       </div>
     );
@@ -72,8 +66,16 @@ export default async function ProfilePage() {
         currentLevel={profile.currentLevel}
         xpToNext={xpToNext}
         levelProgress={levelProgress}
-        dashboard={dashboard}
         subscription={subscription}
+        pathTab={
+          <Suspense fallback={<ProfilePathSkeleton />}>
+            <ProfilePathSection
+              userId={user.id}
+              userEmail={user.email ?? null}
+              profile={profile}
+            />
+          </Suspense>
+        }
       />
     </div>
   );

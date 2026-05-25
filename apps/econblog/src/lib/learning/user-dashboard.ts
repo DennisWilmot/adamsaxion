@@ -1,12 +1,11 @@
 import { db } from "@/db";
 import { lessonProgress, profiles, userPreferences } from "@/db/schema";
-import { and, eq } from "drizzle-orm";
-import {
-  loadLessonCardBySlug,
-  loadLessonMetaBySlugs,
-  loadPublishedLessonSlugs,
-} from "@/lib/lesson-loader";
+import { and, eq, sql } from "drizzle-orm";
+import { STATIC_CAROUSEL_LESSONS } from "@/lib/landing/carousel-manifest";
+import { getPublishedLessonSlugs } from "@/lib/learning/published-lesson-slugs";
+import { loadLessonMetaBySlugs } from "@/lib/lesson-loader";
 import { canonicalLessonId, isLessonZeroSlug } from "@/lib/constants/lessons";
+import { getUserSubscriptionView } from "@/lib/subscription/service";
 import {
   buildLearningPath,
   getDefaultFundamentalsPath,
@@ -29,13 +28,6 @@ export type PathLessonListState =
   | "up_next"
   | "locked"
   | "coming_soon";
-
-export interface PathTimelineItem {
-  corpusId: number;
-  slug: string | null;
-  title: string;
-  state: PathTimelineState;
-}
 
 export interface PathLessonListItem {
   corpusId: number;
@@ -81,8 +73,6 @@ export interface UserDashboard {
     whyDescription: string;
     continue: PathLessonItem | null;
     continueCard: ContinueLessonCard | null;
-    upNext: PathLessonItem[];
-    timeline: PathTimelineItem[];
     /** Published lessons in path order (UI source of truth). */
     lessons: PathLessonListItem[];
     completedCount: number;
@@ -144,10 +134,28 @@ function resolvePathLessonState(
   return "up_next";
 }
 
+function buildContinueCard(
+  slug: string,
+  listIndex: number
+): ContinueLessonCard | null {
+  const canonical = canonicalLessonId(slug);
+  const meta = STATIC_CAROUSEL_LESSONS.find((lesson) => lesson.id === canonical);
+  if (!meta) return null;
+
+  return {
+    slug: meta.id,
+    title: meta.title,
+    estimatedMinutes: meta.estimatedMinutes,
+    totalXp: meta.totalXp,
+    thumbnail: meta.thumbnail,
+    listIndex,
+  };
+}
+
 export async function getUserPathDashboard(
   userId: string,
-  profile?: ProfileRow,
-  options?: { hasLessonAccess?: boolean }
+  profile?: Pick<ProfileRow, "username" | "totalXp" | "currentLevel">,
+  options?: { hasLessonAccess?: boolean; userEmail?: string | null }
 ): Promise<UserDashboard | null> {
   const resolvedProfile =
     profile ??
@@ -161,24 +169,33 @@ export async function getUserPathDashboard(
 
   if (!resolvedProfile) return null;
 
-  const hasLessonAccess = options?.hasLessonAccess ?? false;
+  const publishedSlugs = getPublishedLessonSlugs();
 
-  const [prefsRows, publishedSlugs, progressRows] = await Promise.all([
+  const [prefsRows, progressRows, subscription] = await Promise.all([
     db
-      .select()
+      .select({
+        primaryInterestId: userPreferences.primaryInterestId,
+        secondaryInterestIds: userPreferences.secondaryInterestIds,
+        pathSetupCompletedAt: userPreferences.pathSetupCompletedAt,
+        pathSetupSkippedAt: userPreferences.pathSetupSkippedAt,
+      })
       .from(userPreferences)
       .where(eq(userPreferences.userId, userId))
       .limit(1),
-    loadPublishedLessonSlugs(),
     db
       .select({
         lessonId: lessonProgress.lessonId,
         masteryPassed: lessonProgress.masteryPassed,
-        completedSubsections: lessonProgress.completedSubsections,
+        hasProgress: sql<boolean>`COALESCE(array_length(${lessonProgress.completedSubsections}, 1), 0) > 0`,
       })
       .from(lessonProgress)
       .where(eq(lessonProgress.userId, userId)),
+    options?.hasLessonAccess != null
+      ? Promise.resolve({ hasAccess: options.hasLessonAccess })
+      : getUserSubscriptionView(userId, options?.userEmail),
   ]);
+
+  const hasLessonAccess = subscription.hasAccess;
 
   const prefs = prefsRows[0];
 
@@ -188,7 +205,7 @@ export async function getUserPathDashboard(
 
   const inProgressSlugs = new Set(
     progressRows
-      .filter((p) => !p.masteryPassed && p.completedSubsections.length > 0)
+      .filter((p) => !p.masteryPassed && p.hasProgress)
       .map((p) => canonicalLessonId(p.lessonId))
   );
 
@@ -212,35 +229,6 @@ export async function getUserPathDashboard(
         l.slug &&
         !completedSlugs.includes(canonicalLessonId(l.slug))
     ) ?? null;
-
-  const upNext = path.lessons
-    .filter(
-      (l) =>
-        l.status === "published" &&
-        l.slug &&
-        l.corpusId !== continueItem?.corpusId &&
-        !completedSlugs.includes(canonicalLessonId(l.slug))
-    )
-    .slice(0, 5);
-
-  const timeline: PathTimelineItem[] = path.lessons.slice(0, 10).map((lesson) => {
-    const slug = lesson.slug;
-    const completed =
-      slug != null && completedSlugs.includes(canonicalLessonId(slug));
-    const isCurrent = lesson.corpusId === continueItem?.corpusId;
-
-    let state: PathTimelineState = "coming_soon";
-    if (completed) state = "completed";
-    else if (isCurrent) state = "current";
-    else if (lesson.status === "published" && slug) state = "upcoming";
-
-    return {
-      corpusId: lesson.corpusId,
-      slug,
-      title: lesson.title,
-      state,
-    };
-  });
 
   const pathPublished = path.lessons.filter((l) => l.status === "published" && l.slug);
   const pathCompletedCount = pathPublished.filter((l) =>
@@ -267,22 +255,15 @@ export async function getUserPathDashboard(
     ? (getInterestTag(primaryId)?.label ?? null)
     : null;
 
-  let continueCard: ContinueLessonCard | null = null;
-  if (continueItem?.slug) {
-    const meta = await loadLessonCardBySlug(continueItem.slug);
-    if (meta) {
-      continueCard = {
-        slug: meta.id,
-        title: meta.title,
-        estimatedMinutes: meta.estimatedMinutes,
-        totalXp: meta.totalXp,
-        thumbnail: meta.thumbnail,
-        listIndex:
-          pathLessons.find((l) => l.corpusId === continueItem.corpusId)?.listIndex ??
-          1,
-      };
-    }
-  }
+  const continueListIndex =
+    continueItem != null
+      ? (pathLessons.find((l) => l.corpusId === continueItem.corpusId)?.listIndex ?? 1)
+      : 1;
+
+  const continueCard =
+    continueItem?.slug != null
+      ? buildContinueCard(continueItem.slug, continueListIndex)
+      : null;
 
   return {
     profile: {
@@ -304,8 +285,6 @@ export async function getUserPathDashboard(
       whyDescription: buildWhyDescription(primaryId, pathLessons.length),
       continue: continueItem,
       continueCard,
-      upNext,
-      timeline,
       lessons: pathLessons,
       completedCount: pathCompletedCount,
       totalCount: pathLessons.length,

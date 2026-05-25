@@ -74,7 +74,7 @@ export function PathStepper({ lessons }: PathStepperProps) {
             const segmentComplete =
               lesson.state === "completed" ||
               (globalIndex > 0 &&
-                lessons[globalIndex - 1].state === "completed");
+                lessons[globalIndex - 1]?.state === "completed");
             const isClickable =
               lesson.slug &&
               lesson.state !== "locked" &&
