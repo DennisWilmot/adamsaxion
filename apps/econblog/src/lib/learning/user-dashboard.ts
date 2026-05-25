@@ -22,6 +22,13 @@ import {
 
 export type PathTimelineState = "completed" | "current" | "upcoming" | "coming_soon";
 
+export interface PathTimelineItem {
+  corpusId: number;
+  slug: string | null;
+  title: string;
+  state: PathTimelineState;
+}
+
 export type PathLessonListState =
   | "completed"
   | "in_progress"
@@ -73,6 +80,7 @@ export interface UserDashboard {
     whyDescription: string;
     continue: PathLessonItem | null;
     continueCard: ContinueLessonCard | null;
+    timeline: PathTimelineItem[];
     /** Published lessons in path order (UI source of truth). */
     lessons: PathLessonListItem[];
     completedCount: number;
@@ -260,6 +268,25 @@ export async function getUserPathDashboard(
       ? (pathLessons.find((l) => l.corpusId === continueItem.corpusId)?.listIndex ?? 1)
       : 1;
 
+  const timeline: PathTimelineItem[] = path.lessons.slice(0, 10).map((lesson) => {
+    const slug = lesson.slug;
+    const completed =
+      slug != null && completedSlugs.includes(canonicalLessonId(slug));
+    const isCurrent = lesson.corpusId === continueItem?.corpusId;
+
+    let state: PathTimelineState = "coming_soon";
+    if (completed) state = "completed";
+    else if (isCurrent) state = "current";
+    else if (lesson.status === "published" && slug) state = "upcoming";
+
+    return {
+      corpusId: lesson.corpusId,
+      slug,
+      title: lesson.title,
+      state,
+    };
+  });
+
   const continueCard =
     continueItem?.slug != null
       ? buildContinueCard(continueItem.slug, continueListIndex)
@@ -285,6 +312,7 @@ export async function getUserPathDashboard(
       whyDescription: buildWhyDescription(primaryId, pathLessons.length),
       continue: continueItem,
       continueCard,
+      timeline,
       lessons: pathLessons,
       completedCount: pathCompletedCount,
       totalCount: pathLessons.length,
