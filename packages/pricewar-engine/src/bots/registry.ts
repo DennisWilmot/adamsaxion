@@ -14,12 +14,25 @@ export interface BotPersonality {
 function legalMoveIds(view: PlayerView): string[] {
   return [...MOVE_BY_ID.values()]
     .filter((m) => {
-      if (m.id === "marketing.run_ad_campaign") {
+      if (m.id === "marketing.m01") {
         return view.me.cash >= 50;
       }
       return true;
     })
     .map((m) => m.id);
+}
+
+function defaultInputForMove(moveId: string, view: PlayerView): unknown {
+  if (moveId === "sales.s01") {
+    return { newPrice: view.me.currentPrice };
+  }
+  if (moveId === "marketing.m01") {
+    return { amount: Math.min(200, view.me.cash) };
+  }
+  if (moveId === "procurement.p03") {
+    return { units: 2 };
+  }
+  return { enabled: true };
 }
 
 function pickRandomMoves(view: PlayerView, rng: Rng, count: number): SubmittedMove[] {
@@ -42,19 +55,6 @@ function pickRandomMoves(view: PlayerView, rng: Rng, count: number): SubmittedMo
   return moves;
 }
 
-function defaultInputForMove(moveId: string, view: PlayerView): unknown {
-  if (moveId === "sales.set_price") {
-    return { newPrice: view.me.currentPrice };
-  }
-  if (moveId === "marketing.run_ad_campaign") {
-    return { amount: Math.min(200, view.me.cash) };
-  }
-  if (moveId === "procurement.buy_beans") {
-    return { units: 50 };
-  }
-  return {};
-}
-
 export const BOT_PERSONAS: BotPersonality[] = [
   {
     id: "bot.random",
@@ -70,7 +70,7 @@ export const BOT_PERSONAS: BotPersonality[] = [
     description: "Cash-conservative play.",
     chooseMoves: (view) => [
       {
-        moveId: "sales.set_price" as SubmittedMove["moveId"],
+        moveId: "sales.s01" as SubmittedMove["moveId"],
         input: { newPrice: Math.max(100, view.me.currentPrice - 25) },
         draftedAt: new Date(0).toISOString(),
       },
@@ -83,7 +83,7 @@ export const BOT_PERSONAS: BotPersonality[] = [
     description: "Marketing-heavy.",
     chooseMoves: (view) => [
       {
-        moveId: "marketing.run_ad_campaign" as SubmittedMove["moveId"],
+        moveId: "marketing.m01" as SubmittedMove["moveId"],
         input: { amount: Math.min(300, view.me.cash) },
         draftedAt: new Date(0).toISOString(),
       },
@@ -96,7 +96,7 @@ export const BOT_PERSONAS: BotPersonality[] = [
     description: "Premium pricing.",
     chooseMoves: (view) => [
       {
-        moveId: "sales.set_price" as SubmittedMove["moveId"],
+        moveId: "sales.s01" as SubmittedMove["moveId"],
         input: { newPrice: Math.min(800, view.me.currentPrice + 50) },
         draftedAt: new Date(0).toISOString(),
       },
@@ -116,7 +116,7 @@ export const BOT_PERSONAS: BotPersonality[] = [
     description: "Reacts to opponent price.",
     chooseMoves: (view) => [
       {
-        moveId: "sales.set_price" as SubmittedMove["moveId"],
+        moveId: "sales.s01" as SubmittedMove["moveId"],
         input: {
           newPrice:
             view.opponent.currentPrice <= view.me.currentPrice

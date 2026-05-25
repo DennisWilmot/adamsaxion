@@ -1,0 +1,23 @@
+/** Coffee Shop · Downtown — numeric config (matches spreadsheet xlsx). */
+export const COFFEE_SHOP_SIM = {
+  startingCash: 500,
+  startingStaff: 3,
+  startingWagePerWorker: 15,
+  startingMorale: 0.7,
+  startingSkill: 0.4,
+  startingReputation: 0.3,
+  startingPriceCents: 450,
+  baseFootTraffic: 100,
+  basePerRoundOverhead: 20,
+  beanCostPerUnit: 0.2,
+  segmentRegulars: 0.1,
+  segmentCasuals: 0.6,
+  segmentNew: 0.3,
+  basePriceSensitivity: 0.6,
+  baseDemandElasticity: 1.2,
+  taxRate: 0.15,
+  interestRate: 0.05,
+  inflationPerRound: 0.01,
+  bankruptcyThreshold: 0,
+  bankruptcyStreakRounds: 2,
+} as const;

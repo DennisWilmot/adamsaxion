@@ -44,6 +44,8 @@ export interface PlayerPrivateState {
 
 export interface PublicMarketState {
   currentRound: number;
+  /** Set when a round resolves; equals the round whose report is shown during `phase: report`. */
+  lastResolvedRound?: number;
   totalRounds: number;
   marketDemandIndex: number;
   weatherIndex: number;

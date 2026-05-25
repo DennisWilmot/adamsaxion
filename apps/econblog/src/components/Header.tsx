@@ -11,11 +11,26 @@ import {
   MobileAuthActions,
 } from "@/components/HeaderAuthActions";
 import type { User } from "@supabase/supabase-js";
+import { PLAY_HUB, priceWarPaths } from "@/lib/games/routes";
 
 const APP_NAV_ITEMS = [
   { label: "Lessons", href: "/lessons" },
+  { label: "Games", href: PLAY_HUB },
   { label: "Leaderboard", href: "/leaderboard" },
 ] as const;
+
+const GAME_NAV_ITEMS = [
+  { label: "Lessons", href: "/lessons" },
+  { label: "Games", href: PLAY_HUB },
+  { label: "The Price War", href: priceWarPaths.lobby },
+  { label: "Ladder", href: priceWarPaths.leaderboard },
+  { label: "History", href: priceWarPaths.history },
+] as const;
+
+function navLinkActive(pathname: string, href: string) {
+  if (href === PLAY_HUB) return pathname === PLAY_HUB;
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export function Header() {
   const pathname = usePathname();
@@ -26,8 +41,10 @@ export function Header() {
   const [displayName, setDisplayName] = useState<string | null>(null);
 
   const isLanding = pathname === "/";
+  const isGameRoute = pathname.startsWith("/play");
   const showLandingNav = isLanding && !user;
   const showAppNav = Boolean(user);
+  const navItems = isGameRoute ? GAME_NAV_ITEMS : APP_NAV_ITEMS;
 
   useEffect(() => {
     setMobileOpen(false);
@@ -108,7 +125,11 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border-subtle bg-surface/85 backdrop-blur-lg">
-      <div className="mx-auto flex h-14 max-w-[72rem] items-center justify-between gap-lg px-xl">
+      <div
+        className={`mx-auto flex h-14 items-center justify-between gap-lg px-xl ${
+          isGameRoute ? "max-w-[1400px]" : "max-w-[72rem]"
+        }`}
+      >
         <Link href="/" className="group flex shrink-0 items-baseline gap-[6px]">
           <span className="font-display text-lg font-bold tracking-tight text-foreground">
             Adam&apos;s Axioms
@@ -128,9 +149,8 @@ export function Header() {
             ))}
 
           {showAppNav &&
-            APP_NAV_ITEMS.map((item) => {
-              const active =
-                pathname === item.href || pathname.startsWith(item.href + "/");
+            navItems.map((item) => {
+              const active = navLinkActive(pathname, item.href);
               return (
                 <Link
                   key={item.href}
@@ -186,8 +206,8 @@ export function Header() {
             ))}
 
           {showAppNav &&
-            APP_NAV_ITEMS.map((item) => {
-              const active = pathname === item.href;
+            navItems.map((item) => {
+              const active = navLinkActive(pathname, item.href);
               return (
                 <Link
                   key={item.href}

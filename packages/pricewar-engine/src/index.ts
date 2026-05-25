@@ -2,9 +2,13 @@ export { ENGINE_VERSION } from "./version";
 export {
   resolveTurn,
   validateMoves,
+  ResolveTurnError,
   type ResolveTurnInput,
   type ResolveTurnOutput,
 } from "./engine/resolve-turn";
+export { evaluateLegalMoves, type LegalMoveStatus } from "./engine/legal-moves";
+export { advanceFromReportToDecide } from "./engine/advance-from-report";
+export { hasActionHandler } from "./actions/handlers/registry";
 export { toPlayerView } from "./visibility/to-player-view";
 export { createRng, roundRngSeed } from "./rng/seeded";
 export { PLAY_MODES, getPlayMode, listPlayModes, isE2ePlayMode } from "./play-modes/registry";
@@ -12,7 +16,12 @@ export {
   COFFEE_SHOP_SCENARIO,
   createInitialMatchState,
 } from "./scenarios/coffee-shop";
-export { COFFEE_SHOP_MOVES, MOVE_BY_ID } from "./moves/catalog";
+export { COFFEE_SHOP_MOVES, MOVE_BY_ID, COFFEE_SHOP_ACTIONS, ACTION_BY_ID, getActionCatalogEntry, lockForecastForAction, lockForecastForMoves } from "./moves/catalog";
+export { staticForecastForMoves, reviewForecastForDraft } from "./actions/review-forecast";
+export type { LockForecastLine } from "./actions/catalog-types";
+export { normalizeMatchState, createNormalizedInitialPrivate } from "./state/normalize";
+export { getSim, writeSim, COSTS, SPREADSHEET_COSTS, estimateActionCost, hiringCost, severanceCost } from "./simulation/player-sim";
+export { COFFEE_SHOP_SIM } from "./simulation/config";
 export {
   expectedScore,
   kFactor,

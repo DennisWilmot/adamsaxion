@@ -14,4 +14,9 @@ export interface ScenarioConfig {
     weight?: number;
   }>;
   balancing: Record<string, number>;
+  /** null = unrestricted (all domains in one round allowed). */
+  maxActionsPerDomain?: number | null;
+  /** When false, unregistered handlers fail validation (production default). */
+  allowStubbedMoves?: boolean;
+  actionCatalogVersion?: string;
 }

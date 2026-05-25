@@ -6,8 +6,10 @@ import type {
 } from "@adamsaxion/pricewar-types";
 import { COFFEE_SHOP_SCENARIO_ID } from "@adamsaxion/pricewar-types";
 import { ENGINE_VERSION } from "../../version";
+import { COFFEE_SHOP_SIM } from "../../simulation/config";
 import { COFFEE_SHOP_BALANCING } from "./balancing";
 import { getPlayMode } from "../../play-modes/registry";
+import { createNormalizedInitialPrivate } from "../../state/normalize";
 
 export const COFFEE_SHOP_SCENARIO: ScenarioConfig = {
   id: COFFEE_SHOP_SCENARIO_ID,
@@ -25,28 +27,23 @@ export const COFFEE_SHOP_SCENARIO: ScenarioConfig = {
   ],
   victoryConditions: [{ kind: "highest_cash", weight: 1 }],
   balancing: { ...COFFEE_SHOP_BALANCING },
+  maxActionsPerDomain: null,
+  allowStubbedMoves: false,
+  actionCatalogVersion: "0.1.0",
 };
 
 function playerPublic(slot: PlayerSlot, displayName: string, isBot: boolean) {
   return {
     slot,
     displayName,
-    currentPrice: COFFEE_SHOP_BALANCING.startingPrice,
+    currentPrice: COFFEE_SHOP_SIM.startingPriceCents,
     brandTier: 2,
     isBot,
   };
 }
 
 function playerPrivate() {
-  return {
-    cash: COFFEE_SHOP_BALANCING.startingCash,
-    inventory: COFFEE_SHOP_BALANCING.startingInventory,
-    staffCount: COFFEE_SHOP_BALANCING.startingStaffCount,
-    reputation: COFFEE_SHOP_BALANCING.startingReputation,
-    morale: COFFEE_SHOP_BALANCING.startingMorale,
-    activePolicies: [],
-    activeConditions: [],
-  };
+  return createNormalizedInitialPrivate(COFFEE_SHOP_SIM.startingCash);
 }
 
 export function createInitialMatchState(args: {
@@ -74,6 +71,7 @@ export function createInitialMatchState(args: {
     outcome: { kind: "in_progress" },
     market: {
       currentRound: 1,
+      lastResolvedRound: 0,
       totalRounds: COFFEE_SHOP_SCENARIO.totalRounds,
       marketDemandIndex: 50,
       weatherIndex: 0,

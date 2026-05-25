@@ -1,10 +1,11 @@
 import type { APIRequestContext, Page } from "@playwright/test";
+import { PLAY_HUB, priceWarPaths } from "../../../src/lib/games/routes";
 
 export async function loginAs(
   page: Page,
   email: string,
   password: string,
-  next = "/play"
+  next = PLAY_HUB
 ) {
   await page.goto(`/auth?next=${encodeURIComponent(next)}`);
   await page.getByPlaceholder("you@example.com").fill(email);
@@ -14,10 +15,10 @@ export async function loginAs(
 }
 
 export async function startVsBotMatch(page: Page) {
-  await page.goto("/play");
+  await page.goto(priceWarPaths.lobby);
   await page.getByRole("button", { name: "Play vs bot" }).first().click();
-  await page.waitForURL(/\/play\/match\/[^/]+\/decide/);
-  const matchId = page.url().match(/\/play\/match\/([^/]+)\/decide/)?.[1];
+  await page.waitForURL(/\/play\/price-war\/match\/[^/]+\/decide/);
+  const matchId = page.url().match(/\/play\/price-war\/match\/([^/]+)\/decide/)?.[1];
   return matchId!;
 }
 

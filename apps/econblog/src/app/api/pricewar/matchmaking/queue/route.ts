@@ -73,7 +73,7 @@ export async function POST(request: Request) {
     ratingAtEnqueue = ratingRow.rating;
   }
 
-  await enqueueForMatchmaking({
+  const { botFallbackInSec } = await enqueueForMatchmaking({
     userId: auth.user.id,
     scenarioId,
     playModeId,
@@ -96,7 +96,7 @@ export async function POST(request: Request) {
       matchId: null,
       matched: false,
       queuedAt: result.queuedAt,
-      botFallbackInSec: Number(process.env.PRICEWAR_BOT_FALLBACK_SEC ?? "60"),
+      botFallbackInSec,
     },
     201
   );

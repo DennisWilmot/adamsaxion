@@ -25,7 +25,9 @@
     "react-doctor:verbose": "pnpm exec react-doctor . --verbose --yes",
     "react-doctor:score": "pnpm exec react-doctor . --score --yes",
     "optimize:landing-images": "bash scripts/optimize-landing-images.sh",
-    "sync:carousel": "tsx scripts/sync-carousel-thumbnails.ts"
+    "sync:carousel": "tsx scripts/sync-carousel-thumbnails.ts",
+    "test:pricewar-server": "tsx --test test/server/**/*.test.ts",
+    "smoke:pricewar-redis-sse": "tsx scripts/pricewar-redis-sse-smoke.ts"
   },
   "dependencies": {
     "@adamsaxion/pricewar-engine": "workspace:*",
@@ -61,6 +63,7 @@
     "react-dom": "^19.2.0",
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
+    "redis": "^5.8.2",
     "stripe": "^22.1.1",
     "tailwind-merge": "^3.3.1"
   },

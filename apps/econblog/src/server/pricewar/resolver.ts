@@ -39,7 +39,7 @@ export async function resolveRoundIfReady(args: {
   const submittedA = args.slot === "A" ? args.mySubmission : otherSubmission;
   const submittedB = args.slot === "B" ? args.mySubmission : otherSubmission;
 
-  const { nextState, events, report } = resolveTurn({
+  const { nextState, adminTrace, report } = resolveTurn({
     state,
     submittedA,
     submittedB,
@@ -51,7 +51,7 @@ export async function resolveRoundIfReady(args: {
     matchId: args.matchId,
     round: args.round,
     report,
-    eventsSlice: events,
+    eventsSlice: adminTrace,
   });
 
   for (const playerSlot of ["A", "B"] as const) {
@@ -116,7 +116,7 @@ export async function submitTurn(args: {
     return { error: { code: "MATCH_NOT_FOUND" as const, message: "Match not found." } };
   }
 
-  const validationError = validateMoves(state, slot, args.moves);
+  const validationError = validateMoves(state, slot, args.moves, COFFEE_SHOP_SCENARIO);
   if (validationError) {
     return { error: validationError };
   }

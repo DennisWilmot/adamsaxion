@@ -6,6 +6,7 @@ import {
   replayMatchFromSubmissions,
   diffMatchStates,
   resolveTurn,
+  advanceFromReportToDecide,
 } from "../src";
 
 describe("replay", () => {
@@ -31,14 +32,14 @@ describe("replay", () => {
       sequential.market.currentRound = round;
       const movesA: SubmittedMove[] = [
         {
-          moveId: "sales.set_price" as MoveId,
+          moveId: "sales.s01" as MoveId,
           input: { newPrice: 300 + round * 10 },
           draftedAt: new Date().toISOString(),
         },
       ];
       const movesB: SubmittedMove[] = [
         {
-          moveId: "marketing.run_ad_campaign" as MoveId,
+          moveId: "marketing.m01" as MoveId,
           input: { amount: 100 },
           draftedAt: new Date().toISOString(),
         },
@@ -54,6 +55,9 @@ describe("replay", () => {
         scenario: COFFEE_SHOP_SCENARIO,
       });
       sequential = nextState;
+      if (sequential.phase === "report") {
+        sequential = advanceFromReportToDecide(sequential);
+      }
     }
 
     const { finalState } = replayMatchFromSubmissions({

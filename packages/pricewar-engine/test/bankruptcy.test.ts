@@ -16,7 +16,9 @@ describe("bankruptcy", () => {
     });
     state.phase = "decide";
     state.playersPrivate.A.cash = 50;
-    state.playersPrivate.B.cash = 5000;
+    state.playersPrivate.B.cash = 500;
+    state.playersPublic.A.currentPrice = 0;
+    (state.playersPrivate.A as { totalCapacity?: number }).totalCapacity = 0;
 
     const drain = (round: number) => {
       state.market.currentRound = round;
@@ -29,7 +31,7 @@ describe("bankruptcy", () => {
     };
 
     state = drain(1).nextState;
-    expect(state.phase).toBe("decide");
+    expect(state.phase).toBe("report");
     expect(state.outcome.kind).toBe("in_progress");
 
     state = drain(2).nextState;

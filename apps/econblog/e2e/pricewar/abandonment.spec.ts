@@ -48,8 +48,8 @@ test.describe("Price War abandonment forfeit", () => {
       carol.matchId ?? dan.matchId ?? (await findActiveMatch(carol.request));
     expect(matchId).toBeTruthy();
 
-    await carol.page.goto(`/play/match/${matchId}/decide`);
-    await dan.page.goto(`/play/match/${matchId}/decide`);
+    await carol.page.goto(`/play/price-war/match/${matchId}/decide`);
+    await dan.page.goto(`/play/price-war/match/${matchId}/decide`);
 
     await waitForMatchPhase(carol.request, matchId!, "decide");
 

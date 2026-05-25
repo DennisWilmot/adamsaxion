@@ -5,6 +5,7 @@ import type {
   ScenarioConfig,
   SubmittedMove,
 } from "@adamsaxion/pricewar-types";
+import { advanceFromReportToDecide } from "../engine/advance-from-report";
 import { resolveTurn } from "../engine/resolve-turn";
 
 export function replayMatchFromSubmissions(args: {
@@ -16,17 +17,19 @@ export function replayMatchFromSubmissions(args: {
   state.phase = "decide";
   state.outcome = { kind: "in_progress" };
   state.market.currentRound = 1;
+  state.market.lastResolvedRound = 0;
 
   const allEvents: EngineEvent[] = [];
 
   for (let round = 1; round <= args.scenario.totalRounds; round++) {
     state.market.currentRound = round;
+    state.phase = "decide";
     const subA =
       args.submissions.find((s) => s.round === round && s.slot === "A")?.moves ?? [];
     const subB =
       args.submissions.find((s) => s.round === round && s.slot === "B")?.moves ?? [];
 
-    const { nextState, events } = resolveTurn({
+    const { nextState, adminTrace } = resolveTurn({
       state,
       submittedA: subA,
       submittedB: subB,
@@ -34,9 +37,12 @@ export function replayMatchFromSubmissions(args: {
     });
 
     state = nextState;
-    allEvents.push(...events);
+    allEvents.push(...adminTrace);
 
     if (state.phase === "completed") break;
+    if (state.phase === "report") {
+      state = advanceFromReportToDecide(state);
+    }
   }
 
   return { finalState: state, events: allEvents };

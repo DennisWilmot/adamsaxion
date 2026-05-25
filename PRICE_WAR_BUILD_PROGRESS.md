@@ -1,7 +1,8 @@
 # Price War — Build Progress
 
-> **Manual steps:** [`PRICE_WAR_MANUAL_STEPS.md`](PRICE_WAR_MANUAL_STEPS.md) · **Runbook:** [`PRICE_WAR_RUNBOOK.md`](PRICE_WAR_RUNBOOK.md)
-> Last updated: 2026-05-25 (session 13 — parallel subagents)
+> **Engine → product runbook:** [`PRICE_WAR_ENGINE_EXECUTION.md`](PRICE_WAR_ENGINE_EXECUTION.md) — step-by-step from engine to full UI wiring (execute without re-asking).  
+> **Manual steps:** [`PRICE_WAR_MANUAL_STEPS.md`](PRICE_WAR_MANUAL_STEPS.md) · **Runbook:** [`PRICE_WAR_RUNBOOK.md`](PRICE_WAR_RUNBOOK.md)  
+> Last updated: 2026-05-25 (engine execution doc added)
 
 ## Phase status
 
@@ -36,7 +37,8 @@
 | 16 | `bot-transparency.spec.ts` |
 | P5-CH4 | `feature-flag.spec.ts` |
 
-### Phase 5 infra
+### Phase B — host contract
+- [x] **B7 Redis SSE** — `REDIS_URL` pub/sub for multi-instance; in-memory fallback for local dev
 - [x] k6: `pricewar-vs-bot`, `pricewar-sse`, `pricewar-queue`, `pricewar-submit-spike`
 - [x] Optional Sentry (`@sentry/nextjs`, DSN-gated instrumentation)
 - [x] Admin costs global-cap exceeded banner
@@ -49,7 +51,8 @@
 | Check | Result |
 |---|---|
 | `pnpm typecheck` | **pass** |
-| `pnpm test` | **18/18 pass** |
+| `pnpm test` (engine) | **81/81 pass** |
+| `pnpm -F @adamsaxion/econblog test:pricewar-server` | **3/3 pass** |
 | `pnpm build` | **pass** (Sentry OTel peer warnings only) |
 | E2E | `PRICEWAR_E2E_ENABLED=1 pnpm -F @adamsaxion/econblog test:e2e:pricewar` |
 

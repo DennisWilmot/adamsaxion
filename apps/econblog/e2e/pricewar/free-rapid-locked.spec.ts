@@ -12,7 +12,7 @@ test.describe("Price War free Rapid locked", () => {
     const password = process.env.PRICEWAR_E2E_ALICE_PASSWORD ?? "TestAlice123!";
 
     await loginAs(page, email, password);
-    await page.goto("/play");
+    await page.goto("/play/price-war");
 
     const rapidCard = page.locator("div").filter({ hasText: /^Rapid 15\+0/ }).first();
     await expect(rapidCard.getByText("Paid")).toBeVisible();

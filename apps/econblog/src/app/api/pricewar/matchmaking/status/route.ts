@@ -1,34 +1,40 @@
 import { requireAuthedUser } from "@/server/pricewar/auth";
 import { jsonError, jsonOk } from "@/server/pricewar/http";
+import { advanceMatchmaking } from "@/server/pricewar/matchmaker";
 import {
-  removeFromQueue,
-  getQueueEntry,
   findLatestActiveMatchForUser,
+  getProfileUsername,
 } from "@/server/pricewar/repository";
-
-export async function POST() {
-  const auth = await requireAuthedUser();
-  if ("error" in auth) return jsonError(auth.error);
-
-  await removeFromQueue(auth.user.id);
-  return jsonOk({ cancelled: true });
-}
 
 export async function GET() {
   const auth = await requireAuthedUser();
   if ("error" in auth) return jsonError(auth.error);
 
-  const entry = await getQueueEntry(auth.user.id);
-  if (entry) {
-    const elapsedSec = Math.floor((Date.now() - entry.enqueuedAt.getTime()) / 1000);
+  const playerName = (await getProfileUsername(auth.user.id)) ?? "Player";
+  const progress = await advanceMatchmaking({
+    userId: auth.user.id,
+    playerName,
+  });
+
+  if (progress.kind === "matched") {
+    return jsonOk({
+      inQueue: false,
+      matched: true,
+      matchId: progress.matchId,
+      botFallback: progress.botFallback ?? false,
+      phase: "decide",
+    });
+  }
+
+  if (progress.kind === "queued") {
     return jsonOk({
       inQueue: true,
-      scenarioId: entry.scenarioId,
-      playModeId: entry.playModeId,
-      enqueuedAt: entry.enqueuedAt.toISOString(),
-      elapsedSec,
-      botFallbackInSec: entry.botFallbackAfterSec,
-      secondsUntilBotFallback: Math.max(0, entry.botFallbackAfterSec - elapsedSec),
+      scenarioId: progress.scenarioId,
+      playModeId: progress.playModeId,
+      enqueuedAt: progress.enqueuedAt,
+      elapsedSec: progress.elapsedSec,
+      botFallbackInSec: progress.botFallbackInSec,
+      secondsUntilBotFallback: progress.secondsUntilBotFallback,
     });
   }
 

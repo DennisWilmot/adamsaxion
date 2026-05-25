@@ -18,6 +18,7 @@ import type {
   SubmittedMove,
   RoundReport,
 } from "@adamsaxion/pricewar-types";
+import { normalizeMatchState } from "@adamsaxion/pricewar-engine";
 
 export async function countInProgressMatches(userId: string): Promise<number> {
   const rows = await db
@@ -59,7 +60,7 @@ export async function findLatestActiveMatchForUser(userId: string) {
 export async function loadMatch(id: MatchId): Promise<MatchState | null> {
   const [row] = await db.select().from(match).where(eq(match.id, id)).limit(1);
   if (!row) return null;
-  return row.state as MatchState;
+  return normalizeMatchState(row.state as MatchState);
 }
 
 export async function saveMatch(state: MatchState): Promise<void> {

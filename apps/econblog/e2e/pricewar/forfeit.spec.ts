@@ -18,6 +18,6 @@ test.describe("Price War forfeit", () => {
     await expect(page.getByRole("button", { name: "Forfeit" })).toBeVisible();
     await page.getByRole("button", { name: "Forfeit" }).click();
     await page.getByRole("button", { name: "Forfeit match" }).click();
-    await page.waitForURL(/\/play\/match\/[^/]+\/postmatch/);
+    await page.waitForURL(/\/play\/price-war\/match\/[^/]+\/postmatch/);
   });
 });

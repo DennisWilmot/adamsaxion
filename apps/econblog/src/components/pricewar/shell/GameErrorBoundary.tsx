@@ -4,6 +4,7 @@ import { Component, type ReactNode } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { priceWarPaths } from "@/lib/games/routes";
 
 type Props = { children: ReactNode };
 type State = { hasError: boolean };
@@ -34,7 +35,7 @@ export class GameErrorBoundary extends Component<Props, State> {
             <div className="flex gap-md">
               <Button onClick={() => this.setState({ hasError: false })}>Try again</Button>
               <Button asChild variant="outline">
-                <Link href="/play">Back to lobby</Link>
+                <Link href={priceWarPaths.lobby}>Back to lobby</Link>
               </Button>
             </div>
           </CardContent>

@@ -9,8 +9,8 @@ test.describe("Price War tutorial", () => {
     const password = process.env.PRICEWAR_E2E_PASSWORD ?? "TestAlice123!";
 
     await loginAs(page, email, password);
-    await page.goto("/play/tutorial");
-    await page.waitForURL(/\/play\/match\/[^/]+\/decide/);
+    await page.goto("/play/price-war/tutorial");
+    await page.waitForURL(/\/play\/price-war\/match\/[^/]+\/decide/);
 
     await expect(page.getByText("Welcome to The Price War")).toBeVisible();
     await expect(page.getByText("Tutorial")).toBeVisible();

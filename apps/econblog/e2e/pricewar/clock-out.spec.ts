@@ -20,7 +20,7 @@ test.describe("Price War clock-out", () => {
     await loginAs(page, email, password);
     const matchId = await startE2eBlitzMatch(request);
 
-    await page.goto(`/play/match/${matchId}/decide`);
+    await page.goto(`/play/price-war/match/${matchId}/decide`);
 
     const first = await expireClock(request, matchId);
     expect(first.phase).toBe("decide");
@@ -31,7 +31,7 @@ test.describe("Price War clock-out", () => {
     expect(second.phase).toBe("completed");
 
     await page.reload();
-    await page.waitForURL(/\/play\/match\/[^/]+\/(postmatch|abandoned)/, {
+    await page.waitForURL(/\/play\/price-war\/match\/[^/]+\/(postmatch|abandoned)/, {
       timeout: 15_000,
     });
   });

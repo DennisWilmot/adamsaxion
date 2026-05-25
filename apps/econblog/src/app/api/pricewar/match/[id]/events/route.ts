@@ -3,7 +3,7 @@ import { requireAuthedUser } from "@/server/pricewar/auth";
 import { jsonError } from "@/server/pricewar/http";
 import { syncMatchClocks, ensureMatchLifecycle, markPlayerDisconnected } from "@/server/pricewar/clock";
 import { getPlayerSlot, loadMatch } from "@/server/pricewar/repository";
-import { filterEventForSlot, getMatchEmitter } from "@/server/pricewar/sse";
+import { filterEventForSlot, subscribeMatchEvents } from "@/server/pricewar/sse";
 
 export async function GET(
   request: Request,
@@ -28,18 +28,22 @@ export async function GET(
   void ensureMatchLifecycle(matchId, auth.user.id);
 
   const stream = new ReadableStream({
-    start(controller) {
+    async start(controller) {
       const encoder = new TextEncoder();
-      const emitter = getMatchEmitter(matchId);
+      let unsubscribe = () => {};
 
-      const handler = (event: unknown) => {
-        const filtered = filterEventForSlot(event as never, slot);
-        if (filtered) {
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify(filtered)}\n\n`));
-        }
-      };
-
-      emitter.on("event", handler);
+      try {
+        unsubscribe = await subscribeMatchEvents(matchId, (event) => {
+          const filtered = filterEventForSlot(event, slot);
+          if (filtered) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(filtered)}\n\n`));
+          }
+        });
+      } catch (err) {
+        console.error("[pricewar sse] failed to subscribe", err);
+        controller.error(err);
+        return;
+      }
 
       const heartbeat = setInterval(() => {
         controller.enqueue(encoder.encode(": ping\n\n"));
@@ -48,7 +52,7 @@ export async function GET(
       }, 30_000);
 
       request.signal.addEventListener("abort", () => {
-        emitter.off("event", handler);
+        unsubscribe();
         clearInterval(heartbeat);
         void markPlayerDisconnected({ matchId, userId: auth.user.id });
         try {

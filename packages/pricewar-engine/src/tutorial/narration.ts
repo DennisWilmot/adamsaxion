@@ -16,7 +16,7 @@ export const TUTORIAL_NARRATION: TutorialNarrationStep[] = [
       "Each round you pick up to 3 moves across sales, marketing, operations, and more. " +
       "Your opponent's price is always visible — that's the core of a price war.",
     hint: "Try setting your price, then add a marketing move.",
-    suggestedMoveIds: ["sales.set_price" as MoveId, "marketing.social_post" as MoveId],
+    suggestedMoveIds: ["sales.s01" as MoveId, "marketing.m01" as MoveId],
   },
   {
     round: 2,
@@ -25,7 +25,7 @@ export const TUTORIAL_NARRATION: TutorialNarrationStep[] = [
       "Lower prices can win volume, but erode margin. Marketing builds reputation, which helps " +
       "when prices are similar.",
     hint: "Balance a competitive price with a small brand investment.",
-    suggestedMoveIds: ["sales.set_price" as MoveId, "marketing.run_ad_campaign" as MoveId],
+    suggestedMoveIds: ["sales.s01" as MoveId, "marketing.m01" as MoveId],
   },
   {
     round: 3,
@@ -34,7 +34,7 @@ export const TUTORIAL_NARRATION: TutorialNarrationStep[] = [
       "If you stock out, you lose sales even with a great price. Procurement refills beans " +
       "before demand hits.",
     hint: "Buy beans if inventory is running low.",
-    suggestedMoveIds: ["procurement.buy_beans" as MoveId],
+    suggestedMoveIds: ["procurement.p03" as MoveId],
   },
   {
     round: 4,
@@ -42,7 +42,7 @@ export const TUTORIAL_NARRATION: TutorialNarrationStep[] = [
     body:
       "A flash sale cuts price for one round only — useful to steal share when your opponent " +
       "holds a premium price.",
-    suggestedMoveIds: ["sales.flash_sale" as MoveId],
+    suggestedMoveIds: ["sales.s04" as MoveId],
   },
   {
     round: 5,
@@ -50,7 +50,7 @@ export const TUTORIAL_NARRATION: TutorialNarrationStep[] = [
     body:
       "Deep cleaning and extended hours affect reputation and staff morale. Happy teams serve " +
       "more customers reliably.",
-    suggestedMoveIds: ["operations.deep_clean" as MoveId],
+    suggestedMoveIds: ["operations.o08" as MoveId],
   },
   {
     round: 6,
@@ -58,7 +58,7 @@ export const TUTORIAL_NARRATION: TutorialNarrationStep[] = [
     body:
       "Ad campaigns cost cash upfront but can shift demand for several rounds. Watch your cash " +
       "runway before spending big.",
-    suggestedMoveIds: ["marketing.run_ad_campaign" as MoveId],
+    suggestedMoveIds: ["marketing.m01" as MoveId],
   },
   {
     round: 7,
@@ -66,7 +66,7 @@ export const TUTORIAL_NARRATION: TutorialNarrationStep[] = [
     body:
       "With two rounds left, set a price that maximizes profit on remaining demand — not just " +
       "the lowest price on the board.",
-    suggestedMoveIds: ["sales.set_price" as MoveId],
+    suggestedMoveIds: ["sales.s01" as MoveId],
   },
   {
     round: 8,
@@ -74,7 +74,7 @@ export const TUTORIAL_NARRATION: TutorialNarrationStep[] = [
     body:
       "End-of-match cash determines the winner. A cash reserve or conservative spend can protect " +
       "you from a bad final round.",
-    suggestedMoveIds: ["finance.cash_reserve" as MoveId, "sales.set_price" as MoveId],
+    suggestedMoveIds: ["finance.f03" as MoveId, "sales.s01" as MoveId],
   },
 ];
 

@@ -60,9 +60,12 @@ test.describe("Price War submit race", () => {
     const finalView = await request.get(`/api/pricewar/match/${matchId}/view`);
     expect(finalView.ok()).toBe(true);
     const after = await finalView.json();
-    expect(after.phase === "decide" || after.phase === "completed").toBe(true);
+    expect(["decide", "report", "completed"]).toContain(after.phase);
     if (after.phase === "decide") {
       expect(after.market.currentRound).toBeGreaterThan(view.market.currentRound);
+    }
+    if (after.phase === "report") {
+      expect(after.market.lastResolvedRound).toBe(view.market.currentRound);
     }
   });
 });

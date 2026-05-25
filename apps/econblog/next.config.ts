@@ -16,6 +16,26 @@ const nextConfig: NextConfig = {
         destination: "/lessons/lesson-zero",
         permanent: true,
       },
+      {
+        source: "/play/match/:path*",
+        destination: "/play/price-war/match/:path*",
+        permanent: false,
+      },
+      {
+        source: "/play/history",
+        destination: "/play/price-war/history",
+        permanent: false,
+      },
+      {
+        source: "/play/tutorial",
+        destination: "/play/price-war/tutorial",
+        permanent: false,
+      },
+      {
+        source: "/play/queue",
+        destination: "/play/price-war/queue",
+        permanent: false,
+      },
     ];
   },
   images: {

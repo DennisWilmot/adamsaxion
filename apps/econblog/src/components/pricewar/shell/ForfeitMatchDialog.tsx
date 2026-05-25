@@ -14,6 +14,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { priceWarPaths } from "@/lib/games/routes";
+import { usePriceWarErrorOptional } from "@/components/pricewar/screens/PriceWarErrorModal";
 
 export function ForfeitMatchDialog({
   matchId,
@@ -24,6 +26,7 @@ export function ForfeitMatchDialog({
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const errorModal = usePriceWarErrorOptional();
 
   async function confirmForfeit() {
     setLoading(true);
@@ -33,10 +36,12 @@ export function ForfeitMatchDialog({
       });
       if (!res.ok) {
         const data = await res.json();
-        alert(data.message ?? "Could not forfeit match");
+        if (errorModal) {
+          errorModal.showApiError(data, "Could not forfeit match");
+        }
         return;
       }
-      router.push(`/play/match/${matchId}/postmatch`);
+      router.push(priceWarPaths.match.postmatch(matchId));
       router.refresh();
     } finally {
       setLoading(false);

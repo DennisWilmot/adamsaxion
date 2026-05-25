@@ -9,6 +9,20 @@ import type { MatchId } from "@adamsaxion/pricewar-types";
 import * as repo from "./repository";
 import { getUserTier } from "./auth";
 import { getUserRatingForMode } from "./ratings";
+import { maybeSubmitBotTurn } from "./resolver";
+
+const BOT_FALLBACK_SEC_BY_MODE: Record<string, number> = {
+  blitz: 30,
+  rapid: 45,
+  "blitz-e2e": 5,
+};
+
+export function getBotFallbackAfterSec(playModeId: string): number {
+  const modeSec = BOT_FALLBACK_SEC_BY_MODE[playModeId];
+  if (modeSec != null) return modeSec;
+  const env = Number(process.env.PRICEWAR_BOT_FALLBACK_SEC ?? "60");
+  return Number.isFinite(env) && env > 0 ? env : 60;
+}
 
 export async function createVsBotMatch(args: {
   userId: string;
@@ -95,7 +109,7 @@ export async function enqueueForMatchmaking(args: {
   playModeId: string;
   ratingAtEnqueue?: number | null;
 }): Promise<{ queuedAt: string; botFallbackInSec: number }> {
-  const botFallbackAfterSec = Number(process.env.PRICEWAR_BOT_FALLBACK_SEC ?? "60");
+  const botFallbackAfterSec = getBotFallbackAfterSec(args.playModeId);
   const queuedAt = await repo.enqueueUser({
     userId: args.userId,
     scenarioId: args.scenarioId,
@@ -178,6 +192,64 @@ export async function tryMatchFromQueue(args: {
   });
 
   return { matchId };
+}
+
+export async function advanceMatchmaking(args: {
+  userId: string;
+  playerName: string;
+}): Promise<
+  | { kind: "matched"; matchId: MatchId; botFallback?: boolean }
+  | {
+      kind: "queued";
+      scenarioId: string;
+      playModeId: string;
+      enqueuedAt: string;
+      elapsedSec: number;
+      botFallbackInSec: number;
+      secondsUntilBotFallback: number;
+    }
+  | { kind: "idle" }
+> {
+  const entry = await repo.getQueueEntry(args.userId);
+  if (!entry) return { kind: "idle" };
+
+  const humanMatch = await tryMatchFromQueue({
+    userId: args.userId,
+    scenarioId: entry.scenarioId,
+    playModeId: entry.playModeId,
+    playerName: args.playerName,
+  });
+  if ("matchId" in humanMatch) {
+    return { kind: "matched", matchId: humanMatch.matchId };
+  }
+
+  const elapsedSec = Math.floor((Date.now() - entry.enqueuedAt.getTime()) / 1000);
+  const botFallbackInSec = entry.botFallbackAfterSec;
+  const secondsUntilBotFallback = Math.max(0, botFallbackInSec - elapsedSec);
+
+  if (elapsedSec >= botFallbackInSec) {
+    await repo.removeFromQueue(args.userId);
+    const botPersonalityId = "bot.budget";
+    const { matchId } = await createVsBotMatch({
+      userId: args.userId,
+      playerName: args.playerName,
+      scenarioId: entry.scenarioId,
+      playModeId: entry.playModeId,
+      botPersonalityId,
+    });
+    await maybeSubmitBotTurn(matchId, botPersonalityId);
+    return { kind: "matched", matchId, botFallback: true };
+  }
+
+  return {
+    kind: "queued",
+    scenarioId: entry.scenarioId,
+    playModeId: entry.playModeId,
+    enqueuedAt: entry.enqueuedAt.toISOString(),
+    elapsedSec,
+    botFallbackInSec,
+    secondsUntilBotFallback,
+  };
 }
 
 export { COFFEE_SHOP_SCENARIO };
