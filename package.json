@@ -2,9 +2,13 @@
   "name": "adamsaxion",
   "private": true,
   "packageManager": "pnpm@11.0.8",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "pnpm -F @adamsaxion/econblog dev",
     "build": "pnpm -F @adamsaxion/econblog build",
+    "start": "pnpm -F @adamsaxion/econblog start",
     "typecheck": "pnpm -F @adamsaxion/econblog typecheck",
     "lint": "pnpm -F @adamsaxion/econblog lint"
   },
