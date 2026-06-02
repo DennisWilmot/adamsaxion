@@ -1,5 +1,10 @@
 import { CORPUS_LESSONS } from "@/lib/learning/corpus-lessons";
 import { PHASE_LABELS } from "@/lib/learning/onboarding-outcomes";
+import {
+  OFFERING_FREE_INCLUDES,
+  OFFERING_LIFETIME_INCLUDES,
+  OFFERING_MEMBER_INCLUDES,
+} from "@/lib/offering/tiers";
 import { PLAN_PRICES } from "@/lib/stripe/config";
 
 export const LANDING_STATS = {
@@ -189,21 +194,7 @@ export const CURRICULUM_PHASES = Object.entries(PHASE_LABELS).map(([phase, label
 export const PRICING = {
   monthly: PLAN_PRICES.monthly,
   lifetime: PLAN_PRICES.lifetime,
-  freeIncludes: [
-    "Lesson Zero — full lesson, no account",
-    "Real quiz gates and XP",
-    "See the format before you pay",
-  ],
-  paidIncludes: [
-    "Full curriculum — every lesson and gate",
-    "Mastery exams with randomized pools",
-    "Personalized learning path",
-    "XP, levels, and leaderboard",
-  ],
-  lifetimeIncludes: [
-    "Everything in Monthly",
-    "One payment — access forever",
-    "No recurring charges",
-    "Best value if you're committed",
-  ],
+  freeIncludes: OFFERING_FREE_INCLUDES,
+  paidIncludes: OFFERING_MEMBER_INCLUDES,
+  lifetimeIncludes: OFFERING_LIFETIME_INCLUDES,
 } as const;

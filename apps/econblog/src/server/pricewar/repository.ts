@@ -1,4 +1,4 @@
-import { and, eq, inArray, ne, sql } from "drizzle-orm";
+import { and, desc, eq, gt, inArray, isNull, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { profiles } from "@/db/schema/content";
 import {
@@ -18,7 +18,7 @@ import type {
   SubmittedMove,
   RoundReport,
 } from "@adamsaxion/pricewar-types";
-import { normalizeMatchState } from "@adamsaxion/pricewar-engine";
+import { COFFEE_SHOP_SIM, normalizeMatchState } from "@adamsaxion/pricewar-engine";
 
 export async function countInProgressMatches(userId: string): Promise<number> {
   const rows = await db
@@ -133,6 +133,24 @@ export async function getBotPersonalityId(matchId: MatchId): Promise<string | nu
     .where(and(eq(matchPlayers.matchId, matchId), eq(matchPlayers.isBot, true)))
     .limit(1);
   return row?.botPersonalityId ?? null;
+}
+
+export async function isBotSlot(matchId: MatchId, slot: PlayerSlot): Promise<boolean> {
+  const [row] = await db
+    .select({ isBot: matchPlayers.isBot })
+    .from(matchPlayers)
+    .where(and(eq(matchPlayers.matchId, matchId), eq(matchPlayers.slot, slot)))
+    .limit(1);
+  return Boolean(row?.isBot);
+}
+
+export async function isVsBotMatch(matchId: MatchId): Promise<boolean> {
+  const [row] = await db
+    .select({ isBot: matchPlayers.isBot })
+    .from(matchPlayers)
+    .where(and(eq(matchPlayers.matchId, matchId), eq(matchPlayers.isBot, true)))
+    .limit(1);
+  return Boolean(row?.isBot);
 }
 
 export async function loadRoundReport(args: {
@@ -251,7 +269,7 @@ export async function saveRoundReport(args: {
 }
 
 export async function listUserMatches(userId: string) {
-  return db
+  const rows = await db
     .select({
       matchId: match.id,
       phase: match.phase,
@@ -259,16 +277,56 @@ export async function listUserMatches(userId: string) {
       scenarioId: match.scenarioId,
       outcomeKind: match.outcomeKind,
       outcomeReason: match.outcomeReason,
+      outcomeWinnerSlot: match.outcomeWinnerSlot,
       updatedAt: match.updatedAt,
       slot: matchPlayers.slot,
       ratingDelta: matchPlayers.ratingDelta,
       ratingAfter: matchPlayers.ratingAfter,
+      state: match.state,
     })
     .from(matchPlayers)
     .innerJoin(match, eq(match.id, matchPlayers.matchId))
     .where(eq(matchPlayers.userId, userId))
     .orderBy(sql`${match.updatedAt} desc`)
     .limit(20);
+
+  return rows.map((row) => {
+    const {
+      state: rawState,
+      slot,
+      ...rest
+    } = row;
+
+    if (row.phase === "completed") {
+      const gameState = normalizeMatchState(rawState as MatchState);
+      const playerSlot = slot as PlayerSlot;
+      const oppSlot: PlayerSlot = playerSlot === "A" ? "B" : "A";
+      return {
+        ...rest,
+        slot,
+        updatedAt: row.updatedAt.toISOString(),
+        opponentName: gameState.playersPublic[oppSlot].displayName,
+        opponentIsBot: gameState.playersPublic[oppSlot].isBot,
+      };
+    }
+
+    const gameState = normalizeMatchState(rawState as MatchState);
+    const playerSlot = slot as PlayerSlot;
+    const oppSlot: PlayerSlot = playerSlot === "A" ? "B" : "A";
+
+    return {
+      ...rest,
+      slot,
+      updatedAt: row.updatedAt.toISOString(),
+      currentRound: gameState.market.currentRound,
+      totalRounds: gameState.market.totalRounds,
+      lastResolvedRound: gameState.market.lastResolvedRound ?? 0,
+      remainingMs: gameState.clocks[playerSlot]?.remainingMs ?? null,
+      opponentName: gameState.playersPublic[oppSlot].displayName,
+      opponentIsBot: gameState.playersPublic[oppSlot].isBot,
+      myCash: gameState.playersPrivate[playerSlot].cash,
+    };
+  });
 }
 
 export async function countCompletedTutorialMatches(userId: string): Promise<number> {
@@ -300,6 +358,56 @@ export async function getMatchParticipants(matchId: MatchId) {
     .where(eq(matchPlayers.matchId, matchId));
 }
 
+export async function loadMatchCashSeries(
+  matchId: MatchId
+): Promise<{ A: number[]; B: number[] } | null> {
+  const rows = await db
+    .select({ publicReport: roundReports.publicReport })
+    .from(roundReports)
+    .where(eq(roundReports.matchId, matchId))
+    .orderBy(roundReports.round);
+
+  if (rows.length === 0) return null;
+
+  let cashA = COFFEE_SHOP_SIM.startingCash;
+  let cashB = COFFEE_SHOP_SIM.startingCash;
+  const seriesA: number[] = [cashA];
+  const seriesB: number[] = [cashB];
+
+  for (const row of rows) {
+    const report = row.publicReport as RoundReport;
+    cashA += report.deltas.A.cashDelta;
+    cashB += report.deltas.B.cashDelta;
+    seriesA.push(cashA);
+    seriesB.push(cashB);
+  }
+
+  return { A: seriesA, B: seriesB };
+}
+
+export async function loadMatchDemandSeries(
+  matchId: MatchId
+): Promise<{ A: number[]; B: number[] } | null> {
+  const rows = await db
+    .select({ publicReport: roundReports.publicReport })
+    .from(roundReports)
+    .where(eq(roundReports.matchId, matchId))
+    .orderBy(roundReports.round);
+
+  if (rows.length === 0) return null;
+
+  const seriesA: number[] = [];
+  const seriesB: number[] = [];
+
+  for (const row of rows) {
+    const report = row.publicReport as RoundReport;
+    seriesA.push(report.deltas.A.demandSatisfied);
+    seriesB.push(report.deltas.B.demandSatisfied);
+  }
+
+  return { A: seriesA, B: seriesB };
+}
+
 export async function getMatchSummary(matchId: MatchId, userId: string) {
   const [row] = await db
     .select({
@@ -323,6 +431,23 @@ export async function getMatchSummary(matchId: MatchId, userId: string) {
   const isRated =
     !hasBot && (row.ratingAtStart != null || row.ratingDelta != null);
 
+  const slot = row.slot as PlayerSlot;
+  const cashSeriesRaw = await loadMatchCashSeries(matchId);
+  const cashSeries = cashSeriesRaw
+    ? {
+        you: cashSeriesRaw[slot],
+        opp: cashSeriesRaw[slot === "A" ? "B" : "A"],
+      }
+    : null;
+
+  const demandSeriesRaw = await loadMatchDemandSeries(matchId);
+  const demandSeries = demandSeriesRaw
+    ? {
+        you: demandSeriesRaw[slot],
+        opp: demandSeriesRaw[slot === "A" ? "B" : "A"],
+      }
+    : null;
+
   return {
     isRated,
     ratingAtStart: row.ratingAtStart,
@@ -330,6 +455,9 @@ export async function getMatchSummary(matchId: MatchId, userId: string) {
     ratingDelta: row.ratingDelta,
     playModeId: row.playModeId,
     scenarioId: row.scenarioId,
+    cashSeries,
+    demandSeries,
+    opponentFinalCash: cashSeries?.opp.at(-1) ?? null,
   };
 }
 
@@ -368,6 +496,39 @@ export async function getOrCreateRating(args: {
     .onConflictDoNothing();
 
   return { rating: 1200, gamesPlayed: 0 };
+}
+
+export async function listLeaderboard(args: {
+  scenarioId: string;
+  playModeId: string;
+  limit?: number;
+}): Promise<
+  Array<{
+    userId: string;
+    rating: number;
+    gamesPlayed: number;
+    username: string;
+  }>
+> {
+  const limit = args.limit ?? 50;
+  return db
+    .select({
+      userId: ratings.userId,
+      rating: ratings.rating,
+      gamesPlayed: ratings.gamesPlayed,
+      username: profiles.username,
+    })
+    .from(ratings)
+    .innerJoin(profiles, eq(ratings.userId, profiles.id))
+    .where(
+      and(
+        eq(ratings.scenarioId, args.scenarioId),
+        eq(ratings.playModeId, args.playModeId),
+        gt(ratings.gamesPlayed, 0)
+      )
+    )
+    .orderBy(desc(ratings.rating))
+    .limit(limit);
 }
 
 export async function revertRatingsForMatch(matchId: MatchId): Promise<void> {
@@ -505,6 +666,9 @@ export async function enqueueUser(args: {
       playModeId: args.playModeId,
       ratingAtEnqueue: args.ratingAtEnqueue,
       botFallbackAfterSec: args.botFallbackAfterSec,
+      syntheticDelaySec: null,
+      pendingMatchId: null,
+      humanMatchedAt: null,
     })
     .onConflictDoUpdate({
       target: matchmakingQueue.userId,
@@ -514,11 +678,38 @@ export async function enqueueUser(args: {
         ratingAtEnqueue: args.ratingAtEnqueue,
         botFallbackAfterSec: args.botFallbackAfterSec,
         enqueuedAt: new Date(),
+        syntheticDelaySec: null,
+        pendingMatchId: null,
+        humanMatchedAt: null,
       },
     })
     .returning({ enqueuedAt: matchmakingQueue.enqueuedAt });
 
   return row!.enqueuedAt.toISOString();
+}
+
+export async function setQueueHumanPending(args: {
+  userId: string;
+  pendingMatchId: string;
+  humanMatchedAt: Date;
+}): Promise<void> {
+  await db
+    .update(matchmakingQueue)
+    .set({
+      pendingMatchId: args.pendingMatchId,
+      humanMatchedAt: args.humanMatchedAt,
+    })
+    .where(eq(matchmakingQueue.userId, args.userId));
+}
+
+export async function setQueueSyntheticDelay(
+  userId: string,
+  syntheticDelaySec: number
+): Promise<void> {
+  await db
+    .update(matchmakingQueue)
+    .set({ syntheticDelaySec })
+    .where(eq(matchmakingQueue.userId, userId));
 }
 
 export async function getQueueEntry(userId: string) {
@@ -545,6 +736,7 @@ export async function findQueueOpponent(args: {
     eq(matchmakingQueue.scenarioId, args.scenarioId),
     eq(matchmakingQueue.playModeId, args.playModeId),
     ne(matchmakingQueue.userId, args.userId),
+    isNull(matchmakingQueue.pendingMatchId),
   ];
 
   if (args.ratingAtEnqueue != null && args.enqueuedAt) {

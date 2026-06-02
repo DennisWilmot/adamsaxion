@@ -2,82 +2,133 @@
 
 import type { LockForecastLine } from "@adamsaxion/pricewar-engine";
 import { CD } from "../design-system/tokens";
+import { MATCH_REVIEW_ASSETS } from "./match/match-review-icons";
+import { MatchReviewIcon } from "./match/MatchReviewIcon";
 
-const SECTION_LABEL: Record<LockForecastLine["kind"], string> = {
-  immediate: "This round (immediate)",
-  delayed: "Next report (private)",
-  risk: "Risks",
+const SECTION_META: Record<
+  LockForecastLine["kind"],
+  { label: string; color: string; icon: string }
+> = {
+  immediate: {
+    label: "This round",
+    color: CD.primary,
+    icon: MATCH_REVIEW_ASSETS.forecastImmediate,
+  },
+  delayed: {
+    label: "Next round",
+    color: CD.ink2,
+    icon: MATCH_REVIEW_ASSETS.forecastDelayed,
+  },
+  caution: {
+    label: "Watch out for",
+    color: "#b45309",
+    icon: MATCH_REVIEW_ASSETS.forecastCaution,
+  },
+  risk: {
+    label: "Fix before locking",
+    color: CD.red,
+    icon: MATCH_REVIEW_ASSETS.forecastCaution,
+  },
 };
 
-const SECTION_COLOR: Record<LockForecastLine["kind"], string> = {
-  immediate: CD.ink,
-  delayed: CD.ink2,
-  risk: CD.red,
-};
-
-export function LockForecastPanel({ lines }: { lines: LockForecastLine[] }) {
+export function LockForecastPanel({
+  lines,
+  compact,
+  dense,
+}: {
+  lines: LockForecastLine[];
+  compact?: boolean;
+  dense?: boolean;
+  embedded?: boolean;
+}) {
   if (lines.length === 0) return null;
 
   const grouped: Record<LockForecastLine["kind"], LockForecastLine[]> = {
     immediate: [],
     delayed: [],
+    caution: [],
     risk: [],
   };
   for (const line of lines) {
     grouped[line.kind].push(line);
   }
 
-  const order: LockForecastLine["kind"][] = ["immediate", "delayed", "risk"];
+  const order: LockForecastLine["kind"][] = ["immediate", "delayed", "caution", "risk"];
+  const visible = order.filter((kind) => grouped[kind].length > 0);
+  const gap = dense ? 12 : compact ? 10 : 18;
+  const textSize = dense ? 12 : compact ? 11 : 13;
+  const iconSize = dense ? 24 : compact ? 22 : 28;
+
+  if (compact) {
+    return (
+      <div>
+        <div className="tab" style={{ marginBottom: 10 }}>
+          What to expect
+        </div>
+        <div className="cd-review-forecast-grid">
+          {visible.map((kind) => {
+            const items = grouped[kind];
+            const meta = SECTION_META[kind];
+            return (
+              <div key={kind} className="cd-review-forecast-cell">
+                <div className="cd-review-forecast-cell-head">
+                  <MatchReviewIcon src={meta.icon} alt="" size={22} />
+                  <span style={{ color: meta.color }}>{meta.label}</span>
+                </div>
+                {items.map((line, i) => (
+                  <p key={`${kind}-${i}`}>{line.text}</p>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div
-      style={{
-        marginTop: 16,
-        padding: "14px 16px",
-        background: CD.paper,
-        borderRadius: 10,
-        border: `1px solid ${CD.rule}`,
-      }}
-    >
-      <div
-        style={{
-          fontSize: 11,
-          letterSpacing: "0.12em",
-          textTransform: "uppercase",
-          color: CD.ink3,
-          marginBottom: 10,
-        }}
-      >
-        Lock forecast
+    <div>
+      <div className="tab" style={{ marginBottom: dense ? 10 : 14 }}>
+        What to expect
       </div>
-      <div style={{ display: "grid", gap: 12 }}>
-        {order.map((kind) => {
+      <div style={{ display: "grid", gap }}>
+        {visible.map((kind) => {
           const items = grouped[kind];
-          if (items.length === 0) return null;
+          const meta = SECTION_META[kind];
           return (
-            <div key={kind}>
-              <div
-                style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color: SECTION_COLOR[kind],
-                  marginBottom: 6,
-                }}
-              >
-                {SECTION_LABEL[kind]}
-              </div>
-              <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: CD.ink2, lineHeight: 1.45 }}>
+            <div key={kind} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+              <MatchReviewIcon src={meta.icon} alt="" size={iconSize} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: meta.color,
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase",
+                    marginBottom: 3,
+                  }}
+                >
+                  {meta.label}
+                </div>
                 {items.map((line, i) => (
-                  <li key={`${kind}-${i}`}>{line.text}</li>
+                  <p
+                    key={`${kind}-${i}`}
+                    style={{
+                      margin: i === 0 ? 0 : "4px 0 0",
+                      fontSize: textSize,
+                      color: CD.ink2,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {line.text}
+                  </p>
                 ))}
-              </ul>
+              </div>
             </div>
           );
         })}
       </div>
-      <p style={{ fontSize: 11, color: CD.ink3, marginTop: 12, marginBottom: 0, lineHeight: 1.4 }}>
-        Forecasts show likely effects — not guaranteed outcomes. Stochastic events can still shift the round.
-      </p>
     </div>
   );
 }

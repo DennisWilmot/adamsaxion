@@ -3,10 +3,19 @@ import { toPlayerView } from "@adamsaxion/pricewar-engine";
 import { requireAuthedUser } from "@/server/pricewar/auth";
 import { jsonError, jsonOk } from "@/server/pricewar/http";
 import { ensureMatchLifecycle } from "@/server/pricewar/clock";
-import { getPlayerSlot, getSubmission } from "@/server/pricewar/repository";
+import { tryResolveStaleLockedRound } from "@/server/pricewar/resolver";
+import { getPlayerSlot, getSubmission, loadMatch } from "@/server/pricewar/repository";
+
+function isDebugRequest(request: Request): boolean {
+  try {
+    return new URL(request.url).searchParams.get("debug") === "1";
+  } catch {
+    return false;
+  }
+}
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAuthedUser();
@@ -15,7 +24,7 @@ export async function GET(
   const { id } = await context.params;
   const matchId = id as MatchId;
 
-  const state = await ensureMatchLifecycle(matchId, auth.user.id);
+  let state = await ensureMatchLifecycle(matchId, auth.user.id);
   if (!state) {
     return jsonError({ code: "MATCH_NOT_FOUND", message: "Match not found." });
   }
@@ -25,13 +34,22 @@ export async function GET(
     return jsonError({ code: "MATCH_NOT_FOUND", message: "Match not found." });
   }
 
+  await tryResolveStaleLockedRound(matchId);
+  state = (await loadMatch(matchId)) ?? state;
+
   const round = state.market.currentRound;
   const otherSlot = slot === "A" ? "B" : "A";
+  const mySubmission = await getSubmission(matchId, round, slot);
   const opponentSubmission = await getSubmission(matchId, round, otherSlot);
 
   const view = toPlayerView(state, slot, {
     opponentHasLocked: Boolean(opponentSubmission),
+    meHasLocked: Boolean(mySubmission),
   });
+
+  if (!isDebugRequest(request)) {
+    view.opponent = { ...view.opponent, isBot: false };
+  }
 
   return jsonOk(view);
 }

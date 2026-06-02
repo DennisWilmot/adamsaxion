@@ -21,7 +21,6 @@ export async function GET() {
       inQueue: false,
       matched: true,
       matchId: progress.matchId,
-      botFallback: progress.botFallback ?? false,
       phase: "decide",
     });
   }
@@ -33,8 +32,6 @@ export async function GET() {
       playModeId: progress.playModeId,
       enqueuedAt: progress.enqueuedAt,
       elapsedSec: progress.elapsedSec,
-      botFallbackInSec: progress.botFallbackInSec,
-      secondsUntilBotFallback: progress.secondsUntilBotFallback,
     });
   }
 

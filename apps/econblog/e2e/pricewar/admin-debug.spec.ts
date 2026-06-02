@@ -21,7 +21,7 @@ test.describe("Price War admin debug", () => {
     const matchId = await startVsBotMatch(page);
 
     await loginAs(page, adminEmail, adminPassword, "/admin/pricewar");
-    await expect(page.getByRole("heading", { name: "Price War Admin" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Margin Admin" })).toBeVisible();
 
     await page.goto(`/admin/pricewar/matches/${matchId}`);
     await expect(page.getByRole("heading", { name: "Match trace" })).toBeVisible();

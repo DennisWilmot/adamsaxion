@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import type { PlayerView } from "@adamsaxion/pricewar-types";
+import { CD } from "@/components/pricewar/design-system/tokens";
+import { ModalShell } from "@/components/pricewar/screens/shared/ModalShell";
 
 function graceProgress(endsAt: string): number {
   const remaining = new Date(endsAt).getTime() - Date.now();
@@ -17,8 +16,10 @@ function graceSecondsLeft(endsAt: string): number {
 
 export function OpponentDisconnectedOverlay({
   gracePeriodEndsAt,
+  onGraceExpired,
 }: {
   gracePeriodEndsAt: string;
+  onGraceExpired?: () => void;
 }) {
   const [progress, setProgress] = useState(() => graceProgress(gracePeriodEndsAt));
   const [secondsLeft, setSecondsLeft] = useState(() => graceSecondsLeft(gracePeriodEndsAt));
@@ -31,39 +32,43 @@ export function OpponentDisconnectedOverlay({
     return () => clearInterval(interval);
   }, [gracePeriodEndsAt]);
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-lg">
-      <Card className="w-full max-w-md bg-surface-raised">
-        <CardContent className="space-y-lg py-2xl text-center">
-          <p className="font-display text-xl font-bold">Opponent disconnected</p>
-          <p className="text-sm text-foreground-secondary">
-            Their clock is running down. If they don&apos;t return within the grace
-            period, you&apos;ll win by forfeit.
-          </p>
-          <Progress value={progress} className="h-2" />
-          <p className="text-xs text-foreground-muted">{secondsLeft}s remaining</p>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-export function MatchLobbyScreen({ view }: { view: PlayerView }) {
-  const graceSec =
-    view.playModeId === "rapid" ? 120 : view.playModeId === "blitz" ? 60 : 60;
+  useEffect(() => {
+    if (secondsLeft <= 0) {
+      onGraceExpired?.();
+    }
+  }, [secondsLeft, onGraceExpired]);
 
   return (
-    <Card className="mx-auto max-w-lg bg-surface-raised">
-      <CardContent className="space-y-lg py-3xl text-center">
-        <p className="font-display text-xl font-bold">Waiting for opponent</p>
-        <p className="text-sm text-foreground-secondary">
-          Match starts when both players are connected. No-show after {graceSec}s
-          is a forfeit.
+    <ModalShell width={440}>
+      <div style={{ padding: "28px 24px", textAlign: "center" }}>
+        <p className="serif" style={{ fontSize: 24, color: CD.ink, fontWeight: 600, margin: 0 }}>
+          Opponent disconnected
         </p>
-        <p className="text-foreground-muted">
-          Opponent: <strong className="text-foreground">{view.opponent.displayName}</strong>
+        <p style={{ fontSize: 14, color: CD.ink2, marginTop: 10, lineHeight: 1.5 }}>
+          Their timer is running. If they do not come back in time, you win by default.
         </p>
-      </CardContent>
-    </Card>
+        <div
+          style={{
+            marginTop: 20,
+            height: 8,
+            borderRadius: 999,
+            background: CD.paperDeep,
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              height: "100%",
+              width: `${progress}%`,
+              background: CD.primary,
+              transition: "width 0.4s linear",
+            }}
+          />
+        </div>
+        <p className="num" style={{ fontSize: 12, color: CD.ink3, marginTop: 10 }}>
+          {secondsLeft}s remaining
+        </p>
+      </div>
+    </ModalShell>
   );
 }

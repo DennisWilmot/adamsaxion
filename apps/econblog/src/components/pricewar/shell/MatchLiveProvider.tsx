@@ -1,15 +1,20 @@
 "use client";
 
 import { useParams, usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useMatchEvents } from "@/client/pricewar/hooks/useMatchEvents";
 import { useMatchView } from "@/client/pricewar/hooks/useMatchView";
+import { logPhaseRedirect } from "@/client/pricewar/explain-phase-redirect";
+import { logMarginShell } from "@/client/pricewar/margin-shell-debug";
 import {
   getMatchEndPath,
   getMatchPhasePath,
+  isActiveReportPath,
   shouldRedirectToPhasePath,
 } from "@/client/pricewar/match-routing";
-import { priceWarPaths } from "@/lib/games/routes";
+import { isMatchSessionPath, isTerminalMatchPath } from "@/client/pricewar/match-shell-paths";
+import { refreshMatchView } from "@/client/pricewar/match-view-cache";
 import { OpponentDisconnectedOverlay } from "@/components/pricewar/shell/MatchStatusOverlays";
 
 export function MatchLiveProvider({ children }: { children: React.ReactNode }) {
@@ -17,39 +22,130 @@ export function MatchLiveProvider({ children }: { children: React.ReactNode }) {
   const matchId = params.id;
   const router = useRouter();
   const pathname = usePathname();
+  const queryClient = useQueryClient();
   const { data: view } = useMatchView(matchId);
+  const inMatchSession = isMatchSessionPath(pathname);
   const [disconnectGraceEndsAt, setDisconnectGraceEndsAt] = useState<string | null>(
     null
   );
+  const [phaseSyncing, setPhaseSyncing] = useState(false);
+
+  const refreshMatchAfterGrace = useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey: ["pricewar", "match", matchId] });
+  }, [matchId, queryClient]);
 
   useEffect(() => {
-    if (!view) return;
-    if (!shouldRedirectToPhasePath(pathname, view)) return;
-    router.replace(getMatchPhasePath(matchId, view));
-  }, [view, pathname, matchId, router]);
+    logPhaseRedirect("MatchLiveProvider", pathname, matchId, view ?? null, {
+      inMatchSession,
+      phaseSyncing,
+    });
+
+    if (!view) {
+      setPhaseSyncing(false);
+      return;
+    }
+    if (!shouldRedirectToPhasePath(pathname, view)) {
+      setPhaseSyncing(false);
+      return;
+    }
+    const target = getMatchPhasePath(matchId, view);
+    if (pathname === target) {
+      setPhaseSyncing(false);
+      return;
+    }
+    logMarginShell("MatchLiveProvider", "redirect", {
+      from: pathname,
+      to: target,
+      phase: view.phase,
+      meHasLocked: view.meHasLocked,
+    });
+    setPhaseSyncing(true);
+    router.replace(target);
+  }, [view, pathname, matchId, router, inMatchSession]);
 
   useMatchEvents(matchId, {
     onMatchStarted: () => {
-      router.refresh();
+      logMarginShell("MatchLiveProvider", "sse:match_started", { pathname, inMatchSession });
+      if (inMatchSession) {
+        void refreshMatchView(queryClient, matchId);
+      } else {
+        router.refresh();
+      }
     },
     onMatchEnded: async () => {
-      const res = await fetch(`/api/pricewar/match/${matchId}/view`);
-      if (!res.ok) return;
-      const freshView = await res.json();
-      router.replace(getMatchEndPath(matchId, freshView));
+      logMarginShell("MatchLiveProvider", "sse:match_ended", { pathname });
+      setDisconnectGraceEndsAt(null);
+      const freshView = await refreshMatchView(queryClient, matchId);
+      if (freshView) {
+        const target = getMatchEndPath(matchId, freshView);
+        logMarginShell("MatchLiveProvider", "redirect after match ended", { to: target });
+        if (pathname !== target) {
+          router.replace(target);
+        }
+      }
     },
     onOpponentDisconnected: (gracePeriodEndsAt) => {
+      if (view?.opponent.isBot) return;
       setDisconnectGraceEndsAt(gracePeriodEndsAt);
     },
-    onRoundResolved: (round) => {
-      router.push(priceWarPaths.match.report(matchId, round));
+    onRoundResolved: async () => {
+      logMarginShell("MatchLiveProvider", "sse:round_resolved", { pathname });
+      setDisconnectGraceEndsAt(null);
+      const freshView = await refreshMatchView(queryClient, matchId);
+      if (!freshView) return;
+
+      if (freshView.phase === "completed") {
+        const target = getMatchEndPath(matchId, freshView);
+        logMarginShell("MatchLiveProvider", "redirect after round resolved (completed)", {
+          from: pathname,
+          to: target,
+        });
+        if (pathname !== target) {
+          router.replace(target);
+        }
+        return;
+      }
+
+      if (isTerminalMatchPath(pathname)) {
+        return;
+      }
+
+      if (isActiveReportPath(pathname, freshView)) {
+        return;
+      }
+
+      const target = getMatchPhasePath(matchId, freshView);
+      logMarginShell("MatchLiveProvider", "redirect after round resolved", {
+        from: pathname,
+        to: target,
+        phase: freshView.phase,
+      });
+      if (pathname !== target) {
+        router.replace(target);
+      }
     },
   });
 
+  useEffect(() => {
+    if (view?.phase === "completed") {
+      setDisconnectGraceEndsAt(null);
+    }
+  }, [view?.phase]);
+
+  useEffect(() => {
+    if (!phaseSyncing || !view) return;
+    if (!shouldRedirectToPhasePath(pathname, view)) {
+      setPhaseSyncing(false);
+    }
+  }, [phaseSyncing, pathname, view]);
+
   return (
     <>
-      {disconnectGraceEndsAt && (
-        <OpponentDisconnectedOverlay gracePeriodEndsAt={disconnectGraceEndsAt} />
+      {disconnectGraceEndsAt && !view?.opponent.isBot && (
+        <OpponentDisconnectedOverlay
+          gracePeriodEndsAt={disconnectGraceEndsAt}
+          onGraceExpired={refreshMatchAfterGrace}
+        />
       )}
       {children}
     </>

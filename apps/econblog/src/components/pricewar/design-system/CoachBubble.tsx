@@ -1,5 +1,7 @@
+"use client";
+
 import { AvatarCoach } from "./avatars";
-import { CD } from "./tokens";
+import { MT } from "./margin-kit";
 
 export interface CoachBubbleProps {
   children: React.ReactNode;
@@ -12,44 +14,66 @@ export function CoachBubble({
   label = "Prof. Aldo · Coach",
   tone = "tip",
 }: CoachBubbleProps) {
+  const isWarn = tone === "warn";
+
   return (
     <div
       style={{
         display: "flex",
-        alignItems: "flex-start",
         gap: 12,
-        padding: "12px 16px 12px 12px",
-        background: tone === "warn" ? CD.primarySoft : CD.cream,
-        border: `1px solid ${tone === "warn" ? CD.primary : "#fde68a"}`,
+        padding: "14px 16px",
+        background: isWarn ? MT.warnSoft : MT.coach,
+        border: `1px solid ${isWarn ? MT.warnLine : MT.coachLine}`,
         borderRadius: 14,
-        position: "relative",
       }}
     >
-      <AvatarCoach size={44} />
-      <div style={{ flex: 1, paddingTop: 2 }}>
-        <div
-          style={{
-            fontSize: 11,
-            color: CD.ink3,
-            letterSpacing: "0.10em",
-            textTransform: "uppercase",
-            fontWeight: 600,
-          }}
-        >
-          {label}
+      <div style={{ flex: "0 0 auto" }}>
+        <AvatarCoach size={40} />
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
+          <span
+            style={{
+              fontSize: 11.5,
+              fontWeight: 700,
+              letterSpacing: "0.04em",
+              color: "#1f2937",
+            }}
+          >
+            Prof. Aldo
+          </span>
+          <span
+            style={{
+              fontSize: 10,
+              fontWeight: 600,
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+              color: MT.coachInk,
+              background: "#fbeeb8",
+              border: "1px solid #ecd98f",
+              padding: "1px 6px",
+              borderRadius: 5,
+            }}
+          >
+            Coach
+          </span>
         </div>
         <div
           className="serif"
           style={{
-            fontSize: 19,
-            lineHeight: 1.3,
-            color: CD.ink,
-            marginTop: 2,
+            fontSize: 16.5,
+            lineHeight: 1.36,
             fontStyle: "italic",
+            color: "#2b2616",
+            marginTop: 5,
+            fontWeight: 500,
           }}
         >
           &ldquo;{children}&rdquo;
         </div>
+        {label !== "Prof. Aldo · Coach" && (
+          <div style={{ fontSize: 10, color: MT.ink3, marginTop: 4 }}>{label}</div>
+        )}
       </div>
     </div>
   );

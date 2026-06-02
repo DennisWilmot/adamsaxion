@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { loginAs } from "./helpers/auth";
+import { loginAs, beginMatchDecide } from "./helpers/auth";
 
 /**
  * Story 12 — concurrent submits for the same slot resolve to a single submission.
@@ -26,6 +26,7 @@ test.describe("Price War submit race", () => {
     });
     expect(createRes.ok()).toBe(true);
     const { matchId } = await createRes.json();
+    await beginMatchDecide(request, matchId);
 
     const viewRes = await request.get(`/api/pricewar/match/${matchId}/view`);
     expect(viewRes.ok()).toBe(true);

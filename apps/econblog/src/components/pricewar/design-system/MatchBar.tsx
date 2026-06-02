@@ -23,6 +23,7 @@ export interface MatchBarProps {
   you: Player;
   opp: Opponent;
   forfeitSlot?: React.ReactNode;
+  compact?: boolean;
 }
 
 export function MatchBar({
@@ -30,36 +31,42 @@ export function MatchBar({
   round = 1,
   total = 8,
   timerMs,
-  timerLabel = "until reveal",
+  timerLabel = "left this match",
   you,
   opp,
   forfeitSlot,
+  compact = false,
 }: MatchBarProps) {
   const timer = timerMs != null ? formatMs(timerMs) : "—";
+  const avatarSize = compact ? 52 : 64;
+  const nameSize = compact ? 22 : 26;
+  const roundSize = compact ? 26 : 32;
+  const pad = compact ? "12px 18px" : "18px 22px";
 
   return (
     <div
       style={{
         position: "relative",
         overflow: "hidden",
-        borderRadius: 18,
+        borderRadius: compact ? 14 : 18,
         background: CD.paperDeep,
         border: `1px solid ${CD.rule}`,
+        flexShrink: 0,
       }}
     >
-      <CoffeeBackdrop opacity={0.07} height={140} />
+      <CoffeeBackdrop opacity={0.07} height={compact ? 100 : 140} />
       <div
         style={{
           position: "relative",
           display: "grid",
           gridTemplateColumns: "1fr auto 1fr",
-          gap: 24,
-          padding: "18px 22px",
+          gap: compact ? 16 : 24,
+          padding: pad,
           alignItems: "center",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <AvatarPlayer size={64} ring={CD.primary} />
+        <div style={{ display: "flex", alignItems: "center", gap: compact ? 10 : 14 }}>
+          <AvatarPlayer size={avatarSize} ring={CD.primary} />
           <div>
             <div
               style={{
@@ -71,10 +78,10 @@ export function MatchBar({
             >
               You
             </div>
-            <div className="serif" style={{ fontSize: 26, lineHeight: 1.05, color: CD.ink }}>
+            <div className="serif" style={{ fontSize: nameSize, lineHeight: 1.05, color: CD.ink }}>
               {you.name}
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: compact ? 4 : 6 }}>
               <CashTicker value={you.cash} />
               {you.trend && you.trend.length >= 2 && <CashTrend points={you.trend} color={CD.ink} />}
             </div>
@@ -92,11 +99,11 @@ export function MatchBar({
           >
             {scenario}
           </div>
-          <div className="serif" style={{ fontSize: 32, color: CD.ink, lineHeight: 1, marginTop: 2 }}>
-            Round <span className="num" style={{ fontSize: 30 }}>{round}</span>
+          <div className="serif" style={{ fontSize: roundSize, color: CD.ink, lineHeight: 1, marginTop: 2 }}>
+            Round <span className="num" style={{ fontSize: roundSize - 2 }}>{round}</span>
             <span style={{ color: CD.ink3 }}> / {total}</span>
           </div>
-          <div style={{ marginTop: 8 }}>
+          <div style={{ marginTop: compact ? 4 : 8 }}>
             <RoundDots total={total} current={round} />
           </div>
           <div
@@ -104,7 +111,7 @@ export function MatchBar({
               display: "inline-flex",
               alignItems: "center",
               gap: 6,
-              marginTop: 10,
+              marginTop: compact ? 6 : 10,
               padding: "3px 10px",
               borderRadius: 999,
               background: CD.paper,
@@ -128,7 +135,7 @@ export function MatchBar({
           {forfeitSlot && <div style={{ marginTop: 10 }}>{forfeitSlot}</div>}
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 14, justifyContent: "flex-end" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: compact ? 10 : 14, justifyContent: "flex-end" }}>
           <div style={{ textAlign: "right" }}>
             <div
               style={{
@@ -139,13 +146,9 @@ export function MatchBar({
               }}
             >
               Opponent
-              {opp.isBot
-                ? " · Bot"
-                : opp.elo != null
-                  ? ` · Elo ${opp.elo}`
-                  : ""}
+              {opp.elo != null ? ` · Elo ${opp.elo}` : ""}
             </div>
-            <div className="serif" style={{ fontSize: 26, lineHeight: 1.05, color: CD.ink }}>
+            <div className="serif" style={{ fontSize: nameSize, lineHeight: 1.05, color: CD.ink }}>
               {opp.name}
             </div>
             <div
@@ -154,11 +157,11 @@ export function MatchBar({
                 alignItems: "center",
                 justifyContent: "flex-end",
                 gap: 8,
-                marginTop: 6,
+                marginTop: compact ? 4 : 6,
               }}
             >
-              <span style={{ fontSize: 12, color: CD.ink3 }}>their menu</span>
-              <span className="num" style={{ fontSize: 22, color: CD.ink, fontWeight: 500 }}>
+              <span style={{ fontSize: 12, color: CD.ink3 }}>their price</span>
+              <span className="num" style={{ fontSize: compact ? 18 : 22, color: CD.ink, fontWeight: 500 }}>
                 {opp.price}¢
               </span>
               {opp.locked && (
@@ -189,7 +192,7 @@ export function MatchBar({
               )}
             </div>
           </div>
-          <AvatarOpponent size={64} ring={CD.ink4} />
+          <AvatarOpponent size={avatarSize} ring={CD.ink4} />
         </div>
       </div>
     </div>

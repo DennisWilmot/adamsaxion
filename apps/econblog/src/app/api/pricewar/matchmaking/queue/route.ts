@@ -7,10 +7,12 @@ import {
   getUserTier,
   getConcurrentCap,
 } from "@/server/pricewar/auth";
+import { isMarginRatedEnabled } from "@/server/pricewar/feature-flag";
 import { jsonError, jsonOk } from "@/server/pricewar/http";
 import { consumeRateLimit } from "@/server/pricewar/rate-limit";
 import { countInProgressMatches, getOrCreateRating } from "@/server/pricewar/repository";
-import { enqueueForMatchmaking, tryMatchFromQueue } from "@/server/pricewar/matchmaker";
+import { DEFAULT_MARGIN_PLAY_MODE } from "@/lib/games/margin-play-mode";
+import { advanceMatchmaking, enqueueForMatchmaking } from "@/server/pricewar/matchmaker";
 
 export async function POST(request: Request) {
   const auth = await requireAuthedUser();
@@ -29,7 +31,7 @@ export async function POST(request: Request) {
     return jsonError({ code: "INVALID_SUBMIT", message: "Invalid request body." });
   }
 
-  const playModeId = body.playModeId ?? "blitz";
+  const playModeId = body.playModeId ?? DEFAULT_MARGIN_PLAY_MODE;
   const playMode = getPlayMode(playModeId);
   if (!playMode) {
     return jsonError({ code: "INVALID_SUBMIT", message: "Unknown play mode." });
@@ -50,7 +52,7 @@ export async function POST(request: Request) {
       code: "FORBIDDEN",
       message:
         tier === "free"
-          ? "You already have a match in progress. Upgrade to play multiple matches concurrently."
+          ? "You already have a match running. Upgrade to play more than one at a time."
           : `You have ${cap} matches in progress, the maximum for your plan.`,
     });
   }
@@ -62,9 +64,10 @@ export async function POST(request: Request) {
     .limit(1);
 
   const scenarioId = body.scenarioId ?? "coffee-shop";
+  const playerName = profile?.username ?? "Player";
 
   let ratingAtEnqueue: number | null = null;
-  if (tier === "paid") {
+  if (isMarginRatedEnabled()) {
     const ratingRow = await getOrCreateRating({
       userId: auth.user.id,
       scenarioId,
@@ -73,30 +76,27 @@ export async function POST(request: Request) {
     ratingAtEnqueue = ratingRow.rating;
   }
 
-  const { botFallbackInSec } = await enqueueForMatchmaking({
+  const { queuedAt } = await enqueueForMatchmaking({
     userId: auth.user.id,
     scenarioId,
     playModeId,
     ratingAtEnqueue,
   });
 
-  const result = await tryMatchFromQueue({
+  const progress = await advanceMatchmaking({
     userId: auth.user.id,
-    scenarioId,
-    playModeId,
-    playerName: profile?.username ?? "Player",
+    playerName,
   });
 
-  if ("matchId" in result) {
-    return jsonOk({ matchId: result.matchId, matched: true }, 201);
+  if (progress.kind === "matched") {
+    return jsonOk({ matchId: progress.matchId, matched: true }, 201);
   }
 
   return jsonOk(
     {
       matchId: null,
       matched: false,
-      queuedAt: result.queuedAt,
-      botFallbackInSec,
+      queuedAt,
     },
     201
   );

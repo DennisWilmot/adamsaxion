@@ -2,6 +2,19 @@
 
 import { CD } from "../../design-system/tokens";
 
+const NEWS_ALERT_PREFIX = "News alert:";
+
+function formatEventLabel(description: string): { badge: string; body: string } {
+  const trimmed = description.trim();
+  if (trimmed.toLowerCase().startsWith(NEWS_ALERT_PREFIX)) {
+    return {
+      badge: "News alert",
+      body: trimmed.slice(NEWS_ALERT_PREFIX.length).trim(),
+    };
+  }
+  return { badge: "News alert", body: trimmed };
+}
+
 export function EventPill({
   label,
   impact,
@@ -14,20 +27,26 @@ export function EventPill({
   const tone =
     impact === "positive" ? CD.green : impact === "negative" ? CD.red : CD.ink2;
 
+  const source = description ?? label;
+  const { badge, body } = formatEventLabel(source);
+
   return (
     <span
-      title={description ?? label}
+      title={body}
       style={{
         display: "inline-flex",
         alignItems: "center",
-        gap: 6,
-        padding: "4px 10px",
-        borderRadius: 999,
+        gap: 8,
+        padding: "6px 12px",
+        borderRadius: 10,
         background: CD.paperDeep,
         border: `1px solid ${CD.rule}`,
         fontSize: 12,
         color: CD.ink2,
-        cursor: description ? "help" : "default",
+        cursor: "help",
+        maxWidth: 420,
+        textAlign: "left",
+        lineHeight: 1.4,
       }}
     >
       <span
@@ -39,7 +58,9 @@ export function EventPill({
           flexShrink: 0,
         }}
       />
-      <span>{label}</span>
+      <span>
+        <strong style={{ color: CD.ink, fontWeight: 600 }}>{badge}:</strong> {body}
+      </span>
     </span>
   );
 }

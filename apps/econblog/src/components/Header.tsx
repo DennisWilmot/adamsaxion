@@ -16,15 +16,13 @@ import { PLAY_HUB, priceWarPaths } from "@/lib/games/routes";
 const APP_NAV_ITEMS = [
   { label: "Lessons", href: "/lessons" },
   { label: "Games", href: PLAY_HUB },
-  { label: "Leaderboard", href: "/leaderboard" },
+  { label: "XP Leaderboard", href: "/leaderboard" },
 ] as const;
 
 const GAME_NAV_ITEMS = [
   { label: "Lessons", href: "/lessons" },
   { label: "Games", href: PLAY_HUB },
-  { label: "The Price War", href: priceWarPaths.lobby },
-  { label: "Ladder", href: priceWarPaths.leaderboard },
-  { label: "History", href: priceWarPaths.history },
+  { label: "Margin", href: priceWarPaths.lobby },
 ] as const;
 
 function navLinkActive(pathname: string, href: string) {

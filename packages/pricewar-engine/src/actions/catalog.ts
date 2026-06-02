@@ -70,7 +70,7 @@ export function lockForecastForAction(id: string): LockForecastLine[] {
     lines.push({ kind: "delayed", text: entry.delayedEffect });
   }
   if (entry.riskyWhen) {
-    lines.push({ kind: "risk", text: entry.riskyWhen });
+    lines.push({ kind: "caution", text: entry.riskyWhen });
   }
   return lines;
 }

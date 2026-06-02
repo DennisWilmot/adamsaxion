@@ -10,15 +10,25 @@ export async function loginAs(
   await page.goto(`/auth?next=${encodeURIComponent(next)}`);
   await page.getByPlaceholder("you@example.com").fill(email);
   await page.locator('input[type="password"]').fill(password);
-  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page.locator("form").getByRole("button", { name: "Sign in" }).click();
   await page.waitForURL(next);
+}
+
+export async function beginMatchDecide(request: APIRequestContext, matchId: string) {
+  const res = await request.post(`/api/pricewar/match/${matchId}/start`);
+  if (!res.ok()) {
+    throw new Error(`Failed to start match decide phase: ${await res.text()}`);
+  }
+  return res.json();
 }
 
 export async function startVsBotMatch(page: Page) {
   await page.goto(priceWarPaths.lobby);
   await page.getByRole("button", { name: "Play vs bot" }).first().click();
-  await page.waitForURL(/\/play\/price-war\/match\/[^/]+\/decide/);
-  const matchId = page.url().match(/\/play\/price-war\/match\/([^/]+)\/decide/)?.[1];
+  await page.waitForURL(/\/play\/price-war\/match\/[^/]+\/briefing/);
+  await page.getByRole("button", { name: /Begin Round 1/i }).click();
+  await page.waitForURL(/\/play\/price-war\/match\/[^/]+(?:\/|$)/);
+  const matchId = page.url().match(/\/play\/price-war\/match\/([^/?]+)/)?.[1];
   return matchId!;
 }
 
@@ -34,6 +44,7 @@ export async function startE2eBlitzMatch(request: APIRequestContext) {
     throw new Error(`Failed to start E2E match: ${await res.text()}`);
   }
   const data = await res.json();
+  await beginMatchDecide(request, data.matchId as string);
   return data.matchId as string;
 }
 

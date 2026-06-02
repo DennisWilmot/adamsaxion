@@ -20,13 +20,15 @@ export function buildRoundReport(ctx: PipelineContext): RoundReport {
 
   const weatherLine =
     scratch.activeEventLabel ??
-    (scratch.weatherShift !== 0 ? `Market demand shifted by ${scratch.weatherShift}.` : null);
+    (scratch.weatherShift !== 0
+      ? "News alert: Customer traffic shifted this round. Check your sales numbers."
+      : null);
 
   const publicSummaryParts = [
     publicCommentary[0] ?? weatherLine,
     publicCommentary[1],
     publicLines.length > 0 ? publicLines.join(" ") : null,
-    `${pubA.displayName} ${scratch.allocated.A} customers at ${pubA.currentPrice}¢; ${pubB.displayName} ${scratch.allocated.B} at ${pubB.currentPrice}¢.`,
+    `${pubA.displayName} served ${scratch.allocated.A} customers at ${pubA.currentPrice}¢. ${pubB.displayName} served ${scratch.allocated.B} at ${pubB.currentPrice}¢.`,
   ].filter(Boolean);
 
   const privateSummary = { A: "", B: "" };
@@ -38,7 +40,7 @@ export function buildRoundReport(ctx: PipelineContext): RoundReport {
     const notes = scratch.privateActionNotes[slot].join(" ");
 
     privateSummary[slot] = [
-      `Cash $${priv.cash.toLocaleString()} (${cashDelta >= 0 ? "+" : "−"}$${Math.abs(cashDelta)}). Served ${scratch.allocated[slot]} customers. Review ${sim.reviewScore.toFixed(1)}.`,
+      `You have $${priv.cash.toLocaleString()} (${cashDelta >= 0 ? "+" : "−"}$${Math.abs(cashDelta)} this round). You served ${scratch.allocated[slot]} customers. Guest rating: ${sim.reviewScore.toFixed(1)} stars.`,
       notes,
       narrative.join(" "),
     ]
@@ -59,7 +61,7 @@ export function buildRoundReport(ctx: PipelineContext): RoundReport {
 
   return {
     round,
-    publicSummary: `Round ${round} resolved. ${publicSummaryParts.join(" ")}`,
+    publicSummary: `Round ${round} is in the books. ${publicSummaryParts.join(" ")}`,
     publicEvents,
     privateSummary,
     deltas: {

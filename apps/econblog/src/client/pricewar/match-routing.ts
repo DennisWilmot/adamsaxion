@@ -1,22 +1,30 @@
 import type { PlayerView } from "@adamsaxion/pricewar-types";
 import { priceWarPaths } from "@/lib/games/routes";
+import {
+  getReportRoundFromPath,
+  isMatchRootPath,
+  isTerminalMatchPath,
+  panelFromMatchPath,
+  TERMINAL_MATCH_SEGMENTS,
+} from "./match-shell-paths";
+
+export { TERMINAL_MATCH_SEGMENTS as TERMINAL_SEGMENTS, isMatchRootPath };
 
 /** Terminal screen when `phase === "completed"`. */
 export function getMatchEndPath(matchId: string, view: PlayerView): string {
   if (view.phase !== "completed") {
-    return priceWarPaths.match.decide(matchId);
+    return priceWarPaths.match.root(matchId);
   }
 
   if (view.outcome.kind === "win") {
-    const lost = view.outcome.winner !== view.me.slot;
-    if (lost && view.outcome.reason === "bankruptcy") {
+    const iWon = view.outcome.winner === view.me.slot;
+    const { reason } = view.outcome;
+
+    if (!iWon && reason === "bankruptcy") {
       return priceWarPaths.match.bankruptcy(matchId);
     }
-    if (
-      lost &&
-      (view.outcome.reason === "forfeit_on_abandonment" ||
-        view.outcome.reason === "forfeit_on_timeout")
-    ) {
+
+    if (iWon && reason === "forfeit_on_abandonment") {
       return priceWarPaths.match.abandoned(matchId);
     }
   }
@@ -28,24 +36,25 @@ export function getMatchEndPath(matchId: string, view: PlayerView): string {
 export function getMatchPhasePath(matchId: string, view: PlayerView): string {
   switch (view.phase) {
     case "waiting_for_opponent":
-      return priceWarPaths.match.decide(matchId);
+      return priceWarPaths.match.root(matchId);
     case "briefing":
-      return priceWarPaths.match.briefing(matchId);
+      return view.playModeId === "tutorial"
+        ? priceWarPaths.match.root(matchId)
+        : priceWarPaths.match.briefing(matchId);
     case "decide":
+      return priceWarPaths.match.root(matchId);
     case "resolving":
-      return priceWarPaths.match.decide(matchId);
+      return priceWarPaths.match.waiting(matchId);
     case "report": {
-      const reportRound = view.market.lastResolvedRound ?? view.market.currentRound;
-      return priceWarPaths.match.report(matchId, reportRound);
+      const round = view.market.lastResolvedRound ?? view.market.currentRound;
+      return priceWarPaths.match.report(matchId, round);
     }
     case "completed":
       return getMatchEndPath(matchId, view);
     default:
-      return priceWarPaths.match.decide(matchId);
+      return priceWarPaths.match.root(matchId);
   }
 }
-
-const TERMINAL_SEGMENTS = ["/postmatch", "/bankruptcy", "/abandoned"] as const;
 
 /** True when pathname is a decide-phase sub-route (review, waiting, briefing). */
 export function isDecideSubRoute(pathname: string): boolean {
@@ -56,17 +65,65 @@ export function isDecideSubRoute(pathname: string): boolean {
   );
 }
 
+/** True when pathname is the report screen for the latest resolved round. */
+export function isActiveReportPath(pathname: string, view: PlayerView): boolean {
+  if (panelFromMatchPath(pathname) !== "report") return false;
+  const reportRound = getReportRoundFromPath(pathname);
+  const resolvedRound = view.market.lastResolvedRound ?? view.market.currentRound;
+  return reportRound != null && reportRound === resolvedRound;
+}
+
 /** Whether the client should redirect away from the current pathname for this view. */
 export function shouldRedirectToPhasePath(pathname: string, view: PlayerView): boolean {
-  if (view.phase === "report" && !pathname.includes("/report/")) {
-    return true;
-  }
   if (view.phase === "completed") {
-    const onTerminal = TERMINAL_SEGMENTS.some((seg) => pathname.includes(seg));
-    return !onTerminal;
-  }
-  if (view.phase === "decide" && pathname.includes("/report/")) {
+    const canonical = getMatchEndPath(view.matchId, view);
+    if (isTerminalMatchPath(pathname)) {
+      return pathname !== canonical;
+    }
     return true;
   }
+
+  if (isTerminalMatchPath(pathname)) {
+    return false;
+  }
+
+  const pathPanel = panelFromMatchPath(pathname);
+
+  if (pathPanel === "review" && view.phase === "decide" && !view.meHasLocked) {
+    return false;
+  }
+  if (
+    pathPanel === "waiting" &&
+    (view.meHasLocked || view.phase === "resolving" || view.phase === "decide")
+  ) {
+    return view.meHasLocked || view.phase === "resolving" ? false : true;
+  }
+  if (pathPanel === "briefing" && view.phase === "briefing") {
+    return false;
+  }
+  if (pathPanel === "decide" && view.phase === "decide" && !view.meHasLocked) {
+    return false;
+  }
+  if (isActiveReportPath(pathname, view)) {
+    return false;
+  }
+  if (panelFromMatchPath(pathname) === "report") {
+    return true;
+  }
+
+  if (pathPanel != null) {
+    return true;
+  }
+
+  if (isMatchRootPath(pathname)) {
+    if (view.meHasLocked || view.phase === "resolving") {
+      return true;
+    }
+    if (view.phase === "briefing" && view.playModeId !== "tutorial") {
+      return true;
+    }
+    return false;
+  }
+
   return false;
 }

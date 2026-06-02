@@ -12,7 +12,7 @@ export function stepPolicies(ctx: PipelineContext): void {
     if (sim.priceMatchRoundsRemaining > 0) {
       pub.currentPrice = opp.currentPrice;
       sim.priceMatchRoundsRemaining -= 1;
-      ctx.scratch.publicActions[slot].push(`Matched ${opp.displayName}'s price at ${opp.currentPrice}¢`);
+      ctx.scratch.publicActions[slot].push(`${opp.displayName}'s price matched at ${opp.currentPrice}¢`);
     }
 
     if (sim.premiumPositioning) {

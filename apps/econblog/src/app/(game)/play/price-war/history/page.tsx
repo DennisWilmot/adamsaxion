@@ -2,15 +2,31 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { ProfileScreen } from "@/components/pricewar/screens/ProfileScreen";
+import { DEFAULT_MARGIN_PLAY_MODE } from "@/lib/games/margin-play-mode";
+import { MarginShellFrame } from "@/components/pricewar/shell/MarginShellFrame";
 
 export default function HistoryPage() {
-  const ratingQuery = useQuery({
-    queryKey: ["pricewar", "rating", "coffee-shop", "blitz"],
+  const subscriptionQuery = useQuery({
+    queryKey: ["user", "subscription"],
     queryFn: async () => {
-      const res = await fetch("/api/pricewar/rating/coffee-shop?playModeId=blitz");
+      const res = await fetch("/api/user/subscription");
+      if (!res.ok) return { subscription: { hasAccess: false } };
+      return res.json();
+    },
+  });
+
+  const isPaid = subscriptionQuery.data?.subscription?.hasAccess === true;
+
+  const ratingQuery = useQuery({
+    queryKey: ["pricewar", "rating", "coffee-shop", DEFAULT_MARGIN_PLAY_MODE],
+    queryFn: async () => {
+      const res = await fetch(
+        `/api/pricewar/rating/coffee-shop?playModeId=${DEFAULT_MARGIN_PLAY_MODE}`,
+      );
       if (!res.ok) return { rating: null };
       return res.json() as Promise<{ rating: number; gamesPlayed: number }>;
     },
+    enabled: isPaid,
   });
 
   const historyQuery = useQuery({
@@ -23,9 +39,12 @@ export default function HistoryPage() {
   });
 
   return (
-    <ProfileScreen
-      elo={ratingQuery.data?.rating ?? null}
-      matches={historyQuery.data?.matches ?? []}
-    />
+    <MarginShellFrame contentPadding={18}>
+      <ProfileScreen
+        elo={isPaid ? (ratingQuery.data?.rating ?? null) : null}
+        isPaid={isPaid}
+        matches={historyQuery.data?.matches ?? []}
+      />
+    </MarginShellFrame>
   );
 }

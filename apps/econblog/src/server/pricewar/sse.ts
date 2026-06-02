@@ -14,7 +14,7 @@ export type ServerSentMatchEvent =
   | { type: "clock_warning"; remainingMs: number }
   | { type: "match_started"; view: PlayerView }
   | { type: "match_ended"; outcome: unknown; finalView: PlayerView }
-  | { type: "opponent_disconnected"; gracePeriodEndsAt: string };
+  | { type: "opponent_disconnected"; gracePeriodEndsAt: string; disconnectedSlot: "A" | "B" };
 
 const matchEvents = new Map<string, EventEmitter>();
 
@@ -81,8 +81,8 @@ export function filterEventForSlot(
   event: ServerSentMatchEvent,
   slot: "A" | "B"
 ): ServerSentMatchEvent | null {
-  if (event.type === "round_resolved" || event.type === "match_ended") {
-    return event;
+  if (event.type === "opponent_disconnected") {
+    return event.disconnectedSlot === slot ? null : event;
   }
   return event;
 }

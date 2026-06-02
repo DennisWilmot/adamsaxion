@@ -127,7 +127,7 @@ const salesS02: ActionHandler = (ctx) => {
     if (!spend(ctx, ctx.slot, cost)) return {};
     if (sim.avgSkill < sim.menuBreadth * 0.2) {
       sim.productQuality = Math.max(0.1, sim.productQuality - 0.05);
-      notePrivate(ctx, ctx.slot, "Menu complexity penalty applied.");
+      notePrivate(ctx, ctx.slot, "Your team struggled with the bigger menu. Quality slipped.");
     }
     sim.menuBreadth += 1;
     setCooldown(sim, "sales.s02", ctx.round, ctx.round + 1);
@@ -154,7 +154,7 @@ const salesS04: ActionHandler = (ctx) => {
     sim.flashSaleActiveRound = ctx.round;
     setCooldown(sim, "sales.s04", ctx.round, ctx.round + COSTS.flashSaleCooldownRounds);
     scratch().demandBoost[ctx.slot] += 0.25;
-    notePublic(ctx, ctx.slot, "Flash sale: prices cut 40% this round.");
+    notePublic(ctx, ctx.slot, "Flash sale: 40% off this round.");
     return { currentPrice: pub.currentPrice - prev, demandBoost: 0.25 };
   });
 };
@@ -164,7 +164,7 @@ const salesS05: ActionHandler = (ctx) => {
     if (onCooldown(sim, "sales.s05", ctx.round)) return {};
     sim.priceMatchRoundsRemaining = 2;
     setCooldown(sim, "sales.s05", ctx.round, ctx.round + 2);
-    notePublic(ctx, ctx.slot, "Price match guarantee announced.");
+    notePublic(ctx, ctx.slot, "Price match guarantee announced for next round.");
     return { priceMatchRoundsRemaining: 2 };
   });
 };
@@ -409,7 +409,7 @@ const hrH07: ActionHandler = (ctx) => {
     scratch().poachAttempt[ctx.slot] = true;
     sim.poachAttempt = true;
     setCooldown(sim, "hr.h07", ctx.round, ctx.round + 3);
-    notePrivate(ctx, ctx.slot, "Poach attempt initiated.");
+    notePrivate(ctx, ctx.slot, "Poach attempt started.");
     return { poachAttempt: 1, cash: -COSTS.poach };
   });
 };

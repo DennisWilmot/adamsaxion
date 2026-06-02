@@ -23,28 +23,122 @@ function elapsedMs(sinceIso: string, nowIso: string): number {
   return Math.max(0, new Date(nowIso).getTime() - new Date(sinceIso).getTime());
 }
 
+function clockTickPhases(): readonly MatchState["phase"][] {
+  return ["briefing", "decide"];
+}
+
+function isClockTickPhase(phase: MatchState["phase"]): boolean {
+  return clockTickPhases().includes(phase);
+}
+
+function startBothClocks(state: MatchState, nowIso: string): MatchState {
+  return {
+    ...state,
+    updatedAt: nowIso,
+    clocks: {
+      A: {
+        remainingMs: state.clocks.A.remainingMs,
+        tickingSince: state.clocks.A.remainingMs > 0 ? nowIso : null,
+      },
+      B: {
+        remainingMs: state.clocks.B.remainingMs,
+        tickingSince: state.clocks.B.remainingMs > 0 ? nowIso : null,
+      },
+    },
+  };
+}
+
+/** Start match clocks while the player is still on the briefing screen. */
+export function beginBriefingClocks(state: MatchState, nowIso: string): MatchState {
+  const playMode = getPlayMode(state.playModeId);
+  if (!playMode?.clock || state.phase !== "briefing") return state;
+
+  const withMeta = ensureTimerMeta(state);
+  if (withMeta.timerMeta!.roundDecideStartedAt) return withMeta;
+
+  return {
+    ...startBothClocks(withMeta, nowIso),
+    timerMeta: {
+      ...withMeta.timerMeta!,
+      roundDecideStartedAt: nowIso,
+      abandonmentGraceEndsAt: { A: null, B: null },
+    },
+  };
+}
+
 export function beginRoundClocks(state: MatchState, nowIso: string): MatchState {
   const playMode = getPlayMode(state.playModeId);
   if (!playMode?.clock || state.phase !== "decide") return state;
 
   const withMeta = ensureTimerMeta(state);
   return {
-    ...withMeta,
-    updatedAt: nowIso,
+    ...startBothClocks(withMeta, nowIso),
     timerMeta: {
       ...withMeta.timerMeta!,
       roundDecideStartedAt: nowIso,
       abandonmentGraceEndsAt: { A: null, B: null },
     },
-    clocks: {
-      A: {
-        remainingMs: withMeta.clocks.A.remainingMs,
-        tickingSince: withMeta.clocks.A.remainingMs > 0 ? nowIso : null,
+  };
+}
+
+/** Freeze every running clock and clear round decide metadata (report / between rounds). */
+export function pauseAllClocks(state: MatchState, nowIso: string): MatchState {
+  const playMode = getPlayMode(state.playModeId);
+  if (!playMode?.clock) return state;
+
+  let next = state;
+  for (const slot of ["A", "B"] as const) {
+    next = freezeClock(next, slot, nowIso);
+  }
+
+  const withMeta = ensureTimerMeta(next);
+  return {
+    ...withMeta,
+    updatedAt: nowIso,
+    timerMeta: {
+      ...withMeta.timerMeta!,
+      roundDecideStartedAt: null,
+    },
+  };
+}
+
+/** Resume ticking for active players who still have time but were paused. */
+export function resumeDecideClocks(
+  state: MatchState,
+  nowIso: string,
+  frozenSlots: readonly PlayerSlot[]
+): MatchState {
+  const playMode = getPlayMode(state.playModeId);
+  if (!playMode?.clock || state.phase !== "decide") return state;
+
+  const frozen = new Set(frozenSlots);
+  let next = state;
+  let changed = false;
+
+  for (const slot of ["A", "B"] as const) {
+    if (frozen.has(slot)) continue;
+    const clock = next.clocks[slot];
+    if (clock.remainingMs <= 0 || clock.tickingSince) continue;
+    next = {
+      ...next,
+      updatedAt: nowIso,
+      clocks: {
+        ...next.clocks,
+        [slot]: { remainingMs: clock.remainingMs, tickingSince: nowIso },
       },
-      B: {
-        remainingMs: withMeta.clocks.B.remainingMs,
-        tickingSince: withMeta.clocks.B.remainingMs > 0 ? nowIso : null,
-      },
+    };
+    changed = true;
+  }
+
+  if (!changed) return state;
+
+  const withMeta = ensureTimerMeta(next);
+  return {
+    ...withMeta,
+    updatedAt: nowIso,
+    timerMeta: {
+      ...withMeta.timerMeta!,
+      roundDecideStartedAt: withMeta.timerMeta!.roundDecideStartedAt ?? nowIso,
     },
   };
 }
@@ -72,13 +166,30 @@ export function freezeClock(
   };
 }
 
+/** Active players whose bank is already at zero (stale DB rows, paused expiry, etc.). */
+export function slotsWithZeroClock(
+  state: MatchState,
+  frozenSlots: readonly PlayerSlot[]
+): PlayerSlot[] {
+  const playMode = getPlayMode(state.playModeId);
+  if (!playMode?.clock || !isClockTickPhase(state.phase)) return [];
+
+  const frozen = new Set(frozenSlots);
+  const expired: PlayerSlot[] = [];
+  for (const slot of ["A", "B"] as const) {
+    if (frozen.has(slot)) continue;
+    if (state.clocks[slot].remainingMs <= 0) expired.push(slot);
+  }
+  return expired;
+}
+
 export function tickClocks(
   state: MatchState,
   nowIso: string,
   frozenSlots: readonly PlayerSlot[]
 ): { state: MatchState; expired: PlayerSlot[] } {
   const playMode = getPlayMode(state.playModeId);
-  if (!playMode?.clock || state.phase !== "decide") {
+  if (!playMode?.clock || !isClockTickPhase(state.phase)) {
     return { state, expired: [] };
   }
 
@@ -103,7 +214,7 @@ export function tickClocks(
         ...next.clocks,
         [slot]: {
           remainingMs,
-          tickingSince: remainingMs > 0 ? clock.tickingSince : null,
+          tickingSince: remainingMs > 0 ? nowIso : null,
         },
       },
     };

@@ -2,26 +2,39 @@ import {
   createInitialMatchState,
   getBotPersona,
   getPlayMode,
-  beginRoundClocks,
+  beginBriefingClocks,
   COFFEE_SHOP_SCENARIO,
+  BOT_PERSONAS,
 } from "@adamsaxion/pricewar-engine";
 import type { MatchId } from "@adamsaxion/pricewar-types";
 import * as repo from "./repository";
-import { getUserTier } from "./auth";
 import { getUserRatingForMode } from "./ratings";
 import { maybeSubmitBotTurn } from "./resolver";
+import { isMarginRatedEnabled } from "./feature-flag";
+import {
+  drawSyntheticDelaySec,
+  getHumanOnlyWindowSec,
+  getHumanPolishMinSec,
+} from "./margin-matchmaking";
 
-const BOT_FALLBACK_SEC_BY_MODE: Record<string, number> = {
-  blitz: 30,
-  rapid: 45,
-  "blitz-e2e": 5,
-};
+const SYNTHETIC_BOT_IDS = BOT_PERSONAS.filter((p) => p.id !== "bot.tutorial").map(
+  (p) => p.id
+);
 
-export function getBotFallbackAfterSec(playModeId: string): number {
-  const modeSec = BOT_FALLBACK_SEC_BY_MODE[playModeId];
-  if (modeSec != null) return modeSec;
-  const env = Number(process.env.PRICEWAR_BOT_FALLBACK_SEC ?? "60");
-  return Number.isFinite(env) && env > 0 ? env : 60;
+function pickRandomSyntheticPersonaId(): string {
+  const idx = Math.floor(Math.random() * SYNTHETIC_BOT_IDS.length);
+  return SYNTHETIC_BOT_IDS[idx] ?? "bot.budget";
+}
+
+function queuedStatus(entry: NonNullable<Awaited<ReturnType<typeof repo.getQueueEntry>>>) {
+  const elapsedSec = Math.floor((Date.now() - entry.enqueuedAt.getTime()) / 1000);
+  return {
+    kind: "queued" as const,
+    scenarioId: entry.scenarioId,
+    playModeId: entry.playModeId,
+    enqueuedAt: entry.enqueuedAt.toISOString(),
+    elapsedSec,
+  };
 }
 
 export async function createVsBotMatch(args: {
@@ -39,7 +52,7 @@ export async function createVsBotMatch(args: {
   const bot = getBotPersona(args.botPersonalityId) ?? getBotPersona("bot.random")!;
   const rngSeed = crypto.randomUUID();
 
-  const state = createInitialMatchState({
+  const baseState = createInitialMatchState({
     matchId: "pending" as MatchId,
     playModeId: args.playModeId,
     rngSeed,
@@ -47,7 +60,12 @@ export async function createVsBotMatch(args: {
     playerBName: bot.label,
     playerBIsBot: true,
   });
-  state.phase = "decide";
+  const state =
+    args.playModeId === "tutorial"
+      ? { ...baseState, phase: "decide" as const }
+      : playMode.clock
+        ? beginBriefingClocks(baseState, new Date().toISOString())
+        : baseState;
 
   const matchId = await repo.createMatchWithPlayers({
     state,
@@ -60,7 +78,7 @@ export async function createVsBotMatch(args: {
   });
 
   const finalState = { ...state, matchId };
-  await repo.saveMatch(beginRoundClocks(finalState, new Date().toISOString()));
+  await repo.saveMatch(finalState);
 
   return { matchId };
 }
@@ -108,24 +126,23 @@ export async function enqueueForMatchmaking(args: {
   scenarioId: string;
   playModeId: string;
   ratingAtEnqueue?: number | null;
-}): Promise<{ queuedAt: string; botFallbackInSec: number }> {
-  const botFallbackAfterSec = getBotFallbackAfterSec(args.playModeId);
+}): Promise<{ queuedAt: string }> {
   const queuedAt = await repo.enqueueUser({
     userId: args.userId,
     scenarioId: args.scenarioId,
     playModeId: args.playModeId,
     ratingAtEnqueue: args.ratingAtEnqueue ?? null,
-    botFallbackAfterSec,
+    botFallbackAfterSec: 0,
   });
-  return { queuedAt, botFallbackInSec: botFallbackAfterSec };
+  return { queuedAt };
 }
 
-export async function tryMatchFromQueue(args: {
+async function tryPairHumanFromQueue(args: {
   userId: string;
   scenarioId: string;
   playModeId: string;
   playerName: string;
-}): Promise<{ matchId: MatchId } | { queued: true; queuedAt: string }> {
+}): Promise<{ paired: true } | { queued: true; queuedAt: string }> {
   const myQueue = await repo.getQueueEntry(args.userId);
 
   const opponent = await repo.findQueueOpponent({
@@ -148,18 +165,9 @@ export async function tryMatchFromQueue(args: {
     repo.getProfileUsername(args.userId),
   ]);
 
-  await repo.removeFromQueue(args.userId);
-  await repo.removeFromQueue(opponent.userId);
-
-  const [tierA, tierB] = await Promise.all([
-    getUserTier(args.userId),
-    getUserTier(opponent.userId),
-  ]);
-  const bothPaid = tierA === "paid" && tierB === "paid";
-
   let ratingA: number | null = null;
   let ratingB: number | null = null;
-  if (bothPaid) {
+  if (isMarginRatedEnabled()) {
     const [rA, rB] = await Promise.all([
       getUserRatingForMode({
         userId: args.userId,
@@ -191,45 +199,78 @@ export async function tryMatchFromQueue(args: {
     playModeId: args.playModeId,
   });
 
-  return { matchId };
+  const humanMatchedAt = new Date();
+  await Promise.all([
+    repo.setQueueHumanPending({
+      userId: args.userId,
+      pendingMatchId: matchId,
+      humanMatchedAt,
+    }),
+    repo.setQueueHumanPending({
+      userId: opponent.userId,
+      pendingMatchId: matchId,
+      humanMatchedAt,
+    }),
+  ]);
+
+  return { paired: true };
 }
 
 export async function advanceMatchmaking(args: {
   userId: string;
   playerName: string;
 }): Promise<
-  | { kind: "matched"; matchId: MatchId; botFallback?: boolean }
+  | { kind: "matched"; matchId: MatchId }
   | {
       kind: "queued";
       scenarioId: string;
       playModeId: string;
       enqueuedAt: string;
       elapsedSec: number;
-      botFallbackInSec: number;
-      secondsUntilBotFallback: number;
     }
   | { kind: "idle" }
 > {
   const entry = await repo.getQueueEntry(args.userId);
   if (!entry) return { kind: "idle" };
 
-  const humanMatch = await tryMatchFromQueue({
+  if (entry.pendingMatchId && entry.humanMatchedAt) {
+    const polishSec = getHumanPolishMinSec();
+    const sinceMatchMs = Date.now() - entry.humanMatchedAt.getTime();
+    if (sinceMatchMs >= polishSec * 1000) {
+      const matchId = entry.pendingMatchId as MatchId;
+      await repo.removeFromQueue(args.userId);
+      return { kind: "matched", matchId };
+    }
+    return queuedStatus(entry);
+  }
+
+  const humanPair = await tryPairHumanFromQueue({
     userId: args.userId,
     scenarioId: entry.scenarioId,
     playModeId: entry.playModeId,
     playerName: args.playerName,
   });
-  if ("matchId" in humanMatch) {
-    return { kind: "matched", matchId: humanMatch.matchId };
+  if ("paired" in humanPair && humanPair.paired) {
+    const refreshed = await repo.getQueueEntry(args.userId);
+    if (refreshed) return queuedStatus(refreshed);
   }
 
   const elapsedSec = Math.floor((Date.now() - entry.enqueuedAt.getTime()) / 1000);
-  const botFallbackInSec = entry.botFallbackAfterSec;
-  const secondsUntilBotFallback = Math.max(0, botFallbackInSec - elapsedSec);
+  const humanWindow = getHumanOnlyWindowSec();
 
-  if (elapsedSec >= botFallbackInSec) {
+  if (elapsedSec < humanWindow) {
+    return queuedStatus(entry);
+  }
+
+  let syntheticDelay = entry.syntheticDelaySec;
+  if (syntheticDelay == null) {
+    syntheticDelay = drawSyntheticDelaySec();
+    await repo.setQueueSyntheticDelay(args.userId, syntheticDelay);
+  }
+
+  if (elapsedSec >= humanWindow + syntheticDelay) {
     await repo.removeFromQueue(args.userId);
-    const botPersonalityId = "bot.budget";
+    const botPersonalityId = pickRandomSyntheticPersonaId();
     const { matchId } = await createVsBotMatch({
       userId: args.userId,
       playerName: args.playerName,
@@ -238,18 +279,36 @@ export async function advanceMatchmaking(args: {
       botPersonalityId,
     });
     await maybeSubmitBotTurn(matchId, botPersonalityId);
-    return { kind: "matched", matchId, botFallback: true };
+    return { kind: "matched", matchId };
   }
 
-  return {
-    kind: "queued",
-    scenarioId: entry.scenarioId,
-    playModeId: entry.playModeId,
-    enqueuedAt: entry.enqueuedAt.toISOString(),
-    elapsedSec,
-    botFallbackInSec,
-    secondsUntilBotFallback,
-  };
+  return queuedStatus(entry);
 }
 
 export { COFFEE_SHOP_SCENARIO };
+
+/** @deprecated Use advanceMatchmaking — kept for tests importing tryMatchFromQueue */
+export async function tryMatchFromQueue(args: {
+  userId: string;
+  scenarioId: string;
+  playModeId: string;
+  playerName: string;
+}): Promise<{ matchId: MatchId } | { queued: true; queuedAt: string }> {
+  const result = await tryPairHumanFromQueue(args);
+  if ("paired" in result && result.paired) {
+    const entry = await repo.getQueueEntry(args.userId);
+    if (entry?.pendingMatchId) {
+      return { matchId: entry.pendingMatchId as MatchId };
+    }
+  }
+  if ("queued" in result) {
+    return result;
+  }
+  const status = await repo.getQueueEntry(args.userId);
+  return { queued: true, queuedAt: status?.enqueuedAt.toISOString() ?? new Date().toISOString() };
+}
+
+/** @deprecated No longer exposed to clients */
+export function getBotFallbackAfterSec(_playModeId: string): number {
+  return getHumanOnlyWindowSec();
+}

@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { loginAs, startVsBotMatch, forfeitMatch } from "./helpers/auth";
+import { loginAs, startVsBotMatch, forfeitMatch, waitForMatchPhase } from "./helpers/auth";
 
 /**
  * Story 13 — post-match coach recommends lessons that resolve to real routes.
@@ -38,5 +38,19 @@ test.describe("Price War recommended lessons", () => {
     await page.goto(`/lessons/${slug}`);
     await expect(page).toHaveURL(new RegExp(`/lessons/${slug.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
     await expect(page.locator("body")).not.toContainText("Lesson not found");
+  });
+
+  test("postmatch terminal shows coach lesson nudge", async ({ page, request }) => {
+    const email = process.env.PRICEWAR_E2E_EMAIL ?? "carol+test@adamsaxion.dev";
+    const password = process.env.PRICEWAR_E2E_PASSWORD ?? "TestCarol123!";
+
+    await loginAs(page, email, password);
+    const matchId = await startVsBotMatch(page);
+    await forfeitMatch(request, matchId);
+    await waitForMatchPhase(request, matchId, "completed");
+
+    await page.goto(`/play/price-war/match/${matchId}/postmatch`);
+    await expect(page.getByText("Prof. Aldo · Debrief")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("button", { name: "Start lesson →" })).toBeVisible();
   });
 });

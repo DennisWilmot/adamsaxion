@@ -16,7 +16,7 @@ function settlePlayer(ctx: PipelineContext, slot: PlayerSlot): void {
     if (spare >= 20) {
       revenue += ctx.scratch.bulkOrderBonus;
       ctx.scratch.privateActionNotes[slot].push(
-        `Bulk catering order filled — +$${ctx.scratch.bulkOrderBonus}.`
+        `Bulk catering order filled. +$${ctx.scratch.bulkOrderBonus}.`
       );
     }
   }

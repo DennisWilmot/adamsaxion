@@ -49,12 +49,16 @@ export function stepEvents(ctx: PipelineContext): void {
     const sim = getSim(ctx.state, slot);
     if (event.id === "event.health_inspection") {
       if (sim.productQuality >= 0.6) {
-        ctx.scratch.privateActionNotes[slot].push("Health inspection boost — quality held up.");
+        ctx.scratch.privateActionNotes[slot].push(
+          "The health inspection went well. Quality standards paid off."
+        );
       } else if (sim.productQuality < 0.4) {
         let fine = 100;
         if (sim.insuranceActive) fine = Math.round(fine * 0.5);
         priv.cash = Math.max(0, priv.cash - fine);
-        ctx.scratch.privateActionNotes[slot].push("Health inspection fine — quality was below standard.");
+        ctx.scratch.privateActionNotes[slot].push(
+          "Health inspection fine. Quality was below standard."
+        );
       }
     }
   }

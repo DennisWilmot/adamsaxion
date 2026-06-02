@@ -31,10 +31,10 @@ export function stepCompetitive(ctx: PipelineContext): void {
       defSim.avgSkill = Math.max(0.1, defSim.avgSkill - 0.06);
       setMorale(defPriv, moraleUnit(defPriv.morale) - 0.05);
       atkSim.cooldownUntilRound["hr.h07"] = ctx.round + 3;
-      ctx.scratch.privateActionNotes[attacker].push("Poach succeeded — experienced hire joined your team.");
+      ctx.scratch.privateActionNotes[attacker].push("Poach succeeded. An experienced hire joined your team.");
       ctx.scratch.privateActionNotes[defender].push("A competitor poached one of your baristas.");
     } else {
-      ctx.scratch.privateActionNotes[attacker].push("Poach attempt failed — rival was alerted.");
+      ctx.scratch.privateActionNotes[attacker].push("Poach attempt failed. Your rival was alerted.");
     }
     writeSim(atkPriv, atkSim);
     writeSim(defPriv, defSim);

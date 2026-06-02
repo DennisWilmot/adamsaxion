@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CafeDuelRoot } from "../design-system/CafeDuelRoot";
 import { AvatarPlayer } from "../design-system/avatars";
@@ -8,13 +7,23 @@ import { CoffeeBackdrop } from "../design-system/CoffeeBackdrop";
 import { CoachBubble } from "../design-system/CoachBubble";
 import { PillBtn } from "../design-system/controls";
 import { CD } from "../design-system/tokens";
+import {
+  type HistoryMatch,
+  didLoseHistoryMatch,
+  didWinHistoryMatch,
+  formatHistoryMatchSubtitle,
+  getHistoryMatchHref,
+  isActiveHistoryMatch,
+  playModeLabel,
+} from "@/client/pricewar/history-match";
+import { isHistoryMatchRated } from "@/client/pricewar/rated-match";
 import { priceWarPaths } from "@/lib/games/routes";
-import type { HistoryMatch } from "./LobbyScreen";
 import { RecentMatch } from "./shared/RecentMatch";
 import { Stat } from "./shared/Stat";
 
 export interface ProfileScreenProps {
   elo: number | null;
+  isPaid?: boolean;
   matches: HistoryMatch[];
 }
 
@@ -26,9 +35,9 @@ function computeStats(matches: HistoryMatch[]) {
 
   for (const m of matches) {
     if (m.phase !== "completed") continue;
-    const won = m.outcomeKind === "win";
+    const won = didWinHistoryMatch(m);
     if (won) wins++;
-    else if (m.outcomeKind === "loss") losses++;
+    else if (didLoseHistoryMatch(m)) losses++;
     if (streakType === null) {
       streakType = won ? "win" : "loss";
       streak = 1;
@@ -40,9 +49,10 @@ function computeStats(matches: HistoryMatch[]) {
   return { wins, losses, streak: streakType === "win" ? streak : 0 };
 }
 
-export function ProfileScreen({ elo, matches }: ProfileScreenProps) {
+export function ProfileScreen({ elo, isPaid = false, matches }: ProfileScreenProps) {
   const router = useRouter();
   const stats = computeStats(matches);
+  const completedCount = matches.filter((m) => m.phase === "completed").length;
 
   return (
     <CafeDuelRoot style={{ background: CD.paper, minHeight: "100%", padding: "28px 0 36px" }}>
@@ -74,11 +84,18 @@ export function ProfileScreen({ elo, matches }: ProfileScreenProps) {
               <b style={{ color: CD.ink }}>Coffee Shop</b>
             </div>
           </div>
-          {elo != null && (
+          {elo != null && isPaid ? (
             <div style={{ textAlign: "right" }}>
               <div className="tab">Elo · Blitz</div>
               <div className="num serif" style={{ fontSize: 64, color: CD.ink, lineHeight: 1, marginTop: 2 }}>
                 {elo.toLocaleString()}
+              </div>
+            </div>
+          ) : (
+            <div style={{ textAlign: "right" }}>
+              <div className="tab">Blitz</div>
+              <div style={{ fontSize: 14, color: CD.ink2, marginTop: 8, maxWidth: 160, lineHeight: 1.45 }}>
+                Practice matches. Elo applies to ranked human games only.
               </div>
             </div>
           )}
@@ -110,20 +127,18 @@ export function ProfileScreen({ elo, matches }: ProfileScreenProps) {
           ) : (
             <div style={{ display: "grid", gap: 8 }}>
               {matches.map((m) => {
-                const won = m.phase === "completed" ? m.outcomeKind === "win" : undefined;
+                const won = m.phase === "completed" ? didWinHistoryMatch(m) : undefined;
                 return (
-                  <Link key={m.matchId} href={
-                    m.phase === "completed"
-                      ? priceWarPaths.match.postmatch(m.matchId)
-                      : priceWarPaths.match.decide(m.matchId)
-                  } style={{ textDecoration: "none" }}>
-                    <RecentMatch
-                      {...(won !== undefined ? { won } : {})}
-                      opp={m.playModeId}
-                      score={`${m.outcomeKind}${m.outcomeReason ? ` · ${m.outcomeReason}` : ""}`}
-                      delta={m.ratingDelta}
-                    />
-                  </Link>
+                  <RecentMatch
+                    key={m.matchId}
+                    href={getHistoryMatchHref(m)}
+                    active={isActiveHistoryMatch(m)}
+                    {...(won !== undefined ? { won } : {})}
+                    opp={playModeLabel(m.playModeId)}
+                    score={formatHistoryMatchSubtitle(m)}
+                    delta={m.ratingDelta}
+                    {...(m.phase === "completed" ? { rated: isHistoryMatchRated(m) } : {})}
+                  />
                 );
               })}
             </div>
@@ -146,11 +161,11 @@ export function ProfileScreen({ elo, matches }: ProfileScreenProps) {
               <Stat label="Wins" value={String(stats.wins)} />
               <Stat label="Losses" value={String(stats.losses)} />
               <Stat label="Streak" value={String(stats.streak)} />
-              <Stat label="Matches" value={String(matches.length)} />
+              <Stat label="Matches" value={String(completedCount)} />
             </div>
           </div>
           <CoachBubble label="Prof. Aldo · Read on you">
-            You hold pricing nerve well — but one bad round isn&apos;t a match. Stay in.
+            You hold pricing nerve well. One bad round is not the whole match. Stay in.
           </CoachBubble>
         </div>
       </div>

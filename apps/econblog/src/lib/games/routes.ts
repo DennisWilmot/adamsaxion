@@ -1,8 +1,14 @@
 /** Hub for all Adam's Axioms games */
 export const PLAY_HUB = "/play";
 
-/** The Price War — economics strategy duel */
+/** Player-facing name for the economics strategy game (internal codename: pricewar). */
+export const MARGIN_GAME_NAME = "Margin";
+
+/** Margin — economics strategy duel */
 export const PRICE_WAR = "/play/price-war";
+
+/** Econ Wordle — daily economics word puzzle */
+export const ECON_WORDLE = "/play/econ-wordle";
 
 export const priceWarPaths = {
   lobby: PRICE_WAR,
@@ -14,6 +20,7 @@ export const priceWarPaths = {
   queue: (mode?: string) =>
     mode ? `${PRICE_WAR}/queue?mode=${encodeURIComponent(mode)}` : `${PRICE_WAR}/queue`,
   match: {
+    root: (matchId: string) => `${PRICE_WAR}/match/${matchId}`,
     briefing: (matchId: string) => `${PRICE_WAR}/match/${matchId}/briefing`,
     decide: (matchId: string) => `${PRICE_WAR}/match/${matchId}/decide`,
     review: (matchId: string) => `${PRICE_WAR}/match/${matchId}/review`,

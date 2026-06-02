@@ -3,7 +3,7 @@ import type { MatchFacts } from "@adamsaxion/pricewar-engine";
 import type { PlayerSlot } from "@adamsaxion/pricewar-types";
 
 export function buildCoachSystemPrompt(): string {
-  return `You are an economics coach for "The Price War", a turn-based coffee shop strategy game.
+  return `You are an economics coach for "Margin", a turn-based coffee shop strategy game.
 Analyze the match facts and give concise, actionable feedback for the player whose slot is provided.
 Respond ONLY with valid JSON matching this schema:
 {

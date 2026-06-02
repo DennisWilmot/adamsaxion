@@ -1,5 +1,6 @@
 import { test, expect, type Browser } from "@playwright/test";
 import {
+  beginMatchDecide,
   findActiveMatch,
   forceAbandon,
   joinQueue,
@@ -47,6 +48,9 @@ test.describe("Price War abandonment forfeit", () => {
     const matchId =
       carol.matchId ?? dan.matchId ?? (await findActiveMatch(carol.request));
     expect(matchId).toBeTruthy();
+
+    await beginMatchDecide(carol.request, matchId!);
+    await beginMatchDecide(dan.request, matchId!);
 
     await carol.page.goto(`/play/price-war/match/${matchId}/decide`);
     await dan.page.goto(`/play/price-war/match/${matchId}/decide`);

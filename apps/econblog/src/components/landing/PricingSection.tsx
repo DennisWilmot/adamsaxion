@@ -36,7 +36,7 @@ const PLANS: Plan[] = [
   {
     id: "free",
     label: "Free",
-    name: "Lesson Zero",
+    name: "Try it free",
     icon: CircleDot,
     price: "$0",
     interval: "",

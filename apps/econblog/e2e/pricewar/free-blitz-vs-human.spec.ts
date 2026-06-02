@@ -10,7 +10,7 @@ async function joinQueue(
   const page = await context.newPage();
   await loginAs(page, email, password);
   const res = await context.request.post("/api/pricewar/matchmaking/queue", {
-    data: { scenarioId: "coffee-shop", playModeId: "blitz" },
+    data: { scenarioId: "coffee-shop", playModeId: "rapid" },
   });
   expect(res.ok()).toBe(true);
   const data = await res.json();
@@ -37,10 +37,10 @@ async function findActiveMatch(
 }
 
 /**
- * Story 1 — free Blitz human matchmaking pairs two users.
+ * Story 1 — free Rapid human matchmaking pairs two users.
  * Full 8-round completion is covered by engine replay tests.
  */
-test.describe("Price War free Blitz vs human", () => {
+test.describe("Price War free Rapid vs human", () => {
   test.skip(!process.env.PRICEWAR_E2E_ENABLED, "Set PRICEWAR_E2E_ENABLED=1 to run");
 
   test("alice and bob match into the same unrated PvP game", async ({ browser }) => {

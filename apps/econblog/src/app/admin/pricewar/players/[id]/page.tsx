@@ -50,7 +50,7 @@ export default function AdminPlayerDebugPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-xl p-xl">
       <Button asChild variant="outline" size="sm">
-        <Link href="/admin/pricewar">← Price War admin</Link>
+        <Link href="/admin/pricewar">← Margin admin</Link>
       </Button>
 
       {debugQuery.isLoading && (

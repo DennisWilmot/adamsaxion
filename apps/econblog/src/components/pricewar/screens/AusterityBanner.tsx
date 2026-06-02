@@ -1,8 +1,9 @@
 "use client";
 
-import { CD } from "../design-system/tokens";
+import { Cash, Eyebrow, MT } from "@/components/pricewar/design-system/margin-kit";
 
-const AUSTERITY_THRESHOLD = 500;
+/** v2 reference: financial distress below this cash level (`AusterityDecide`). */
+export const AUSTERITY_THRESHOLD = 200;
 
 export function isAusterityMode(cash: number) {
   return cash < AUSTERITY_THRESHOLD;
@@ -12,55 +13,38 @@ export function AusterityBanner({ cash }: { cash: number }) {
   return (
     <div
       style={{
-        marginTop: 18,
-        position: "relative",
-        overflow: "hidden",
-        background: "oklch(0.94 0.03 25)",
-        border: `1px solid ${CD.red}`,
+        background: "linear-gradient(180deg,#fdf3e2,#fbe8cc)",
+        border: `2px solid ${MT.warnLine}`,
         borderRadius: 14,
-        padding: "14px 18px",
+        padding: 14,
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
-        <div
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 10,
-            background: CD.red,
-            color: CD.paper,
-            display: "grid",
-            placeItems: "center",
-            fontSize: 22,
-            fontStyle: "italic",
-            fontFamily: "var(--font-cd-serif), serif",
-            flexShrink: 0,
-          }}
-        >
-          !
-        </div>
-        <div style={{ flex: 1, minWidth: 200 }}>
-          <div className="tab" style={{ color: CD.red }}>
-            Austerity mode · cash below ${AUSTERITY_THRESHOLD}
-          </div>
-          <div
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 12,
+        }}
+      >
+        <div>
+          <Eyebrow style={{ color: MT.warnInk }}>⚠ Financial distress</Eyebrow>
+          <h3
             className="serif"
-            style={{ fontSize: 22, color: CD.ink, lineHeight: 1.2, marginTop: 2 }}
+            style={{ fontSize: 19, color: MT.ink, fontWeight: 700, marginTop: 4, lineHeight: 1.15 }}
           >
-            Only cheap moves are on the menu.
-          </div>
-          <div style={{ fontSize: 13, color: CD.ink2, marginTop: 4 }}>
-            Spend caps to keep you in the game. Find ${AUSTERITY_THRESHOLD - 200}+ in cash to lift the
-            limit.
-          </div>
+            You&apos;re in austerity.
+          </h3>
         </div>
-        <div style={{ textAlign: "right" }}>
-          <div className="tab">Cash</div>
-          <div className="num serif" style={{ fontSize: 28, color: CD.red, lineHeight: 1 }}>
-            ${cash.toLocaleString()}
-          </div>
+        <div style={{ textAlign: "center", flexShrink: 0 }}>
+          <Cash v={cash} size={26} color="#c2410c" />
+          <div style={{ fontSize: 10.5, color: MT.warnInk, marginTop: 2 }}>floor at $0</div>
         </div>
       </div>
+      <p style={{ fontSize: 12.5, color: "#7a5a12", lineHeight: 1.45, margin: "10px 0 0" }}>
+        Below the ${AUSTERITY_THRESHOLD} threshold: no actions above $50 upfront, no hiring, no equipment,
+        no R&amp;D until cash recovers.
+      </p>
     </div>
   );
 }

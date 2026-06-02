@@ -2,14 +2,16 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { CafeDuelRoot } from "@/components/pricewar/design-system/CafeDuelRoot";
-import { AvatarPlayer } from "@/components/pricewar/design-system/avatars";
-import { CD } from "@/components/pricewar/design-system/tokens";
+import { useQueryClient } from "@tanstack/react-query";
+import { enterMatch } from "@/client/pricewar/match-view-cache";
 import { usePriceWarError } from "@/components/pricewar/screens/PriceWarErrorModal";
+import { MatchLoadingGate } from "@/components/pricewar/shell/MatchLoadingGate";
+import { MarginShellFrame } from "@/components/pricewar/shell/MarginShellFrame";
 import { priceWarPaths } from "@/lib/games/routes";
 
 export default function TutorialStartPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { showApiError } = usePriceWarError();
 
   useEffect(() => {
@@ -31,50 +33,20 @@ export default function TutorialStartPage() {
         router.replace(priceWarPaths.lobby);
         return;
       }
-      router.replace(priceWarPaths.match.decide(data.matchId));
+      await enterMatch(queryClient, router, data.matchId, {
+        replace: true,
+      });
     }
 
     void start();
     return () => {
       cancelled = true;
     };
-  }, [router, showApiError]);
+  }, [queryClient, router, showApiError]);
 
   return (
-    <CafeDuelRoot
-      style={{
-        background: CD.paper,
-        minHeight: 400,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexDirection: "column",
-        textAlign: "center",
-        padding: 36,
-      }}
-    >
-      <div style={{ position: "relative", display: "inline-block" }}>
-        <AvatarPlayer size={88} ring={CD.primary} />
-        <div
-          className="cd-pulse"
-          style={{
-            position: "absolute",
-            inset: -8,
-            borderRadius: 16,
-            border: `2px solid ${CD.primary}`,
-            opacity: 0.5,
-          }}
-        />
-      </div>
-      <div className="tab" style={{ marginTop: 24 }}>
-        Tutorial
-      </div>
-      <h1 className="serif" style={{ fontSize: 32, color: CD.ink, marginTop: 8 }}>
-        Setting up your first match…
-      </h1>
-      <p style={{ fontSize: 14, color: CD.ink2, marginTop: 8 }}>
-        Guided practice. No clock, no rating impact.
-      </p>
-    </CafeDuelRoot>
+    <MarginShellFrame contentPadding={0}>
+      <MatchLoadingGate message="Setting up your first match…" minHeight={420} />
+    </MarginShellFrame>
   );
 }

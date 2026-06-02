@@ -20,8 +20,8 @@ export function MoveCatalogTooltip({ moveId }: { moveId: MoveId }) {
         boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
       }}
     >
-      <TooltipSection label="Mechanic" text={entry.mechanic} />
-      {entry.strongWhen ? <TooltipSection label="Strong when" text={entry.strongWhen} /> : null}
+      <TooltipSection label="How it works" text={entry.mechanic} />
+      {entry.strongWhen ? <TooltipSection label="Works best when" text={entry.strongWhen} /> : null}
       {entry.riskyWhen ? <TooltipSection label="Risky when" text={entry.riskyWhen} muted /> : null}
     </div>
   );
@@ -37,7 +37,7 @@ function TooltipSection({
   muted?: boolean;
 }) {
   return (
-    <div style={{ marginTop: label === "Mechanic" ? 0 : 10 }}>
+    <div style={{ marginTop: label === "How it works" ? 0 : 10 }}>
       <div
         style={{
           fontSize: 10,

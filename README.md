@@ -8,7 +8,7 @@ Two interconnected projects powering an economics education business: a YouTube 
 AdamsAxiom-V2/
 ├── adams-agents/      # AI video content pipeline (Python CLI)
 ├── apps/
-│   └── econblog/      # Interactive economics learning platform + The Price War (Next.js)
+│   └── econblog/      # Interactive economics learning platform + Margin (Next.js)
 ├── packages/
 │   ├── pricewar-types/   # Shared game types
 │   └── pricewar-engine/  # Pure TS game engine

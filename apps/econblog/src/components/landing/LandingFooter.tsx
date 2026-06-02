@@ -42,7 +42,7 @@ export function LandingFooter() {
                     href="/leaderboard"
                     className="font-body text-sm text-foreground-secondary hover:text-foreground transition-colors"
                   >
-                    Leaderboard
+                    XP Leaderboard
                   </Link>
                 </li>
               </ul>

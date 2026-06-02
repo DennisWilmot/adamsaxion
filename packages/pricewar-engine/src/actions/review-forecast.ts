@@ -23,7 +23,7 @@ export function reviewForecastForDraft(
 
   for (const move of submittedMoves) {
     if (!hasActionHandler(move.moveId) && !scenario.allowStubbedMoves) {
-      lines.push({ kind: "risk", text: `${move.moveId} is not enabled for ranked play yet.` });
+      lines.push({ kind: "risk", text: `${move.moveId} is not enabled for ranked matches yet.` });
     }
   }
 
@@ -37,15 +37,18 @@ export function reviewForecastForDraft(
   }
 
   if (moveIds.includes("operations.o08" as MoveId) && sim.overtimeLastRound === round - 1) {
-    lines.push({ kind: "risk", text: "Cannot run overtime two rounds in a row." });
+    lines.push({ kind: "risk", text: "You cannot run overtime two rounds in a row." });
   }
 
   if (moveIds.includes("operations.o08" as MoveId) && priv.morale < 30) {
-    lines.push({ kind: "risk", text: "Morale too low for overtime." });
+    lines.push({ kind: "risk", text: "Team morale is too low for overtime." });
   }
 
   if (round >= state.market.totalRounds) {
-    lines.push({ kind: "risk", text: "Final round — long-payoff moves may not fully land." });
+    lines.push({
+      kind: "caution",
+      text: "Final round. Long-payoff moves may not fully land.",
+    });
   }
 
   for (const move of submittedMoves) {
@@ -53,7 +56,7 @@ export function reviewForecastForDraft(
     if (def?.input.kind === "amount") {
       const spend = (move.input as { amount?: number })?.amount ?? 0;
       if (spend > priv.cash) {
-        lines.push({ kind: "risk", text: `Insufficient cash for ${def.name}.` });
+        lines.push({ kind: "risk", text: `Not enough cash for ${def.name}.` });
       }
     }
   }
@@ -62,7 +65,7 @@ export function reviewForecastForDraft(
     const oppPrice = state.playersPublic[slot === "A" ? "B" : "A"].currentPrice;
     lines.push({
       kind: "delayed",
-      text: `Opponent is at ${oppPrice}¢ — allocation shifts after lock.`,
+      text: `Your rival is at ${oppPrice}¢. Customer split updates after lock.`,
     });
   }
 

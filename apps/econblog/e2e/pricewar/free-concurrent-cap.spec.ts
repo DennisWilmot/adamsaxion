@@ -16,7 +16,7 @@ test.describe("Price War free concurrent cap", () => {
     const first = await request.post("/api/pricewar/match/vs-bot", {
       data: {
         scenarioId: "coffee-shop",
-        playModeId: "blitz",
+        playModeId: "rapid",
         botPersonalityId: "bot.budget",
       },
     });
@@ -26,7 +26,7 @@ test.describe("Price War free concurrent cap", () => {
     const second = await request.post("/api/pricewar/match/vs-bot", {
       data: {
         scenarioId: "coffee-shop",
-        playModeId: "blitz",
+        playModeId: "rapid",
         botPersonalityId: "bot.budget",
       },
     });

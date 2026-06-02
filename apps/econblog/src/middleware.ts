@@ -2,8 +2,11 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getAdminEmails } from "@/lib/admin/auth";
 import { isPriceWarEnabled } from "@/server/pricewar/feature-flag";
+import { ECON_WORDLE } from "@/lib/games/routes";
 
 const PROTECTED_ROUTES = ["/profile", "/play"];
+// Play routes that are public (no auth) and independent of the Margin feature flag.
+const PUBLIC_PLAY_ROUTES = [ECON_WORDLE];
 const ADMIN_ROUTES = ["/admin", "/api/admin", "/api/pricewar/admin"];
 const PRICEWAR_API_PUBLIC = ["/api/pricewar/play-modes"];
 
@@ -99,9 +102,15 @@ export async function middleware(request: NextRequest) {
     return supabaseResponse;
   }
 
-  const isProtected = PROTECTED_ROUTES.some(
+  const isPublicPlay = PUBLIC_PLAY_ROUTES.some(
     (route) => pathname === route || pathname.startsWith(route + "/")
   );
+
+  const isProtected =
+    !isPublicPlay &&
+    PROTECTED_ROUTES.some(
+      (route) => pathname === route || pathname.startsWith(route + "/")
+    );
 
   const isPricewarApi =
     pathname === "/api/pricewar" || pathname.startsWith("/api/pricewar/");
@@ -112,13 +121,14 @@ export async function middleware(request: NextRequest) {
 
   if (isPricewarApi && !isPublicPricewarApi && !isMetricsRoute && !isPriceWarEnabled()) {
     return NextResponse.json(
-      { code: "SERVICE_UNAVAILABLE", message: "The Price War is temporarily unavailable." },
+      { code: "SERVICE_UNAVAILABLE", message: "Margin is temporarily unavailable." },
       { status: 503 }
     );
   }
 
   if (
     !isPriceWarEnabled() &&
+    !isPublicPlay &&
     (pathname === "/play" || pathname.startsWith("/play/"))
   ) {
     const url = request.nextUrl.clone();

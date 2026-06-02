@@ -1,185 +1,156 @@
 "use client";
 
-import { CafeDuelRoot } from "../design-system/CafeDuelRoot";
-import { AvatarPlayer } from "../design-system/avatars";
 import { CoachBubble } from "../design-system/CoachBubble";
-import { PillBtn } from "../design-system/controls";
-import { CD } from "../design-system/tokens";
+import { MarginBtn, MT } from "../design-system/margin-kit";
 
-function formatTime(sec: number) {
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
-  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-}
+const PREP_LINES = [
+  "Warming the espresso machine",
+  "Pre-heating the oven",
+  "Balancing the books",
+];
 
-export interface QueueScreenProps {
+export interface QueuePanelProps {
   playModeId: string;
-  elo: number | null;
   elapsedSec: number;
-  fallbackSec: number;
-  secondsUntilBotFallback: number;
-  matchingBot?: boolean;
   onCancel: () => void;
-  onPlayBot?: () => void;
+  enteringMatch?: boolean;
 }
 
-export function QueueScreen({
+/** Queue content for use inside MarginShellFrame (no full-page wrapper). */
+export function QueuePanel({
   playModeId,
-  elo,
   elapsedSec,
-  fallbackSec,
-  secondsUntilBotFallback,
-  matchingBot = false,
   onCancel,
-  onPlayBot,
-}: QueueScreenProps) {
-  const rangeLow = elo != null ? Math.max(800, elo - 150) : 1180;
-  const rangeHigh = elo != null ? elo + 150 : 1470;
-  const widenPct = Math.min(60, 20 + Math.floor(elapsedSec / 30) * 10);
-
-  return (
-    <CafeDuelRoot
-      style={{
-        background: CD.paper,
-        minHeight: "100%",
-        padding: "28px 0 36px",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <PillBtn variant="ghost" color={CD.ink3} size="sm" onClick={onCancel}>
-        ← Cancel
-      </PillBtn>
-
+  enteringMatch = false,
+}: QueuePanelProps) {
+  if (enteringMatch) {
+    return (
       <div
+        role="status"
+        aria-live="polite"
+        aria-busy="true"
         style={{
-          flex: 1,
+          minHeight: 560,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          flexDirection: "column",
-          textAlign: "center",
-          position: "relative",
-          minHeight: 420,
+          padding: "40px 24px",
         }}
       >
-        <div style={{ position: "relative", display: "inline-block" }}>
-          <AvatarPlayer size={120} ring={CD.primary} />
-          {[1, 2, 3].map((i) => (
+        <div
+          style={{
+            width: "100%",
+            maxWidth: 560,
+            background: MT.card,
+            border: `1px solid ${MT.rule}`,
+            borderRadius: 18,
+            padding: "40px 30px",
+            textAlign: "center",
+          }}
+        >
+          <h2 className="serif" style={{ fontSize: 27, color: MT.ink, fontWeight: 700 }}>
+            Match found
+          </h2>
+          <p style={{ fontSize: 13.5, color: MT.ink3, marginTop: 8 }}>Opening briefing…</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: "grid", gap: 20, padding: "24px 0" }}>
+      <div
+        style={{
+          minHeight: 480,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{
+            width: "100%",
+            maxWidth: 560,
+            background: MT.card,
+            border: `1px solid ${MT.rule}`,
+            borderRadius: 18,
+            padding: "40px 30px",
+            textAlign: "center",
+          }}
+        >
+        <h2 className="serif" style={{ fontSize: 27, color: MT.ink, fontWeight: 700 }}>
+          Looking for an opponent…
+        </h2>
+        <div style={{ fontSize: 13.5, color: MT.ink3, marginTop: 5, textTransform: "capitalize" }}>
+          {playModeId} · Coffee Shop
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+            margin: "26px auto 0",
+            maxWidth: 320,
+            textAlign: "left",
+          }}
+        >
+          {PREP_LINES.map((line, i) => (
             <div
-              key={i}
-              className="cd-pulse"
+              key={line}
               style={{
-                position: "absolute",
-                inset: 0,
-                borderRadius: 16,
-                border: `2px solid ${CD.primary}`,
-                opacity: 0.4 / i,
-                animationDelay: `${i * 0.6}s`,
-                transform: `scale(${1 + i * 0.15})`,
+                display: "flex",
+                alignItems: "center",
+                gap: 11,
+                opacity: i === 0 ? 1 : 0.5,
               }}
-            />
+            >
+              {i === 0 ? (
+                <span style={{ display: "inline-flex", gap: 3 }}>
+                  {[0, 1, 2].map((d) => (
+                    <span
+                      key={d}
+                      className="mtq-dot"
+                      style={{ width: 6, height: 6, borderRadius: 99, background: MT.blue }}
+                    />
+                  ))}
+                </span>
+              ) : (
+                <span style={{ width: 16, textAlign: "center", color: MT.ink4 }}>○</span>
+              )}
+              <span
+                className="serif"
+                style={{
+                  fontSize: 15.5,
+                  fontStyle: "italic",
+                  color: i === 0 ? MT.ink : MT.ink3,
+                }}
+              >
+                {line}…
+              </span>
+            </div>
           ))}
         </div>
 
-        <div className="tab" style={{ marginTop: 28 }}>
-          {matchingBot ? "Matching with AI opponent" : "Searching for an opponent"}
-        </div>
-        <h1
-          className="serif"
-          style={{ fontSize: 38, color: CD.ink, marginTop: 8, lineHeight: 1.1, maxWidth: 600 }}
-        >
-          {matchingBot
-            ? "No humans available — starting a bot match…"
-            : "Finding someone in your league…"}
-        </h1>
-        <p style={{ fontSize: 13, color: CD.ink3, marginTop: 8, textTransform: "capitalize" }}>
-          {playModeId} · Coffee Shop
-        </p>
-
-        <div style={{ display: "flex", alignItems: "center", gap: 24, marginTop: 28, flexWrap: "wrap", justifyContent: "center" }}>
-          <div style={{ textAlign: "center" }}>
-            <div className="tab">Your Elo</div>
-            <div className="num serif" style={{ fontSize: 34, color: CD.ink, lineHeight: 1, marginTop: 4 }}>
-              {elo != null ? elo.toLocaleString() : "—"}
-            </div>
-          </div>
-          <div style={{ width: 1, height: 36, background: CD.rule }} />
-          <div style={{ textAlign: "center" }}>
-            <div className="tab">Searching range</div>
-            <div className="num" style={{ fontSize: 16, color: CD.ink, lineHeight: 1, marginTop: 6 }}>
-              {rangeLow.toLocaleString()} — {rangeHigh.toLocaleString()}
-            </div>
-          </div>
-          <div style={{ width: 1, height: 36, background: CD.rule }} />
-          <div style={{ textAlign: "center" }}>
-            <div className="tab">In queue</div>
-            <div className="num mono" style={{ fontSize: 24, color: CD.ink, lineHeight: 1, marginTop: 6 }}>
-              {formatTime(elapsedSec)}
-            </div>
-          </div>
+        <div style={{ marginTop: 20 }}>
+          <span className="mono" style={{ fontSize: 12, color: MT.ink3 }}>
+            {String(Math.floor(elapsedSec / 60)).padStart(2, "0")}:
+            {String(elapsedSec % 60).padStart(2, "0")}
+          </span>
         </div>
 
-        <div style={{ width: 360, maxWidth: "100%", marginTop: 26 }}>
-          <div
-            style={{
-              height: 6,
-              background: CD.paperDeep,
-              borderRadius: 999,
-              position: "relative",
-              border: `1px solid ${CD.rule}`,
-            }}
-          >
-            <div
-              style={{
-                position: "absolute",
-                left: `${(100 - widenPct) / 2}%`,
-                right: `${(100 - widenPct) / 2}%`,
-                top: -3,
-                bottom: -3,
-                background: CD.primarySoft,
-                border: `1px solid ${CD.primary}`,
-                borderRadius: 999,
-              }}
-            />
-            <div
-              style={{
-                position: "absolute",
-                left: "50%",
-                top: -3,
-                bottom: -3,
-                width: 2,
-                background: CD.primary,
-                transform: "translateX(-50%)",
-              }}
-            />
-          </div>
-          <div style={{ fontSize: 11.5, color: CD.ink3, marginTop: 6 }}>
-            {matchingBot
-              ? "Hang tight — your match is starting."
-              : secondsUntilBotFallback > 0
-                ? `AI opponent in ${secondsUntilBotFallback}s if no human is found.`
-                : "Range widens every 30s."}
-          </div>
-        </div>
-
-        <div style={{ marginTop: 24, display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
-          <PillBtn variant="outline" color={CD.ink} size="md" onClick={onCancel}>
+        <div style={{ marginTop: 28 }}>
+          <MarginBtn kind="danger" size="md" onClick={onCancel}>
             Cancel search
-          </PillBtn>
-          {!matchingBot && secondsUntilBotFallback > 0 && onPlayBot && (
-            <PillBtn variant="solid" color={CD.primary} size="md" onClick={onPlayBot}>
-              Play a bot now
-            </PillBtn>
-          )}
+          </MarginBtn>
+        </div>
         </div>
       </div>
 
       <CoachBubble label="Prof. Aldo · While we wait">
-        Take a breath. Look at the scenario again. Decide your default playstyle before the bell
-        rings — premium, value, or chaos.
+        While you wait, think about your plan. Will you charge more, compete on price, or mix it up?
       </CoachBubble>
-    </CafeDuelRoot>
+    </div>
   );
 }
 

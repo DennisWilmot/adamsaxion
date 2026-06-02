@@ -57,7 +57,7 @@ export async function consumeRateLimit(args: {
       ok: false,
       error: {
         code: "RATE_LIMITED",
-        message: `Slow down — try again in ${Math.max(1, retryAfterSec)} seconds.`,
+        message: `Please wait ${Math.max(1, retryAfterSec)} seconds and try again.`,
       },
       retryAfterSec: Math.max(1, retryAfterSec),
     };
@@ -79,7 +79,7 @@ function rateLimited(config: BucketConfig) {
     ok: false as const,
     error: {
       code: "RATE_LIMITED" as const,
-      message: "Slow down — try again later.",
+      message: "Please wait a moment and try again.",
     },
     retryAfterSec: Math.ceil(config.refillMs / 1000),
   };

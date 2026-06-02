@@ -12,9 +12,16 @@ export type CoffeeShopEventDef = {
   apply: (ctx: PipelineContext) => void;
 };
 
-function bumpFootTraffic(ctx: PipelineContext, factor: number, label: string): void {
+/** Prefix for player-facing event copy in reports and UI. */
+export const NEWS_ALERT_PREFIX = "News alert:";
+
+function newsAlert(body: string): string {
+  return `${NEWS_ALERT_PREFIX} ${body}`;
+}
+
+function bumpFootTraffic(ctx: PipelineContext, factor: number, alertBody: string): void {
   ctx.scratch.footTrafficMultiplier *= factor;
-  ctx.scratch.activeEventLabel = label;
+  ctx.scratch.activeEventLabel = newsAlert(alertBody);
 }
 
 function bumpInputCost(ctx: PipelineContext, factor: number): void {
@@ -28,170 +35,242 @@ export const COFFEE_SHOP_EVENTS: CoffeeShopEventDef[] = [
   {
     id: "event.health_inspection",
     label: "Health inspection",
-    description: "Inspector visit — quality shops gain reputation; weak quality risks a fine.",
+    description: newsAlert(
+      "Health inspectors visited the block. Clean, well-run shops got a boost."
+    ),
     impact: "neutral",
     weight: 12,
     apply(ctx) {
       for (const slot of ["A", "B"] as const) {
         const sim = ctx.state.playersPrivate[slot];
         if (sim.reputation > 60) {
-          ctx.scratch.privateActionNotes[slot].push("Health inspection passed with praise.");
+          ctx.scratch.privateActionNotes[slot].push(
+            "The health inspection went well. Quality standards paid off."
+          );
         }
       }
-      ctx.scratch.activeEventLabel = "Health inspection on the block";
+      ctx.scratch.activeEventLabel = newsAlert(
+        "Health inspectors visited the block. Clean, well-run shops got a boost."
+      );
     },
   },
   {
     id: "event.heavy_rain",
     label: "Heavy rain",
-    description: "Foot traffic drops sharply as customers stay indoors.",
+    description: newsAlert(
+      "Heavy rain kept people indoors. Fewer customers walked in today."
+    ),
     impact: "negative",
     weight: 20,
     apply(ctx) {
-      bumpFootTraffic(ctx, 0.6, "Heavy rain · foot traffic down");
+      bumpFootTraffic(
+        ctx,
+        0.6,
+        "Heavy rain kept people indoors. Fewer customers walked in today."
+      );
     },
   },
   {
     id: "event.supply_disruption",
     label: "Supply disruption",
-    description: "Input costs spike; inventory buffer absorbs part of the shock.",
+    description: newsAlert(
+      "Coffee bean supply hit a snag. Ingredient costs went up for everyone."
+    ),
     impact: "negative",
     weight: 8,
     apply(ctx) {
       bumpInputCost(ctx, 1.4);
-      ctx.scratch.activeEventLabel = "Supply disruption · bean costs up";
+      ctx.scratch.activeEventLabel = newsAlert(
+        "Coffee bean supply hit a snag. Ingredient costs went up for everyone."
+      );
     },
   },
   {
     id: "event.traffic_jam",
     label: "Traffic jam",
-    description: "Road closure deters walk-in customers for the round.",
+    description: newsAlert(
+      "A road closure slowed downtown traffic. Walk-in customers dropped."
+    ),
     impact: "negative",
     weight: 12,
     apply(ctx) {
-      bumpFootTraffic(ctx, 0.75, "Traffic jam · fewer walk-ins");
+      bumpFootTraffic(
+        ctx,
+        0.75,
+        "A road closure slowed downtown traffic. Walk-in customers dropped."
+      );
     },
   },
   {
     id: "event.utility_spike",
     label: "Utility spike",
-    description: "Energy prices jump — overhead costs rise for both cafés.",
+    description: newsAlert(
+      "Energy prices jumped. Running costs rose for both cafés."
+    ),
     impact: "negative",
     weight: 10,
     apply(ctx) {
       ctx.scratch.overheadMultiplier = (ctx.scratch.overheadMultiplier ?? 1) * 1.15;
-      ctx.scratch.activeEventLabel = "Utility spike · overhead up";
+      ctx.scratch.activeEventLabel = newsAlert(
+        "Energy prices jumped. Running costs rose for both cafés."
+      );
     },
   },
   {
     id: "event.staff_conflict",
     label: "Staff conflict",
-    description: "Team dispute hurts morale and service quality.",
+    description: newsAlert(
+      "Tension on the team spilled into service. Morale took a hit at both shops."
+    ),
     impact: "negative",
     weight: 6,
     apply(ctx) {
       for (const slot of ["A", "B"] as const) {
         ctx.scratch.moraleShock[slot] = (ctx.scratch.moraleShock[slot] ?? 0) - 0.06;
-        ctx.scratch.privateActionNotes[slot].push("Staff conflict hurt morale this round.");
+        ctx.scratch.privateActionNotes[slot].push(
+          "Team conflict hurt morale this round."
+        );
       }
-      ctx.scratch.activeEventLabel = "Staff conflict · service strained";
+      ctx.scratch.activeEventLabel = newsAlert(
+        "Tension on the team spilled into service. Morale took a hit at both shops."
+      );
     },
   },
   {
     id: "event.bulk_catering",
     label: "Bulk catering request",
-    description: "A large one-time order is available if you have spare capacity.",
+    description: newsAlert(
+      "A big office order is up for grabs. Extra cash if you have capacity."
+    ),
     impact: "positive",
     weight: 6,
     apply(ctx) {
       ctx.scratch.bulkOrderBonus = 150;
-      ctx.scratch.activeEventLabel = "Bulk catering order available";
+      ctx.scratch.activeEventLabel = newsAlert(
+        "A big office order is up for grabs. Extra cash if you have capacity."
+      );
     },
   },
   {
     id: "event.competitor_promotion",
     label: "Competitor promotion",
-    description: "Organic competitor buzz shifts share toward the rival for the round.",
+    description: newsAlert(
+      "A rival café is running a loud promo nearby. Some customers may drift away."
+    ),
     impact: "negative",
     weight: 10,
     apply(ctx) {
       ctx.scratch.streetTrafficBoost -= 0.05;
-      ctx.scratch.activeEventLabel = "Competitor promotion on the street";
+      ctx.scratch.activeEventLabel = newsAlert(
+        "A rival café is running a loud promo nearby. Some customers may drift away."
+      );
     },
   },
   {
     id: "event.festival",
     label: "Local festival",
-    description: "Foot traffic surges from an external downtown event.",
+    description: newsAlert(
+      "A downtown festival brought crowds. More foot traffic on the block."
+    ),
     impact: "positive",
     weight: 8,
     apply(ctx) {
-      bumpFootTraffic(ctx, 1.8, "Local festival · foot traffic up");
+      bumpFootTraffic(
+        ctx,
+        1.8,
+        "A downtown festival brought crowds. More foot traffic on the block."
+      );
     },
   },
   {
     id: "event.viral_positive",
     label: "Viral review (positive)",
-    description: "A glowing review drives new customers to both shops.",
+    description: newsAlert(
+      "A glowing review went viral. New customers are checking out both cafés."
+    ),
     impact: "positive",
     weight: 3,
     apply(ctx) {
       ctx.scratch.streetTrafficBoost += 0.2;
-      ctx.scratch.activeEventLabel = "Viral positive review · buzz up";
+      ctx.scratch.activeEventLabel = newsAlert(
+        "A glowing review went viral. New customers are checking out both cafés."
+      );
     },
   },
   {
     id: "event.viral_negative",
     label: "Viral review (negative)",
-    description: "A harsh review tempers new customer traffic.",
+    description: newsAlert(
+      "A harsh review spread online. New customers are hesitating."
+    ),
     impact: "negative",
     weight: 3,
     apply(ctx) {
       ctx.scratch.streetTrafficBoost -= 0.15;
-      ctx.scratch.activeEventLabel = "Viral negative review · trust down";
+      ctx.scratch.activeEventLabel = newsAlert(
+        "A harsh review spread online. New customers are hesitating."
+      );
     },
   },
   {
     id: "event.social_trend",
     label: "Social media trend",
-    description: "Coffee culture trends online — industry-wide traffic lift.",
+    description: newsAlert(
+      "Coffee is trending online. More people are in the mood for a cup."
+    ),
     impact: "positive",
     weight: 4,
     apply(ctx) {
-      bumpFootTraffic(ctx, 1.25, "Social trend · coffee buzz");
+      bumpFootTraffic(
+        ctx,
+        1.25,
+        "Coffee is trending online. More people are in the mood for a cup."
+      );
     },
   },
   {
     id: "event.landlord_rent",
     label: "Landlord raises rent",
-    description: "Fixed downtown rent increases permanently.",
+    description: newsAlert(
+      "Rent went up downtown. Fixed costs rose for both shops."
+    ),
     impact: "negative",
     weight: 8,
     apply(ctx) {
       ctx.scratch.rentSurcharge = (ctx.scratch.rentSurcharge ?? 0) + 20;
-      ctx.scratch.activeEventLabel = "Landlord raised rent · overhead up";
+      ctx.scratch.activeEventLabel = newsAlert(
+        "Rent went up downtown. Fixed costs rose for both shops."
+      );
     },
   },
   {
     id: "event.favorable_press",
     label: "Favorable press",
-    description: "Local media spotlight lifts reputation for quality operators.",
+    description: newsAlert(
+      "Local press spotlighted the coffee scene. Good shops got extra buzz."
+    ),
     impact: "positive",
     weight: 3,
     apply(ctx) {
       ctx.scratch.streetTrafficBoost += 0.15;
-      ctx.scratch.activeEventLabel = "Favorable press coverage";
+      ctx.scratch.activeEventLabel = newsAlert(
+        "Local press spotlighted the coffee scene. Good shops got extra buzz."
+      );
     },
   },
   {
     id: "event.power_outage",
     label: "Power outage",
-    description: "Electricity failure — production severely constrained.",
+    description: newsAlert(
+      "A power outage hit the block. Both shops ran at reduced capacity."
+    ),
     impact: "negative",
     weight: 3,
     apply(ctx) {
       ctx.scratch.footTrafficMultiplier *= 0.5;
-      ctx.scratch.activeEventLabel = "Power outage · limited service";
+      ctx.scratch.activeEventLabel = newsAlert(
+        "A power outage hit the block. Both shops ran at reduced capacity."
+      );
     },
   },
 ];

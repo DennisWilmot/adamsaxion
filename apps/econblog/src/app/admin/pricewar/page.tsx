@@ -38,7 +38,7 @@ export default function AdminPriceWarPage() {
     <div className="mx-auto max-w-6xl space-y-2xl p-xl">
       <div className="flex flex-wrap items-center justify-between gap-md">
         <div>
-          <h1 className="font-display text-3xl font-bold">Price War Admin</h1>
+          <h1 className="font-display text-3xl font-bold">Margin Admin</h1>
           <p className="mt-sm text-foreground-muted">
             Match debug, move catalog analytics, LLM spend, player lookup.
           </p>

@@ -72,20 +72,20 @@ export function moveEffectHint(
 
   if (move.id === "sales.s01" && typeof payload.newPrice === "number") {
     const v = payload.newPrice;
-    if (v > 500) return "premium · lower volume";
-    if (v < 400) return "value · higher volume";
+    if (v > 500) return "Premium price, lower volume";
+    if (v < 400) return "Value price, higher volume";
     if (opp != null) {
-      return v > opp ? "above rival" : v < opp ? "below rival" : "matching rival";
+      return v > opp ? "Above rival" : v < opp ? "Below rival" : "Matching rival";
     }
-    return "balanced";
+    return "Balanced";
   }
 
   if (move.id === "sales.s04") {
-    return "40% price cut · traffic boost this round only";
+    return "40% price cut, traffic boost this round only";
   }
 
   if (move.id === "procurement.p03" && typeof payload.units === "number") {
-    return `+2 buffer · $${estimateMoveCost(move.id, input).toLocaleString()} cost`;
+    return `+2 buffer, $${estimateMoveCost(move.id, input).toLocaleString()} cost`;
   }
 
   if (move.input.kind === "amount" && typeof payload.amount === "number") {
@@ -98,7 +98,7 @@ export function moveEffectHint(
   }
 
   if (mine != null && opp != null) {
-    return `Rival at ${opp}¢ · you at ${mine}¢`;
+    return `Rival at ${opp}¢, you at ${mine}¢`;
   }
 
   return null;
@@ -116,7 +116,7 @@ export function moveInputHint(
   }
 
   if (move.id === "sales.s04") {
-    return "Temporary cut — reverts next round.";
+    return "Temporary cut. Price resets next round.";
   }
 
   if (move.id === "procurement.p03") {

@@ -4,13 +4,36 @@ import {
   toPlayerView,
   getBotPersona,
   createRng,
+  pauseAllClocks,
 } from "@adamsaxion/pricewar-engine";
 import type { MatchId, PlayerSlot, SubmittedMove } from "@adamsaxion/pricewar-types";
 import { COFFEE_SHOP_SCENARIO } from "./matchmaker";
 import * as repo from "./repository";
 import { emitMatchEvent } from "./sse";
 import { finalizeMatchRatings } from "./ratings";
-import { onPlayerSubmitClock, onRoundResolved, ensureMatchLifecycle } from "./clock";
+import { onPlayerSubmitClock, ensureMatchLifecycle } from "./clock";
+
+/** Both slots submitted but phase still `decide` — reconcile (e.g. missed resolve after lock-in). */
+export async function tryResolveStaleLockedRound(matchId: MatchId): Promise<void> {
+  const state = await repo.loadMatch(matchId);
+  if (!state || state.phase !== "decide") return;
+
+  const round = state.market.currentRound;
+  const subA = await repo.getSubmission(matchId, round, "A");
+  const subB = await repo.getSubmission(matchId, round, "B");
+  if (!subA || !subB) return;
+
+  try {
+    await resolveRoundIfReady({
+      matchId,
+      round,
+      slot: "A",
+      mySubmission: subA,
+    });
+  } catch (err) {
+    console.error("[pricewar] stale locked-round reconcile failed", { matchId, round, err });
+  }
+}
 
 export async function resolveRoundIfReady(args: {
   matchId: MatchId;
@@ -46,7 +69,12 @@ export async function resolveRoundIfReady(args: {
     scenario: COFFEE_SHOP_SCENARIO,
   });
 
-  await repo.saveMatch(nextState);
+  const stateToSave =
+    nextState.phase === "report"
+      ? pauseAllClocks(nextState, new Date().toISOString())
+      : nextState;
+
+  await repo.saveMatch(stateToSave);
   await repo.saveRoundReport({
     matchId: args.matchId,
     round: args.round,
@@ -55,7 +83,7 @@ export async function resolveRoundIfReady(args: {
   });
 
   for (const playerSlot of ["A", "B"] as const) {
-    const view = toPlayerView(nextState, playerSlot, { opponentHasLocked: true });
+    const view = toPlayerView(stateToSave, playerSlot, { opponentHasLocked: true });
     emitMatchEvent(args.matchId, {
       type: "round_resolved",
       round: args.round,
@@ -64,17 +92,16 @@ export async function resolveRoundIfReady(args: {
     });
   }
 
-  if (nextState.phase === "completed") {
-    await finalizeMatchRatings(args.matchId, nextState);
+  if (stateToSave.phase === "completed") {
+    await finalizeMatchRatings(args.matchId, stateToSave);
     for (const playerSlot of ["A", "B"] as const) {
       emitMatchEvent(args.matchId, {
         type: "match_ended",
-        outcome: nextState.outcome,
-        finalView: toPlayerView(nextState, playerSlot),
+        outcome: stateToSave.outcome,
+        finalView: toPlayerView(stateToSave, playerSlot),
       });
     }
   } else {
-    await onRoundResolved(args.matchId, nextState);
     const botPersonalityId = await repo.getBotPersonalityId(args.matchId);
     if (botPersonalityId) {
       await maybeSubmitBotTurn(args.matchId, botPersonalityId);
@@ -87,7 +114,7 @@ export async function resolveRoundIfReady(args: {
     resolved: true,
     reportAvailable: true,
     resolvedRound: args.round,
-    phase: nextState.phase,
+    phase: stateToSave.phase,
   };
 }
 
@@ -225,6 +252,13 @@ export async function maybeSubmitBotTurn(matchId: MatchId, botPersonalityId: str
   const view = toPlayerView(state, "B");
   const rng = createRng(`${state.rngSeed}:bot:${round}`);
   const moves = persona.chooseMoves(view, rng);
+
+  await onPlayerSubmitClock({
+    matchId,
+    state,
+    slot: "B",
+    movesLength: moves.length,
+  });
 
   const { inserted } = await repo.recordSubmission({
     matchId,

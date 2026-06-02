@@ -11,6 +11,7 @@ import { jsonError, jsonOk } from "@/server/pricewar/http";
 import { consumeRateLimit } from "@/server/pricewar/rate-limit";
 import { countInProgressMatches } from "@/server/pricewar/repository";
 import { createVsBotMatch } from "@/server/pricewar/matchmaker";
+import { DEFAULT_MARGIN_PLAY_MODE } from "@/lib/games/margin-play-mode";
 import { maybeSubmitBotTurn } from "@/server/pricewar/resolver";
 
 export async function POST(request: Request) {
@@ -38,7 +39,7 @@ export async function POST(request: Request) {
     });
   }
 
-  const playModeId = body.playModeId ?? "blitz";
+  const playModeId = body.playModeId ?? DEFAULT_MARGIN_PLAY_MODE;
   const playMode = getPlayMode(playModeId);
   if (!playMode) {
     return jsonError({
@@ -75,7 +76,7 @@ export async function POST(request: Request) {
       code: "FORBIDDEN",
       message:
         tier === "free"
-          ? "You already have a match in progress. Upgrade to play multiple matches concurrently."
+          ? "You already have a match running. Upgrade to play more than one at a time."
           : `You have ${cap} matches in progress, the maximum for your plan.`,
     });
   }
@@ -94,12 +95,16 @@ export async function POST(request: Request) {
     botPersonalityId,
   });
 
-  await maybeSubmitBotTurn(matchId, botPersonalityId);
+  if (playModeId === "tutorial") {
+    await maybeSubmitBotTurn(matchId, botPersonalityId);
+  }
+
+  const phase = playModeId === "tutorial" ? "decide" : "briefing";
 
   return jsonOk(
     {
       matchId,
-      phase: "decide",
+      phase,
       slot: "A",
     },
     201

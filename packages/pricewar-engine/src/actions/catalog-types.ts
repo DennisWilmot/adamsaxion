@@ -28,6 +28,6 @@ export interface ActionCatalogEntry {
 }
 
 export interface LockForecastLine {
-  kind: "immediate" | "delayed" | "risk";
+  kind: "immediate" | "delayed" | "caution" | "risk";
   text: string;
 }

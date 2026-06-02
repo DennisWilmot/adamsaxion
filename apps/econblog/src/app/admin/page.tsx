@@ -285,7 +285,7 @@ export default function AdminPage() {
             href="/admin/pricewar"
             className="flex items-center gap-sm rounded-lg border border-border bg-surface-raised px-lg py-md font-body text-sm font-semibold text-foreground transition-colors hover:border-primary/40 hover:text-primary"
           >
-            Price War
+            Margin
           </Link>
           <button
             onClick={() => setShowBatchCreate(!showBatchCreate)}

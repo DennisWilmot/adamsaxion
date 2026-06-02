@@ -142,6 +142,10 @@ export const matchmakingQueue = pricewar.table(
     ratingAtEnqueue: integer("rating_at_enqueue"),
     enqueuedAt: timestamp("enqueued_at", { withTimezone: true }).defaultNow().notNull(),
     botFallbackAfterSec: integer("bot_fallback_after_sec").notNull().default(60),
+    /** Drawn after human-only window; additional seconds before synthetic match. */
+    syntheticDelaySec: integer("synthetic_delay_sec"),
+    pendingMatchId: uuid("pending_match_id"),
+    humanMatchedAt: timestamp("human_matched_at", { withTimezone: true }),
   },
   (table) => [
     index("matchmaking_scenario_mode_enqueued_idx").on(

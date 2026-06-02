@@ -22,6 +22,7 @@ export interface PriceWarApiErrorBody {
 export interface PriceWarErrorState {
   title: string;
   message: string;
+  eyebrow?: string;
   upgradeHref?: string;
   continueHref?: string;
 }
@@ -32,33 +33,52 @@ export function parsePriceWarApiError(
 ): PriceWarErrorState {
   const message = body.message ?? fallbackMessage;
   const code = body.code;
-
-  let title = "Something went wrong";
-  if (code === "FORBIDDEN") title = "Can't do that";
-  else if (code === "RATE_LIMITED") title = "Slow down";
-  else if (code === "ALREADY_SUBMITTED") title = "Already locked in";
-  else if (code === "INSUFFICIENT_RESOURCES") title = "Not enough cash";
-  else if (code === "CLOCK_EXPIRED") title = "Clock expired";
-  else if (code === "MATCH_COMPLETED") title = "Match finished";
-  else if (code === "INVALID_SUBMIT") title = "Invalid move";
-  else if (code === "NOT_YOUR_TURN") title = "Not your turn";
-
   const lower = message.toLowerCase();
-  const showUpgrade =
+
+  const atMatchLimit =
+    lower.includes("match in progress") ||
+    lower.includes("matches in progress") ||
+    lower.includes("match running") ||
+    lower.includes("maximum for your plan");
+
+  const needsUpgrade =
     lower.includes("upgrade") ||
     lower.includes("paid account") ||
     lower.includes("subscribe") ||
     (code === "FORBIDDEN" && lower.includes("rapid"));
 
-  const showContinue =
-    lower.includes("match in progress") || lower.includes("matches in progress");
+  let title = "Something went wrong";
+  let parsedMessage = message;
+
+  if (atMatchLimit && needsUpgrade) {
+    title = "Can't start another match rn";
+    parsedMessage = "You're already in a game. Upgrade if you want more than one at a time.";
+  } else if (atMatchLimit) {
+    title = "At your match limit";
+    parsedMessage = message.replace(
+      /^You have (\d+) matches in progress, the maximum for your plan\.$/i,
+      "You've got $1 games going — that's the max on your plan."
+    );
+  } else if (code === "FORBIDDEN") {
+    title = "Not available rn";
+    if (needsUpgrade) {
+      parsedMessage = "That needs a paid account. Upgrade to unlock it.";
+    }
+  } else if (code === "RATE_LIMITED") title = "Slow down a sec";
+  else if (code === "ALREADY_SUBMITTED") title = "You already locked in this round";
+  else if (code === "INSUFFICIENT_RESOURCES") title = "Not enough cash for that move";
+  else if (code === "CLOCK_EXPIRED") title = "Time ran out";
+  else if (code === "MATCH_COMPLETED") title = "Match finished";
+  else if (code === "INVALID_SUBMIT") title = "Invalid move";
+  else if (code === "NOT_YOUR_TURN") title = "Not your turn";
 
   const result: PriceWarErrorState = {
-    title: showContinue ? "Match in progress" : title,
-    message,
+    eyebrow: "Oops!",
+    title,
+    message: parsedMessage,
   };
-  if (showUpgrade) result.upgradeHref = "/subscribe";
-  if (showContinue) result.continueHref = priceWarPaths.history;
+  if (needsUpgrade) result.upgradeHref = "/subscribe";
+  if (atMatchLimit) result.continueHref = priceWarPaths.history;
   return result;
 }
 
@@ -80,8 +100,8 @@ function PriceWarErrorModalView({
   return (
     <ModalShell width={480} onScrimClick={onDismiss}>
       <div style={{ padding: "24px 26px 22px", borderBottom: `1px solid ${CD.rule}` }}>
-        <div className="tab" style={{ color: CD.red }}>
-          {error.continueHref ? "Match in progress" : "Error"}
+        <div className="tab" style={{ color: CD.ink3 }}>
+          {error.eyebrow ?? "Oops!"}
         </div>
         <h2 className="serif" style={{ fontSize: 28, color: CD.ink, marginTop: 6, lineHeight: 1.15 }}>
           {error.title}
@@ -125,7 +145,11 @@ export function PriceWarErrorProvider({ children }: { children: ReactNode }) {
   const dismissError = useCallback(() => setError(null), []);
 
   const showError = useCallback((next: PriceWarErrorState | string) => {
-    setError(typeof next === "string" ? { title: "Something went wrong", message: next } : next);
+    setError(
+      typeof next === "string"
+        ? { eyebrow: "Oops!", title: "Something went wrong", message: next }
+        : { eyebrow: "Oops!", ...next }
+    );
   }, []);
 
   const showApiError = useCallback(

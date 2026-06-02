@@ -1,5 +1,8 @@
 import {
+  beginBriefingClocks,
   beginRoundClocks,
+  resumeDecideClocks,
+  slotsWithZeroClock,
   buildForfeitState,
   clearAbandonmentGrace,
   ensureTimerMeta,
@@ -59,13 +62,16 @@ async function handleExpiredSlot(args: {
   slot: PlayerSlot;
   abandoned: boolean;
 }) {
-  const { matchId, slot, abandoned } = args;
+  const { matchId, slot } = args;
   let state = args.state;
   const round = state.market.currentRound;
   const existing = await repo.getSubmission(matchId, round, slot);
   if (existing) return state;
 
-  if (abandoned) {
+  const isBot = await repo.isBotSlot(matchId, slot);
+  const treatAsAbandoned = args.abandoned && !isBot;
+
+  if (treatAsAbandoned) {
     const graceActive = state.timerMeta?.abandonmentGraceEndsAt[slot];
     if (!graceActive) {
       state = startAbandonmentGrace(state, slot, new Date().toISOString());
@@ -73,6 +79,7 @@ async function handleExpiredSlot(args: {
       emitMatchEvent(matchId, {
         type: "opponent_disconnected",
         gracePeriodEndsAt: state.timerMeta!.abandonmentGraceEndsAt[slot]!,
+        disconnectedSlot: slot,
       });
       return state;
     }
@@ -84,9 +91,19 @@ async function handleExpiredSlot(args: {
         loser: slot,
         reason: "forfeit_on_abandonment",
       });
-      return null;
+      return repo.loadMatch(matchId);
     }
     return state;
+  }
+
+  if (state.phase === "briefing") {
+    await endMatchForfeit({
+      matchId,
+      state,
+      loser: slot,
+      reason: "forfeit_on_timeout",
+    });
+    return repo.loadMatch(matchId);
   }
 
   if (shouldAutopassOnClockExpiry(state, slot)) {
@@ -103,37 +120,54 @@ async function handleExpiredSlot(args: {
     loser: slot,
     reason: "forfeit_on_timeout",
   });
-  return null;
+  return repo.loadMatch(matchId);
 }
 
 export async function syncMatchClocks(matchId: MatchId): Promise<MatchState | null> {
   let state = await repo.loadMatch(matchId);
-  if (!state || state.phase !== "decide") return state;
+  if (!state || (state.phase !== "decide" && state.phase !== "briefing")) return state;
 
   const round = state.market.currentRound;
-  const submitted = await submittedSlotsForRound(matchId, round);
+  const submitted =
+    state.phase === "decide" ? await submittedSlotsForRound(matchId, round) : [];
   const nowIso = new Date().toISOString();
 
-  if (!state.timerMeta?.roundDecideStartedAt) {
+  if (state.phase === "briefing") {
+    if (!state.timerMeta?.roundDecideStartedAt) {
+      state = beginBriefingClocks(state, nowIso);
+      await repo.saveMatch(state);
+    }
+  } else if (!state.timerMeta?.roundDecideStartedAt) {
     state = beginRoundClocks(state, nowIso);
     await repo.saveMatch(state);
+  } else {
+    const resumed = resumeDecideClocks(state, nowIso, submitted);
+    if (resumed !== state) {
+      state = resumed;
+      await repo.saveMatch(state);
+    }
   }
 
-  const { state: ticked, expired } = tickClocks(state, nowIso, submitted);
+  const { state: ticked, expired: tickExpired } = tickClocks(state, nowIso, submitted);
   if (ticked !== state) {
     state = ticked;
     await repo.saveMatch(state);
   }
 
-  for (const slot of expired) {
+  const slotsToHandle = [
+    ...new Set([...tickExpired, ...slotsWithZeroClock(state, submitted)]),
+  ];
+
+  for (const slot of slotsToHandle) {
     const abandoned = await repo.isPlayerAbandoned(matchId, slot);
     const next = await handleExpiredSlot({ matchId, state, slot, abandoned });
-    if (!next) return null;
+    if (!next) return repo.loadMatch(matchId);
     state = next;
     if (state.phase === "completed") return state;
   }
 
   for (const slot of ["A", "B"] as const) {
+    if (await repo.isBotSlot(matchId, slot)) continue;
     const graceEndsAt = state.timerMeta?.abandonmentGraceEndsAt[slot];
     if (!graceEndsAt) continue;
     if (gracePeriodExpired(state, slot, nowIso)) {
@@ -143,7 +177,7 @@ export async function syncMatchClocks(matchId: MatchId): Promise<MatchState | nu
         loser: slot,
         reason: "forfeit_on_abandonment",
       });
-      return null;
+      return repo.loadMatch(matchId);
     }
   }
 
@@ -178,12 +212,6 @@ export async function onPlayerSubmitClock(args: {
   return state;
 }
 
-export async function onRoundResolved(matchId: MatchId, state: MatchState) {
-  if (state.phase !== "decide") return;
-  const next = beginRoundClocks(state, new Date().toISOString());
-  await repo.saveMatch(next);
-}
-
 export async function forfeitMatch(args: {
   matchId: MatchId;
   userId: string;
@@ -198,7 +226,7 @@ export async function forfeitMatch(args: {
     return { error: { code: "MATCH_NOT_FOUND", message: "Match not found." } };
   }
 
-  if (state.phase === "decide") {
+  if (state.phase === "decide" || state.phase === "briefing") {
     state = (await syncMatchClocks(args.matchId)) ?? state;
   }
 
@@ -222,6 +250,15 @@ export async function markPlayerDisconnected(args: {
 }) {
   const slot = await repo.getPlayerSlot(args.matchId, args.userId);
   if (!slot) return;
+  if (await repo.isBotSlot(args.matchId, slot)) return;
+
+  const state = await repo.loadMatch(args.matchId);
+  if (!state || state.phase !== "decide") return;
+
+  const round = state.market.currentRound;
+  const submission = await repo.getSubmission(args.matchId, round, slot);
+  if (submission) return;
+
   await repo.markPlayerAbandoned(args.matchId, slot);
 }
 
@@ -244,8 +281,13 @@ async function tryStartMatchFromLobby(matchId: MatchId): Promise<MatchState | nu
   const presentB = await slotIsPresent(matchId, state, "B");
   if (!presentA || !presentB) return state;
 
-  state = { ...state, phase: "decide" };
-  state = beginRoundClocks(state, new Date().toISOString());
+  state = { ...state, phase: getPlayMode(state.playModeId)?.clock ? "briefing" : "decide" };
+  const nowIso = new Date().toISOString();
+  if (state.phase === "briefing") {
+    state = beginBriefingClocks(state, nowIso);
+  } else if (state.phase === "decide") {
+    state = beginRoundClocks(state, nowIso);
+  }
   await repo.saveMatch(state);
 
   for (const slot of ["A", "B"] as const) {
@@ -285,7 +327,7 @@ async function syncMatchLobby(matchId: MatchId): Promise<MatchState | null> {
     loser: missing[0]!,
     reason: "forfeit_on_abandonment",
   });
-  return null;
+  return repo.loadMatch(matchId);
 }
 
 export async function recordPlayerPresence(

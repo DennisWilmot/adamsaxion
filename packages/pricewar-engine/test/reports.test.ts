@@ -68,7 +68,7 @@ describe("report templates", () => {
       scenario: COFFEE_SHOP_SCENARIO,
     });
 
-    expect(report.publicSummary).toContain("Round 1 resolved");
+    expect(report.publicSummary).toContain("Round 1 is in the books");
     expect(report.publicEvents.length).toBeGreaterThan(0);
     expect(report.privateSummary.A.length).toBeGreaterThan(50);
     expect(
@@ -98,6 +98,6 @@ describe("report templates", () => {
     ctx.scratch.allocated = { A: 50, B: 30 };
 
     const report = buildRoundReport(ctx);
-    expect(report.privateSummary.A).toContain("gained traffic but profit fell");
+    expect(report.privateSummary.A).toContain("More customers came in, but profit still fell");
   });
 });

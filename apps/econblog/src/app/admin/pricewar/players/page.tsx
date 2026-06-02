@@ -27,7 +27,7 @@ export default function AdminPlayersSearchPage() {
     <div className="mx-auto max-w-2xl space-y-xl p-xl">
       <div className="flex flex-wrap items-center gap-md">
         <Button asChild variant="outline" size="sm">
-          <Link href="/admin/pricewar">← Price War admin</Link>
+          <Link href="/admin/pricewar">← Margin admin</Link>
         </Button>
         <h1 className="font-display text-2xl font-bold">Find player</h1>
       </div>

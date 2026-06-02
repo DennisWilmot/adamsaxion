@@ -4,25 +4,21 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Check, Loader2 } from "lucide-react";
 import {
+  OFFERING_LIFETIME_INCLUDES,
+  OFFERING_MEMBER_INCLUDES,
+} from "@/lib/offering/tiers";
+import {
   PLAN_LABELS,
   PLAN_PRICES,
   type CheckoutPlan,
 } from "@/lib/stripe/config";
 
 const MONTHLY_FEATURES = [
-  "Full access to every lesson",
-  "Gated quizzes and mastery exams",
-  "XP, levels, and leaderboard",
-  "Personalized learning path",
+  ...OFFERING_MEMBER_INCLUDES,
   "Cancel anytime from your profile",
 ];
 
-const LIFETIME_FEATURES = [
-  "Everything in Monthly",
-  "One payment — access forever",
-  "No recurring charges",
-  "Best value if you're committed",
-];
+const LIFETIME_FEATURES = [...OFFERING_LIFETIME_INCLUDES];
 
 interface SubscribePlansProps {
   isAuthenticated: boolean;

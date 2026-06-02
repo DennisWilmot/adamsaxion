@@ -4,7 +4,7 @@ import type { PlayerView } from "@adamsaxion/pricewar-types";
 export function toPlayerView(
   state: MatchState,
   slot: PlayerSlot,
-  options?: { opponentHasLocked?: boolean }
+  options?: { opponentHasLocked?: boolean; meHasLocked?: boolean }
 ): PlayerView {
   const other: PlayerSlot = slot === "A" ? "B" : "A";
 
@@ -22,7 +22,9 @@ export function toPlayerView(
     },
     opponent: state.playersPublic[other],
     myClockMs: state.clocks[slot].remainingMs,
+    myClockTickingSince: state.clocks[slot].tickingSince,
     opponentClockMs: state.clocks[other].remainingMs,
     opponentHasLocked: options?.opponentHasLocked ?? false,
+    meHasLocked: options?.meHasLocked ?? false,
   };
 }

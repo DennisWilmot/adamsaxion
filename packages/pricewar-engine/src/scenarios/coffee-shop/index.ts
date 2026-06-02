@@ -14,7 +14,7 @@ import { createNormalizedInitialPrivate } from "../../state/normalize";
 export const COFFEE_SHOP_SCENARIO: ScenarioConfig = {
   id: COFFEE_SHOP_SCENARIO_ID,
   version: "0.1.0",
-  label: "Coffee Shop Price War",
+  label: "Coffee Shop",
   shortDescription: "Head-to-head coffee shop competition in a single market.",
   totalRounds: 8,
   availableDomains: [

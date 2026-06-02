@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { loginAs, waitForMatchPhase } from "./helpers/auth";
+import { loginAs, waitForMatchPhase, beginMatchDecide } from "./helpers/auth";
 
 /**
  * Report → Continue → Decide round advance after both players lock.
@@ -25,6 +25,7 @@ test.describe("Price War report flow", () => {
     });
     expect(createRes.ok()).toBe(true);
     const { matchId } = await createRes.json();
+    await beginMatchDecide(request, matchId);
 
     const before = await request.get(`/api/pricewar/match/${matchId}/view`);
     expect(before.ok()).toBe(true);

@@ -152,12 +152,11 @@ function ScenarioCard({
 }
 
 export interface ScenarioScreenProps {
-  onQueue: (scenarioId: string, playModeId: string) => void;
-  onPractice: (scenarioId: string) => void;
+  onPlay: (scenarioId: string, playModeId: string) => void;
   loading?: boolean;
 }
 
-export function ScenarioScreen({ onQueue, onPractice, loading }: ScenarioScreenProps) {
+export function ScenarioScreen({ onPlay, loading }: ScenarioScreenProps) {
   const router = useRouter();
   const [picked, setPicked] = useState("coffee-shop");
   const pickedScenario = SCENARIOS.find((s) => s.id === picked);
@@ -202,18 +201,10 @@ export function ScenarioScreen({ onQueue, onPractice, loading }: ScenarioScreenP
           color={CD.primary}
           size="lg"
           disabled={!!loading || !!pickedScenario?.locked}
-          onClick={() => onQueue(picked, "blitz")}
+          onClick={() => onPlay(picked, "blitz")}
         >
-          Queue {pickedScenario?.name.split(" · ")[0] ?? "—"}{" "}
+          Play {pickedScenario?.name.split(" · ")[0] ?? "—"}{" "}
           <span style={{ opacity: 0.6 }}>→</span>
-        </PillBtn>
-        <PillBtn
-          variant="outline"
-          color={CD.ink}
-          disabled={!!loading || !!pickedScenario?.locked}
-          onClick={() => onPractice(picked)}
-        >
-          Practice solo
         </PillBtn>
       </div>
     </CafeDuelRoot>

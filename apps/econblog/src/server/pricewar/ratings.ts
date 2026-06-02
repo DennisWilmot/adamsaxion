@@ -4,7 +4,7 @@ import {
   getPlayMode,
 } from "@adamsaxion/pricewar-engine";
 import type { MatchId, MatchState, PlayerSlot } from "@adamsaxion/pricewar-types";
-import { getUserTier } from "@/server/pricewar/auth";
+import { isMarginRatedEnabled } from "@/server/pricewar/feature-flag";
 import * as repo from "@/server/pricewar/repository";
 
 function slotScore(outcome: MatchState["outcome"], slot: PlayerSlot): 0 | 0.5 | 1 {
@@ -24,6 +24,7 @@ export async function finalizeMatchRatings(
   state: MatchState
 ): Promise<void> {
   if (state.phase !== "completed") return;
+  if (!isMarginRatedEnabled()) return;
 
   const playMode = getPlayMode(state.playModeId);
   if (!playMode?.affectsRating) return;
@@ -33,11 +34,6 @@ export async function finalizeMatchRatings(
 
   const humans = participants.filter((p) => p.userId && !p.isBot);
   if (humans.length !== 2) return;
-
-  const tiers = await Promise.all(
-    humans.map((p) => getUserTier(p.userId!))
-  );
-  if (tiers.some((t) => t === "free")) return;
 
   const slotA = humans.find((p) => p.slot === "A")!;
   const slotB = humans.find((p) => p.slot === "B")!;

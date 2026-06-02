@@ -1,6 +1,10 @@
 import type { Domain } from "@adamsaxion/pricewar-types";
 import { DOMAINS } from "@adamsaxion/pricewar-types";
 import { CD } from "./tokens";
+import {
+  DOMAIN_GLYPH_KIND,
+  DomainGlyphIcon,
+} from "./domain-glyphs";
 
 const DOMAIN_LABELS: Record<Domain, string> = {
   sales: "Sales",
@@ -29,23 +33,21 @@ export function DomainStripe({ domain }: { domain: Domain }) {
 
 export function DomainGlyph({ domain, size = 28 }: { domain: Domain; size?: number }) {
   const g = CD.d[domain];
+  const iconSize = Math.round(size * 0.5);
   return (
     <div
       style={{
         width: size,
         height: size,
-        borderRadius: 8,
+        borderRadius: Math.max(8, Math.round(size * 0.28)),
         background: g.soft,
-        color: g.c,
+        border: `1.5px solid ${g.c}`,
+        flexShrink: 0,
         display: "grid",
         placeItems: "center",
-        fontFamily: "var(--font-cd-serif)",
-        fontSize: size * 0.7,
-        lineHeight: 1,
-        fontStyle: "italic",
       }}
     >
-      {g.glyph}
+      <DomainGlyphIcon kind={DOMAIN_GLYPH_KIND[domain]} color={g.c} size={iconSize} />
     </div>
   );
 }
@@ -66,7 +68,7 @@ export function DomainTag({ domain }: { domain: Domain }) {
         fontWeight: 600,
         letterSpacing: "0.06em",
         textTransform: "uppercase",
-        borderRadius: 999,
+        borderRadius: 8,
       }}
     >
       <span style={{ width: 6, height: 6, borderRadius: 999, background: g.c }} />

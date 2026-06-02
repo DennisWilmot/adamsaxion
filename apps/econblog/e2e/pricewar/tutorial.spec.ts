@@ -10,9 +10,9 @@ test.describe("Price War tutorial", () => {
 
     await loginAs(page, email, password);
     await page.goto("/play/price-war/tutorial");
-    await page.waitForURL(/\/play\/price-war\/match\/[^/]+\/decide/);
+    await page.waitForURL(/\/play\/price-war\/match\/[^/]+(?:\/|$)/);
 
-    await expect(page.getByText("Welcome to The Price War")).toBeVisible();
+    await expect(page.getByText("Welcome to Margin")).toBeVisible();
     await expect(page.getByText("Tutorial")).toBeVisible();
     await expect(page.getByRole("button", { name: /Review & lock/i })).toBeVisible();
   });

@@ -13,6 +13,7 @@
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx scripts/seed-database.ts",
     "test:e2e": "playwright test",
+    "screenshots:margin": "PRICEWAR_E2E_ENABLED=1 playwright test design-review-screenshots.spec.ts",
     "db:migrate-lessons": "tsx scripts/migrate-lessons-to-db.ts",
     "batch:generate": "tsx scripts/batch-generate.ts",
     "batch:resume": "tsx scripts/batch-generate.ts --resume",

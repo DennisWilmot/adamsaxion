@@ -25,10 +25,10 @@ export default function LeaderboardPage() {
     <div className="max-w-[48rem] mx-auto px-xl py-3xl">
       <div className="mb-3xl">
         <h1 className="font-display font-bold text-3xl text-foreground mb-sm">
-          Leaderboard
+          XP Leaderboard
         </h1>
         <p className="font-body text-base text-foreground-secondary">
-          Ranked by total XP earned across all lessons.
+          Lesson progress rankings — total XP earned across the curriculum.
         </p>
       </div>
 

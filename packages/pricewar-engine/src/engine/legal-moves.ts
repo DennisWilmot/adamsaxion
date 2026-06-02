@@ -139,11 +139,11 @@ export function evaluateLegalMoves(
     }
 
     if (draft.length >= 3) {
-      return { id: move.id, available: false, reason: "Hand full — remove a move first." };
+      return { id: move.id, available: false, reason: "You already picked 3 moves. Remove one to add another." };
     }
 
     if (!hasActionHandler(move.id) && !scenario.allowStubbedMoves) {
-      return { id: move.id, available: false, reason: "Not available in ranked play." };
+      return { id: move.id, available: false, reason: "Not available in ranked matches yet." };
     }
 
     const prereq = prerequisiteFailure(state, slot, move.id);
@@ -176,7 +176,7 @@ export function evaluateLegalMoves(
     if (def?.input.kind === "amount") {
       const minSpend = def.input.min;
       if (minSpend > priv.cash) {
-        return { id: move.id, available: false, reason: `Need at least $${minSpend} cash.` };
+        return { id: move.id, available: false, reason: `You need at least $${minSpend} in the bank.` };
       }
     }
 

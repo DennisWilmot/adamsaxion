@@ -15,8 +15,10 @@ export function PickSlot({ idx, pick, onRemove }: PickSlotProps) {
       className={pick ? "cd-slot-in" : ""}
       style={{
         border: `1px ${pick ? "solid" : "dashed"} ${pick ? CD.d[pick.domain as Domain].c : CD.ink4}`,
-        background: pick ? CD.cardstock : "transparent",
-        borderRadius: 12,
+        background: pick
+          ? `linear-gradient(90deg, ${CD.d[pick.domain as Domain].soft}, ${CD.cardstock} 28%)`
+          : "transparent",
+        borderRadius: 8,
         padding: pick ? "12px 14px" : "14px",
         minHeight: 64,
         transition: "background 0.2s, border-color 0.2s",
@@ -24,7 +26,7 @@ export function PickSlot({ idx, pick, onRemove }: PickSlotProps) {
     >
       {pick ? (
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <DomainGlyph domain={pick.domain} size={24} />
+          <DomainGlyph domain={pick.domain} size={32} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: CD.ink, lineHeight: 1.2 }}>
               {pick.title}
@@ -37,12 +39,16 @@ export function PickSlot({ idx, pick, onRemove }: PickSlotProps) {
               onClick={onRemove}
               aria-label={`Remove ${pick.title}`}
               style={{
-                border: "none",
-                background: "transparent",
+                width: 30,
+                height: 30,
+                border: `1px solid ${CD.rule}`,
+                borderRadius: 6,
+                background: CD.paperDeep,
                 color: CD.ink3,
                 cursor: "pointer",
                 fontSize: 16,
-                padding: 4,
+                padding: 0,
+                lineHeight: 1,
               }}
             >
               ×

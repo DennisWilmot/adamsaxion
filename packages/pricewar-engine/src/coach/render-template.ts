@@ -22,14 +22,14 @@ export function renderTemplateCoach(
     facts.outcome.winner !== "draw" && facts.outcome.winner !== viewerSlot;
 
   const oneLinerVerdict = won
-    ? `Strong finish — you closed with $${myCash.toLocaleString()} vs $${theirCash.toLocaleString()}.`
+    ? `Strong finish. You closed with $${myCash.toLocaleString()} vs $${theirCash.toLocaleString()}.`
     : lost
-      ? `Tough match — you ended at $${myCash.toLocaleString()} while your opponent reached $${theirCash.toLocaleString()}.`
-      : `Even match — both shops finished at $${myCash.toLocaleString()}.`;
+      ? `Tough match. You ended at $${myCash.toLocaleString()} while your opponent reached $${theirCash.toLocaleString()}.`
+      : `Even match. Both shops finished at $${myCash.toLocaleString()}.`;
 
   const turning = facts.turningPoints[0] ?? {
     round: 1,
-    description: "Early rounds set the tone for cash flow.",
+    description: "Early rounds set the tone for how much cash you had left.",
     impactScore: 0,
   };
 
@@ -40,11 +40,11 @@ export function renderTemplateCoach(
       explanation: turning.description,
     },
     whatYouDidWell: won
-      ? ["You preserved cash better than your opponent in key rounds."]
-      : ["You stayed in the match and adapted round to round."],
+      ? ["You held onto cash better than your opponent in key rounds."]
+      : ["You stayed in the match and kept adjusting round to round."],
     whatToImprove: won
-      ? ["Look for rounds where you can invest more in brand without bleeding cash."]
-      : ["Review pricing and marketing balance — small demand shifts compound over 8 rounds."],
+      ? ["Look for rounds where you can invest in your brand without bleeding cash."]
+      : ["Review your mix of pricing and marketing. Small shifts add up over 8 rounds."],
     recommendedLessonSlugs: ["lesson-zero"],
     generatedBy: "template",
   };

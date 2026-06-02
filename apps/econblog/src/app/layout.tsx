@@ -45,8 +45,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${sourceSerif.variable} ${hankenGrotesk.variable}`}>
-      <body className="font-body bg-surface text-foreground min-h-screen antialiased">
+    <html
+      lang="en"
+      className={`${sourceSerif.variable} ${hankenGrotesk.variable}`}
+      suppressHydrationWarning
+    >
+      <body
+        className="font-body bg-surface text-foreground min-h-screen antialiased"
+        suppressHydrationWarning
+      >
         <Suspense fallback={<HeaderShell />}>
           <Header />
         </Suspense>

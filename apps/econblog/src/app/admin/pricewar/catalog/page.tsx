@@ -23,7 +23,7 @@ export default function AdminMoveCatalogPage() {
     <div className="mx-auto max-w-6xl space-y-xl p-xl">
       <div className="flex flex-wrap items-center gap-md">
         <Button asChild variant="outline" size="sm">
-          <Link href="/admin/pricewar">← Price War admin</Link>
+          <Link href="/admin/pricewar">← Margin admin</Link>
         </Button>
         <h1 className="font-display text-2xl font-bold">Move catalog</h1>
         <Badge variant="secondary">Read-only</Badge>
