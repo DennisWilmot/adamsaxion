@@ -11,6 +11,7 @@ import {
   MobileAuthActions,
 } from "@/components/HeaderAuthActions";
 import type { User } from "@supabase/supabase-js";
+import { usesWideGameShell } from "@/lib/catalog-page-shell";
 import { PLAY_HUB, priceWarPaths } from "@/lib/games/routes";
 
 const APP_NAV_ITEMS = [
@@ -40,6 +41,7 @@ export function Header() {
 
   const isLanding = pathname === "/";
   const isGameRoute = pathname.startsWith("/play");
+  const isWideGameRoute = usesWideGameShell(pathname);
   const showLandingNav = isLanding && !user;
   const showAppNav = Boolean(user);
   const navItems = isGameRoute ? GAME_NAV_ITEMS : APP_NAV_ITEMS;
@@ -125,7 +127,7 @@ export function Header() {
     <header className="sticky top-0 z-50 border-b border-border-subtle bg-surface/85 backdrop-blur-lg">
       <div
         className={`mx-auto flex h-14 items-center justify-between gap-lg px-xl ${
-          isGameRoute ? "max-w-[1400px]" : "max-w-[72rem]"
+          isWideGameRoute ? "max-w-[1400px]" : "max-w-[72rem]"
         }`}
       >
         <Link href="/" className="group flex shrink-0 items-baseline gap-[6px]">
@@ -134,58 +136,60 @@ export function Header() {
           </span>
         </Link>
 
-        <nav className="hidden min-w-0 items-center gap-2xl md:flex">
-          {showLandingNav &&
-            LANDING_NAV.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                className="text-sm font-medium tracking-wide text-foreground-muted transition-colors hover:text-foreground"
-              >
-                {item.label}
-              </a>
-            ))}
-
-          {showAppNav &&
-            navItems.map((item) => {
-              const active = navLinkActive(pathname, item.href);
-              return (
-                <Link
+        <div className="ml-auto flex min-w-0 items-center gap-2xl">
+          <nav className="hidden items-center gap-2xl md:flex">
+            {showLandingNav &&
+              LANDING_NAV.map((item) => (
+                <a
                   key={item.href}
                   href={item.href}
-                  className={`text-sm font-medium tracking-wide transition-colors ${
-                    active
-                      ? "text-primary"
-                      : "text-foreground-muted hover:text-foreground"
-                  }`}
+                  className="text-sm font-medium tracking-wide text-foreground-muted transition-colors hover:text-foreground"
                 >
                   {item.label}
-                </Link>
-              );
-            })}
-        </nav>
+                </a>
+              ))}
 
-        <div className="flex shrink-0 items-center gap-md">
-          <HeaderAuthActions
-            pathname={pathname}
-            user={user}
-            loading={loading}
-            isAdmin={isAdmin}
-            displayName={displayName}
-          />
+            {showAppNav &&
+              navItems.map((item) => {
+                const active = navLinkActive(pathname, item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`text-sm font-medium tracking-wide transition-colors ${
+                      active
+                        ? "text-primary"
+                        : "text-foreground-muted hover:text-foreground"
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+          </nav>
 
-          <button
-            type="button"
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="p-xs md:hidden"
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? (
-              <X className="h-5 w-5 text-foreground-secondary" />
-            ) : (
-              <Menu className="h-5 w-5 text-foreground-secondary" />
-            )}
-          </button>
+          <div className="flex shrink-0 items-center gap-md">
+            <HeaderAuthActions
+              pathname={pathname}
+              user={user}
+              loading={loading}
+              isAdmin={isAdmin}
+              displayName={displayName}
+            />
+
+            <button
+              type="button"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="p-xs md:hidden"
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? (
+                <X className="h-5 w-5 text-foreground-secondary" />
+              ) : (
+                <Menu className="h-5 w-5 text-foreground-secondary" />
+              )}
+            </button>
+          </div>
         </div>
       </div>
 

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import { getDailyPuzzle } from "@/lib/econwordle/daily";
 import { EconWordleGame } from "@/components/econwordle/EconWordleGame";
+import { isAdminUser } from "@/lib/admin/auth";
+import { getDailyPuzzle } from "@/lib/econwordle/daily";
+import { getSessionUser } from "@/lib/supabase/session-user";
 
 // Recompute per request so "today" follows server time, not the client clock.
 export const dynamic = "force-dynamic";
@@ -18,7 +20,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function EconWordlePage() {
+export default async function EconWordlePage() {
+  const user = await getSessionUser();
   const puzzle = getDailyPuzzle();
-  return <EconWordleGame puzzle={puzzle} />;
+  return (
+    <EconWordleGame
+      puzzle={puzzle}
+      isAuthenticated={!!user}
+      isAdmin={isAdminUser(user)}
+    />
+  );
 }

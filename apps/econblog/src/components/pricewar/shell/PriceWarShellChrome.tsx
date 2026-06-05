@@ -162,6 +162,8 @@ export function GameTabs({
   forfeitControl,
   elo,
   eloTrend,
+  rulesOpen,
+  onToggleRules,
 }: {
   matchId?: string;
   view: PlayerView | null;
@@ -169,6 +171,8 @@ export function GameTabs({
   forfeitControl?: ReactNode;
   elo?: number | null;
   eloTrend?: string | null;
+  rulesOpen?: boolean;
+  onToggleRules?: () => void;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -327,6 +331,43 @@ export function GameTabs({
       >
         {showElo && <ShellEloChip elo={elo} {...(eloTrend != null ? { eloTrend } : {})} />}
         {inMatch && forfeitControl}
+        {onShellHome && onToggleRules ? (
+          <button
+            type="button"
+            onClick={onToggleRules}
+            aria-expanded={rulesOpen}
+            aria-controls="margin-rules-panel"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "7px 12px",
+              borderRadius: 999,
+              cursor: "pointer",
+              border: `1px solid ${rulesOpen ? MT.blueLine : MT.rule}`,
+              background: rulesOpen ? MT.blueSoft : MT.card,
+              fontSize: 13,
+              fontWeight: 600,
+              color: rulesOpen ? MT.blue : MT.ink2,
+            }}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke={rulesOpen ? MT.blue : MT.ink3}
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
+            >
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+            </svg>
+            Rules
+          </button>
+        ) : null}
         <ShellNavButton
           href={priceWarPaths.leaderboard}
           label="Ladder"

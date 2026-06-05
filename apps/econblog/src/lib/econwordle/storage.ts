@@ -6,6 +6,10 @@ export interface SavedGame {
   dayNumber: number;
   guesses: string[];
   status: GameStatus;
+  /** Set after the first submit attempt so length stays visible on reload. */
+  lengthRevealed?: boolean;
+  /** Player opened the hint after unlocking it. */
+  hintRevealed?: boolean;
 }
 
 export interface StreakState {

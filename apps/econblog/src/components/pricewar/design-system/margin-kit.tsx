@@ -1,6 +1,7 @@
 "use client";
 
 import type { CSSProperties, ReactNode } from "react";
+import { cn } from "@/lib/utils";
 import { CD } from "./tokens";
 
 /** Reference-aligned semantic tokens (margin-gamev2 `T`). */
@@ -102,6 +103,7 @@ export function MarginBtn({
   onClick,
   disabled,
   type = "button",
+  className,
 }: {
   children: ReactNode;
   kind?: "primary" | "ghost" | "danger";
@@ -110,6 +112,7 @@ export function MarginBtn({
   onClick?: () => void;
   disabled?: boolean;
   type?: "button" | "submit";
+  className?: string;
 }) {
   const sizes = {
     sm: { p: "7px 14px", f: 13 },
@@ -139,7 +142,7 @@ export function MarginBtn({
   return (
     <button
       type={type}
-      className="mt-press"
+      className={cn("mt-press", className)}
       onClick={onClick}
       disabled={disabled}
       style={{

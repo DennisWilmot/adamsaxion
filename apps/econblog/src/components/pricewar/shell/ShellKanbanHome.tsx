@@ -11,7 +11,6 @@ import {
 } from "@/client/pricewar/kanban-utils";
 import { OpponentAvatarFace, resolveOpponentAvatarKind } from "@/components/pricewar/design-system/opponent-avatar";
 import {
-  Eyebrow,
   MarginBtn,
   MarginPanel,
   MT,
@@ -54,15 +53,20 @@ export function ShellKanbanHome({
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           <ModePicker selectedMode={selectedMode} onSelectMode={onSelectMode} isPaid={isPaid} />
-          <MarginBtn kind="primary" size="md" onClick={onPlay} disabled={loading}>
+          <MarginBtn
+            kind="primary"
+            size="md"
+            onClick={onPlay}
+            disabled={loading}
+            {...(loading ? {} : { className: "cd-pulse" })}
+          >
             {loading ? "Finding game…" : "Play →"}
           </MarginBtn>
         </div>
         <div style={{ textAlign: "right" }}>
-          <Eyebrow>Your games</Eyebrow>
           <h1
             className="serif"
-            style={{ fontSize: 30, color: MT.ink, fontWeight: 700, marginTop: 4, lineHeight: 1.05 }}
+            style={{ fontSize: 30, color: MT.ink, fontWeight: 700, margin: 0, lineHeight: 1.05 }}
           >
             {activeTotal === 0
               ? "Start your first match"
@@ -73,8 +77,7 @@ export function ShellKanbanHome({
 
       {activeTotal === 0 ? (
         <MarginPanel pad={40} style={{ textAlign: "center" }}>
-          <Eyebrow>Welcome</Eyebrow>
-          <h2 className="serif" style={{ fontSize: 26, color: MT.ink, marginTop: 8 }}>
+          <h2 className="serif" style={{ fontSize: 26, color: MT.ink, margin: 0 }}>
             No active matches yet
           </h2>
           <p

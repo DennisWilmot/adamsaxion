@@ -9,12 +9,15 @@ import { CafeDuelRoot } from "@/components/pricewar/design-system/CafeDuelRoot";
 import { SHELL } from "@/components/pricewar/design-system/shell-tokens";
 import { CD } from "@/components/pricewar/design-system/tokens";
 import { PriceWarErrorProvider } from "@/components/pricewar/screens/PriceWarErrorModal";
+import { CATALOG_PAGE_SHELL_CLASS, isPlayHubPath } from "@/lib/catalog-page-shell";
+import { cn } from "@/lib/utils";
 
 export function GameShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isShellFramed = isMarginShellFramedPath(pathname);
   const isMatchShell = isMatchSessionPath(pathname);
   const isMarginShell = isShellFramed || isMatchShell;
+  const isPlayHub = isPlayHubPath(pathname);
   const shellMode = isShellFramed ? "framed" : isMatchShell ? "match-session" : "legacy-full-page";
 
   useEffect(() => {
@@ -27,25 +30,37 @@ export function GameShell({ children }: { children: React.ReactNode }) {
     });
   }, [pathname, isShellFramed, isMatchShell, shellMode]);
 
+  const shellContent = (
+    <div
+      className={cn(isPlayHub ? CATALOG_PAGE_SHELL_CLASS : "mx-auto w-full max-w-[1400px] px-6")}
+      style={
+        isPlayHub
+          ? undefined
+          : {
+              paddingBottom: 32,
+              paddingTop: isMarginShell ? SHELL.belowGlobalHeaderGap : 32,
+            }
+      }
+    >
+      {children}
+    </div>
+  );
+
   return (
     <ReactQueryProvider>
       <PriceWarErrorProvider>
-        <CafeDuelRoot
-          style={{
-            minHeight: isMarginShell ? "calc(100dvh - var(--header-height))" : undefined,
-            background: isMarginShell ? "transparent" : CD.paper,
-          }}
-        >
-          <div
-            className="mx-auto w-full max-w-[1400px] px-6"
+        {isPlayHub ? (
+          shellContent
+        ) : (
+          <CafeDuelRoot
             style={{
-              paddingBottom: 32,
-              paddingTop: isMarginShell ? SHELL.belowGlobalHeaderGap : 32,
+              minHeight: isMarginShell ? "calc(100dvh - var(--header-height))" : undefined,
+              background: isMarginShell ? "transparent" : CD.paper,
             }}
           >
-            {children}
-          </div>
-        </CafeDuelRoot>
+            {shellContent}
+          </CafeDuelRoot>
+        )}
       </PriceWarErrorProvider>
     </ReactQueryProvider>
   );

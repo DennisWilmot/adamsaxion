@@ -1,23 +1,23 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import type { LetterState } from "@/lib/econwordle/engine";
+import type { ScoredGuess } from "@/lib/econwordle/engine";
 
-export interface ScoredRow {
-  guess: string;
-  states: LetterState[];
-}
+type TileVisual = "empty" | "active" | "correct" | "present" | "absent" | "invalid";
 
-type TileVisual = "empty" | "active" | LetterState;
-
-const TILE_BG: Record<LetterState, string> = {
+const TILE_BG: Record<Exclude<TileVisual, "empty" | "active">, string> = {
   correct: "var(--color-success)",
   present: "var(--color-gold)",
   absent: "var(--color-foreground-muted)",
+  invalid: "var(--color-error)",
 };
 
 function Tile({ letter, visual }: { letter: string; visual: TileVisual }) {
-  const scored = visual === "correct" || visual === "present" || visual === "absent";
+  const scored =
+    visual === "correct" ||
+    visual === "present" ||
+    visual === "absent" ||
+    visual === "invalid";
   const style: CSSProperties = scored
     ? { background: TILE_BG[visual], borderColor: TILE_BG[visual], color: "#fff" }
     : {};
@@ -44,40 +44,47 @@ export function Board({
   currentGuess,
   maxGuesses,
   shake,
+  lengthRevealed,
+  hiddenLength,
 }: {
   length: number;
-  rows: ScoredRow[];
+  rows: ScoredGuess[];
   currentGuess: string;
   maxGuesses: number;
   shake: boolean;
+  lengthRevealed: boolean;
+  hiddenLength: number;
 }) {
   const activeRowIndex = rows.length;
+  const boardLength = lengthRevealed ? length : hiddenLength;
 
   return (
     <div
       className="mx-auto grid w-full gap-1.5"
-      style={{ maxWidth: `${length * 3.5}rem`, gridTemplateRows: `repeat(${maxGuesses}, 1fr)` }}
+      style={{
+        maxWidth: `${boardLength * 3.5}rem`,
+        gridTemplateRows: `repeat(${maxGuesses}, 1fr)`,
+      }}
     >
       {Array.from({ length: maxGuesses }).map((_, rowIndex) => {
         const scored = rows[rowIndex];
         const isActive = rowIndex === activeRowIndex;
         const isShaking = isActive && shake;
+        const rowLength = scored ? length : boardLength;
 
         return (
           <div
             key={rowIndex}
             className={`grid gap-1.5 ${isShaking ? "animate-[ew-shake_0.4s_ease-in-out]" : ""}`}
-            style={{ gridTemplateColumns: `repeat(${length}, 1fr)` }}
+            style={{ gridTemplateColumns: `repeat(${rowLength}, 1fr)` }}
           >
-            {Array.from({ length }).map((_, col) => {
+            {Array.from({ length: rowLength }).map((_, col) => {
               if (scored) {
-                return (
-                  <Tile
-                    key={col}
-                    letter={scored.guess[col] ?? ""}
-                    visual={scored.states[col] ?? "absent"}
-                  />
-                );
+                const letter = scored.guess[col] ?? "";
+                const visual = scored.invalid
+                  ? "invalid"
+                  : (scored.states[col] ?? "absent");
+                return <Tile key={col} letter={letter} visual={visual} />;
               }
               if (isActive) {
                 const ch = currentGuess[col] ?? "";

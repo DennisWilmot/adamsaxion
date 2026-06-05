@@ -7,6 +7,7 @@ import { FloatingIcons } from "@/components/FloatingIcons";
 import { LessonsPageExtras } from "@/components/lessons/LessonsPageExtras";
 import { isLessonZeroSlug } from "@/lib/constants/lessons";
 import type { UserDashboard } from "@/lib/learning/user-dashboard";
+import { CATALOG_PAGE_SHELL_CLASS } from "@/lib/catalog-page-shell";
 import type { LessonMeta } from "@/lib/types/lesson";
 
 const CATEGORIES = ["All", "Microeconomics", "Macroeconomics", "Trade", "Finance"];
@@ -61,7 +62,7 @@ export function LessonsCatalog({
   }, [search, category, difficulty]);
 
   return (
-    <div className="max-w-[72rem] mx-auto px-xl py-3xl">
+    <div className={CATALOG_PAGE_SHELL_CLASS}>
       <div className="relative mb-2xl overflow-hidden rounded-xl bg-surface-sunken p-xl">
         <FloatingIcons count={18} />
         <div className="relative z-10">

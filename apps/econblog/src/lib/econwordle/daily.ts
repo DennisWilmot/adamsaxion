@@ -33,6 +33,7 @@ export interface DailyPuzzle {
   word: string;
   length: number;
   definition: string;
+  hint: string;
   lessonSlug: string;
   lessonTitle: string;
 }
@@ -50,6 +51,7 @@ export function getDailyPuzzle(now: Date = new Date()): DailyPuzzle {
     word,
     length: word.length,
     definition: entry.definition,
+    hint: entry.hint,
     lessonSlug: entry.lessonSlug,
     lessonTitle: TITLE_BY_SLUG.get(entry.lessonSlug) ?? "this concept",
   };

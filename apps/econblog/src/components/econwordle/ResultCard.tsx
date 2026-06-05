@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Check, Flame, Share2 } from "lucide-react";
+import { ArrowRight, Flame } from "lucide-react";
+import { authPageUrl } from "@/lib/auth/redirect";
+import { EconWordleShare } from "./EconWordleShare";
+import { StreakAuthPrompt } from "./StreakAuthPrompt";
 
 export function ResultCard({
   won,
@@ -12,8 +15,9 @@ export function ResultCard({
   lessonSlug,
   lessonTitle,
   streak,
-  copied,
-  onShare,
+  shareText,
+  shareUrl,
+  isAuthenticated,
 }: {
   won: boolean;
   guessCount: number;
@@ -23,14 +27,17 @@ export function ResultCard({
   lessonSlug: string;
   lessonTitle: string;
   streak: number;
-  copied: boolean;
-  onShare: () => void;
+  shareText: string;
+  shareUrl: string;
+  isAuthenticated: boolean;
 }) {
   return (
     <div className="mx-auto w-full max-w-[34rem] rounded-xl border border-border bg-surface-raised p-xl shadow-sm">
       <div className="mb-lg flex items-center justify-between gap-md">
-        <p className="font-display text-xl font-semibold text-foreground">
-          {won ? `Solved in ${guessCount}/${maxGuesses}` : "Out of guesses"}
+        <p
+          className={`font-display text-xl font-semibold ${won ? "text-success" : "text-error"}`}
+        >
+          {won ? `Solved in ${guessCount}/${maxGuesses} :)` : "Out of guesses :("}
         </p>
         {streak > 0 && (
           <span className="inline-flex items-center gap-xs rounded-full bg-gold-subtle px-md py-xs font-body text-xs font-semibold text-gold">
@@ -41,13 +48,22 @@ export function ResultCard({
       </div>
 
       <div className="mb-lg rounded-lg border border-border-subtle bg-surface-sunken p-lg">
-        <p className="font-body text-[11px] font-semibold uppercase tracking-[0.15em] text-primary">
+        <p className="font-body text-[11px] font-semibold uppercase tracking-[0.15em] text-foreground-muted">
+          Today&apos;s term
+        </p>
+        <p className="mt-xs font-display text-2xl font-bold uppercase tracking-wide text-primary">
           {word}
         </p>
-        <p className="mt-xs font-body text-sm leading-relaxed text-foreground-secondary">
+        <p className="mt-md font-body text-sm leading-relaxed text-foreground-secondary">
           {definition}
         </p>
       </div>
+
+      {!isAuthenticated && (
+        <div className="mb-lg">
+          <StreakAuthPrompt />
+        </div>
+      )}
 
       <div className="flex flex-col gap-md sm:flex-row">
         <Link
@@ -57,22 +73,20 @@ export function ResultCard({
           Learn this: {lessonTitle}
           <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
         </Link>
-        <button
-          type="button"
-          onClick={onShare}
-          className="inline-flex items-center justify-center gap-sm rounded-lg border border-border px-xl py-md font-body text-sm font-semibold text-foreground transition-colors hover:bg-surface-sunken"
-        >
-          {copied ? <Check className="size-4 text-success" /> : <Share2 className="size-4" />}
-          {copied ? "Copied" : "Share"}
-        </button>
+        <EconWordleShare text={shareText} url={shareUrl} />
       </div>
 
       <p className="mt-lg text-center font-body text-xs text-foreground-muted">
-        New puzzle every day.{" "}
-        <Link href="/auth" className="text-primary hover:underline">
-          Create a free account
-        </Link>{" "}
-        to save your streak.
+        {isAuthenticated ? (
+          <>New puzzle every day.</>
+        ) : (
+          <>
+            New puzzle every day. Already have an account?{" "}
+            <Link href={authPageUrl("/play/econ-wordle", "signin")} className="text-primary hover:underline">
+              Sign in
+            </Link>
+          </>
+        )}
       </p>
     </div>
   );

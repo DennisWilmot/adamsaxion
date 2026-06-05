@@ -18,8 +18,11 @@ export interface PlayerView {
   me: PlayerPublicState & PlayerPrivateState & { slot: PlayerSlot };
   opponent: PlayerPublicState;
   myClockMs: number;
+  /** ISO timestamp when the player's clock started ticking; null if frozen. */
+  myClockTickingSince: string | null;
   opponentClockMs: number;
   opponentHasLocked: boolean;
+  meHasLocked: boolean;
 }
 
 export type { MatchState };

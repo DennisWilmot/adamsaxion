@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { startPlayFlow } from "@/client/pricewar/join-queue";
 import { usePriceWarError } from "@/components/pricewar/screens/PriceWarErrorModal";
+import { MarginRulesSidePanel } from "@/components/pricewar/shell/MarginRulesSidePanel";
 import { ShellKanbanHome } from "@/components/pricewar/shell/ShellKanbanHome";
 import {
   GameTabs,
@@ -21,6 +22,7 @@ export function PriceWarShellHome() {
   const historyQuery = usePriceWarHistory();
   const [starting, setStarting] = useState(false);
   const [selectedMode, setSelectedMode] = useState(DEFAULT_MARGIN_PLAY_MODE);
+  const [rulesOpen, setRulesOpen] = useState(false);
 
   const subscriptionQuery = useQuery({
     queryKey: ["user", "subscription"],
@@ -64,15 +66,24 @@ export function PriceWarShellHome() {
         matches={historyQuery.data?.matches ?? []}
         view={null}
         elo={ratingQuery.data?.rating ?? null}
+        rulesOpen={rulesOpen}
+        onToggleRules={() => setRulesOpen((open) => !open)}
       />
-      <ShellKanbanHome
-        matches={historyQuery.data?.matches ?? []}
-        onPlay={() => void startPlay()}
-        loading={starting}
-        selectedMode={selectedMode}
-        onSelectMode={setSelectedMode}
-        isPaid={isPaid}
-      />
+      <div style={{ display: "flex", alignItems: "stretch" }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <ShellKanbanHome
+            matches={historyQuery.data?.matches ?? []}
+            onPlay={() => void startPlay()}
+            loading={starting}
+            selectedMode={selectedMode}
+            onSelectMode={setSelectedMode}
+            isPaid={isPaid}
+          />
+        </div>
+        {rulesOpen ? (
+          <MarginRulesSidePanel id="margin-rules-panel" onClose={() => setRulesOpen(false)} />
+        ) : null}
+      </div>
     </ShellViewport>
   );
 }

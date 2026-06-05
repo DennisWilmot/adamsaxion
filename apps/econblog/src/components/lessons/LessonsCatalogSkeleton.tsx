@@ -1,9 +1,11 @@
+import { CATALOG_PAGE_SHELL_CLASS } from "@/lib/catalog-page-shell";
+
 export function LessonsCatalogSkeleton() {
   return (
     <div
       aria-busy="true"
       aria-label="Loading lessons catalog"
-      className="mx-auto max-w-[72rem] animate-pulse px-xl py-3xl"
+      className={`${CATALOG_PAGE_SHELL_CLASS} animate-pulse`}
     >
       <div className="relative mb-2xl overflow-hidden rounded-xl bg-surface-sunken p-xl">
         <div className="space-y-sm">
