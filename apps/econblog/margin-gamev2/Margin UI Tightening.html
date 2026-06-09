@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Margin · UI Tightening</title>
+<style>
+  html, body { background: #eef1f6; height: 100%; margin: 0; overflow: hidden; }
+  #app { height: 100vh; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" data-presets="typescript,react" src="design-canvas.jsx"></script>
+<script type="text/babel" data-presets="typescript,react" src="margin-tight-kit.jsx"></script>
+<script type="text/babel" data-presets="typescript,react" src="margin-tight-screens.jsx"></script>
+<script type="text/babel" data-presets="typescript,react" src="margin-tight-system.jsx"></script>
+
+<script type="text/babel" data-presets="typescript,react">
+  const Canvas = window.DesignCanvas, Section = window.DCSection, Board = window.DCArtboard;
+
+  function App() {
+    return (
+      <Canvas>
+        <Section id="decide" title="Decide screen — tightened" subtitle="Same layout & copy as today. Only the materials change: flat glyphs, mono money, one button family, blue = you. Two directions differ only in how the arena is handled.">
+          <Board id="a" label="A · Editorial flat (arena converted)" width={1280} height={940}>
+            <window.DecideA />
+          </Board>
+          <Board id="b" label="B · Stage kept (flat material)" width={1280} height={940}>
+            <window.DecideB />
+          </Board>
+        </Section>
+
+        <Section id="system" title="System decisions" subtitle="The rules each screen is built on — before (the inconsistency) vs after (the rule).">
+          <Board id="icons"   label="Domain icons" width={340} height={364}><window.CardIcons /></Board>
+          <Board id="money"   label="Money" width={340} height={404}><window.CardMoney /></Board>
+          <Board id="buttons" label="Buttons" width={340} height={432}><window.CardButtons /></Board>
+          <Board id="color"   label="Color" width={340} height={396}><window.CardColor /></Board>
+          <Board id="type"    label="Type roles" width={340} height={388}><window.CardType /></Board>
+        </Section>
+      </Canvas>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('app')).render(<App />);
+</script>
+
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="200" fill="#eef1f6"/>
+  <rect x="48" y="58" width="48" height="58" rx="6" fill="#fff" stroke="#0a52c4" stroke-width="3"/>
+  <rect x="104" y="58" width="48" height="58" rx="6" fill="#e8f0ff" stroke="#0a52c4" stroke-width="3"/>
+  <line x1="100" y1="58" x2="100" y2="116" stroke="#c4cbd6" stroke-width="2"/>
+  <text x="100" y="150" text-anchor="middle" font-family="Georgia, serif" font-size="20" font-style="italic" fill="#0b1220">Margin</text>
+</svg>
+</template>
+</body>
+</html>

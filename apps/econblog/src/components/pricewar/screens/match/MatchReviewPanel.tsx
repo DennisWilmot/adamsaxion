@@ -72,13 +72,14 @@ export function MatchReviewPanel({
           total={view.market.totalRounds}
           timerMs={liveClockMs}
           timerLabel="until reveal"
-          you={{ name: "You", cash: view.me.cash, trend: cashTrend }}
+          you={{ name: "You", cash: view.me.cash, trend: cashTrend, avatarUrl: view.me.avatarUrl }}
           opp={{
             name: view.opponent.displayName,
             elo: null,
             price: view.opponent.currentPrice,
             locked: view.opponentHasLocked,
             isBot: view.opponent.isBot,
+            avatarUrl: view.opponent.avatarUrl,
           }}
         />
       )}

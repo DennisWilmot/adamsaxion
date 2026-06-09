@@ -3,6 +3,11 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { profiles } from "@/db/schema";
 import { sanitizeUsername, validateUsername } from "@/lib/auth/username";
+import { buildGeneratedAvatarPath } from "@/lib/avatars/generate";
+import {
+  googleAvatarUrlFromUserMetadata,
+  resolveAvatarUrl,
+} from "@/lib/avatars/resolve";
 
 function buildFallbackUsername(user: User) {
   const baseName =
@@ -44,6 +49,34 @@ async function resolveUniqueUsername(base: string, userId: string): Promise<stri
   return `${candidate}_${userId.slice(0, 6)}`;
 }
 
+function generatedAvatarPathForUser(userId: string): string {
+  return buildGeneratedAvatarPath(userId);
+}
+
+async function ensureProfileAvatar(user: User, existingAvatarUrl: string | null) {
+  if (existingAvatarUrl) {
+    return existingAvatarUrl;
+  }
+
+  const avatarUrl = generatedAvatarPathForUser(user.id);
+  await db
+    .update(profiles)
+    .set({ avatarUrl, updatedAt: new Date() })
+    .where(eq(profiles.id, user.id));
+
+  return avatarUrl;
+}
+
+export function resolveUserAvatarUrl(
+  profile: { avatarUrl?: string | null } | null | undefined,
+  user: User
+): string | null {
+  return resolveAvatarUrl({
+    profileAvatarUrl: profile?.avatarUrl ?? null,
+    googleAvatarUrl: googleAvatarUrlFromUserMetadata(user.user_metadata),
+  });
+}
+
 export async function ensureProfileForUser(user: User) {
   const [existingProfile] = await db
     .select()
@@ -52,7 +85,13 @@ export async function ensureProfileForUser(user: User) {
     .limit(1);
 
   if (existingProfile) {
-    return existingProfile;
+    await ensureProfileAvatar(user, existingProfile.avatarUrl);
+    const [refreshed] = await db
+      .select()
+      .from(profiles)
+      .where(eq(profiles.id, user.id))
+      .limit(1);
+    return refreshed ?? existingProfile;
   }
 
   const username = await resolveUniqueUsername(
@@ -60,11 +99,14 @@ export async function ensureProfileForUser(user: User) {
     user.id
   );
 
+  const avatarUrl = generatedAvatarPathForUser(user.id);
+
   await db
     .insert(profiles)
     .values({
       id: user.id,
       username,
+      avatarUrl,
       totalXp: 0,
       currentLevel: 1,
     })

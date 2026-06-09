@@ -3,12 +3,6 @@
 import { CoachBubble } from "../design-system/CoachBubble";
 import { MarginBtn, MT } from "../design-system/margin-kit";
 
-const PREP_LINES = [
-  "Warming the espresso machine",
-  "Pre-heating the oven",
-  "Balancing the books",
-];
-
 export interface QueuePanelProps {
   playModeId: string;
   elapsedSec: number;
@@ -79,56 +73,40 @@ export function QueuePanel({
           }}
         >
         <h2 className="serif" style={{ fontSize: 27, color: MT.ink, fontWeight: 700 }}>
-          Looking for an opponent…
+          The lobby is crowded…
         </h2>
-        <div style={{ fontSize: 13.5, color: MT.ink3, marginTop: 5, textTransform: "capitalize" }}>
+        <p
+          className="serif"
+          style={{
+            fontSize: 17,
+            fontStyle: "italic",
+            color: MT.ink2,
+            marginTop: 10,
+            lineHeight: 1.45,
+          }}
+        >
+          Matching you with someone shortly.
+        </p>
+        <div style={{ fontSize: 13.5, color: MT.ink3, marginTop: 12, textTransform: "capitalize" }}>
           {playModeId} · Coffee Shop
         </div>
 
         <div
           style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 8,
-            margin: "26px auto 0",
-            maxWidth: 320,
-            textAlign: "left",
+            display: "inline-flex",
+            gap: 4,
+            marginTop: 24,
+            alignItems: "center",
+            justifyContent: "center",
           }}
+          aria-hidden
         >
-          {PREP_LINES.map((line, i) => (
-            <div
-              key={line}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 11,
-                opacity: i === 0 ? 1 : 0.5,
-              }}
-            >
-              {i === 0 ? (
-                <span style={{ display: "inline-flex", gap: 3 }}>
-                  {[0, 1, 2].map((d) => (
-                    <span
-                      key={d}
-                      className="mtq-dot"
-                      style={{ width: 6, height: 6, borderRadius: 99, background: MT.blue }}
-                    />
-                  ))}
-                </span>
-              ) : (
-                <span style={{ width: 16, textAlign: "center", color: MT.ink4 }}>○</span>
-              )}
-              <span
-                className="serif"
-                style={{
-                  fontSize: 15.5,
-                  fontStyle: "italic",
-                  color: i === 0 ? MT.ink : MT.ink3,
-                }}
-              >
-                {line}…
-              </span>
-            </div>
+          {[0, 1, 2].map((d) => (
+            <span
+              key={d}
+              className="mtq-dot"
+              style={{ width: 7, height: 7, borderRadius: 99, background: MT.blue }}
+            />
           ))}
         </div>
 

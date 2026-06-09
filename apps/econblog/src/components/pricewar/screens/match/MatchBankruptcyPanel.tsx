@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type { PlayerView } from "@adamsaxion/pricewar-types";
 import type { CoachReportPayload } from "@adamsaxion/pricewar-engine";
-import { AvatarOpponent, AvatarPlayer } from "@/components/pricewar/design-system/avatars";
+import { UserPortrait } from "@/components/pricewar/design-system/UserPortrait";
 import { MatchTerminalFrame } from "./MatchTerminalFrame";
 import { OutcomeBanner } from "./OutcomeBanner";
 import { CoachLessonBlock } from "@/components/pricewar/screens/shared/CoachLessonBlock";
@@ -79,7 +79,7 @@ export function MatchBankruptcyPanel({
         }}
       >
         <div style={{ textAlign: "center" }}>
-          <AvatarPlayer size={80} ring={CD.ink4} />
+          <UserPortrait avatarUrl={view.me.avatarUrl} size={80} ring={CD.ink4} />
           <div className="serif" style={{ fontSize: 18, color: CD.ink, marginTop: 8 }}>
             You
           </div>
@@ -89,7 +89,13 @@ export function MatchBankruptcyPanel({
           <div style={{ fontSize: 11, color: CD.ink3, letterSpacing: "0.08em" }}>BANKRUPT</div>
         </div>
         <div style={{ textAlign: "center" }}>
-          <AvatarOpponent size={80} ring={CD.primary} />
+          <UserPortrait
+            avatarUrl={view.opponent.avatarUrl}
+            isBot={view.opponent.isBot}
+            kind="opponent"
+            size={80}
+            ring={CD.primary}
+          />
           <div className="serif" style={{ fontSize: 18, color: CD.ink, marginTop: 8 }}>
             {view.opponent.displayName}
           </div>

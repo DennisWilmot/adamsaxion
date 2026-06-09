@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Price War · v2 · Wireframes (Print)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Patrick+Hand&family=Kalam:wght@400;700&family=Gloria+Hallelujah&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="pricewar.css" />
+<style>
+  /* Print layout — each wireframe on its own page, landscape. */
+  html, body { background: #f6f1e7; }
+  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  .print-root { padding: 28px 24px 40px; max-width: none; }
+
+  .print-cover { max-width: 1100px; margin: 0 auto 32px; }
+  .print-cover .title-row { margin-top: 14px; }
+  .print-toc { margin-top: 28px; background: #fffdf6; border: 1.5px solid var(--ink); border-radius: 14px; padding: 16px 20px; box-shadow: 4px 4px 0 rgba(31,28,24,.08); }
+  .print-toc ol { margin: 8px 0 0; padding-left: 22px; line-height: 1.9; font-family: 'Patrick Hand', cursive; font-size: 16px; }
+  .print-toc ol li b { font-family: 'Caveat', cursive; font-size: 19px; margin-right: 4px; }
+  .print-toc .step-hint { display: inline; margin: 0; font-size: 13px; }
+
+  .print-options { gap: 0; }
+  .print-option { padding: 24px 8px 36px; }
+
+  /* Tooltip in the Results screen is absolutely positioned —
+     ensure the public card gives it room and doesn't clip. */
+  .print-option .frame, .print-option .wf-card { overflow: visible !important; }
+
+  /* On screen the print preview keeps a readable size; print rules below
+     handle pagination. */
+
+  @page { size: landscape; margin: 0.5cm; }
+
+  @media print {
+    html, body { background: #f6f1e7; }
+    .print-cover { page-break-after: always; break-after: page; }
+    .print-option {
+      page-break-before: always;
+      break-before: page;
+      page-break-inside: avoid;
+      break-inside: avoid;
+      padding: 0;
+    }
+    .print-option:first-child {
+      page-break-before: auto;
+      break-before: auto;
+    }
+    .frame { box-shadow: none; }
+    /* Drop chrome that doesn't belong in the printout */
+    .crumbs { font-size: 11px; }
+    h1 { font-size: 26px; }
+    .title-row p { font-size: 13px; }
+    .notes { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="pricewar-v2-core.jsx"></script>
+<script type="text/babel" src="pricewar-v2-library.jsx"></script>
+<script type="text/babel" src="pricewar-v2-decide.jsx"></script>
+<script type="text/babel" src="pricewar-v2-screens.jsx"></script>
+<script type="text/babel" src="pricewar-v2-print-app.jsx"></script>
+
+<script type="text/babel">
+  // Wait until fonts, JSX render, and a small safety delay all settle, then print.
+  (async () => {
+    try { if (document.fonts && document.fonts.ready) { await document.fonts.ready; } } catch (e) {}
+    // Two animation frames so React has committed and layout is settled
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    // Final safety delay
+    await new Promise((r) => setTimeout(r, 700));
+    window.print();
+  })();
+</script>
+</body>
+</html>

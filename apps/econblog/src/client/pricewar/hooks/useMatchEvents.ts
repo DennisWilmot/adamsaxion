@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { PlayerView } from "@adamsaxion/pricewar-types";
 import { matchViewQueryKey, refreshMatchView } from "@/client/pricewar/match-view-cache";
+import { pickNewerView } from "@/client/pricewar/match-view-progress";
 
 export type MatchEvent =
   | { type: "opponent_locked"; round: number }
@@ -31,6 +32,15 @@ export function useMatchEvents(
   useEffect(() => {
     const source = new EventSource(`/api/pricewar/match/${matchId}/events`);
 
+    // Match events carry per-slot views but fan out to BOTH players on the same
+    // channel. Reject any incoming view that belongs to the other slot so we
+    // never apply the opponent's perspective over ours (which showed up as a
+    // green "opponent left" flash when forfeiting, and stale value flicker).
+    const isOtherSlot = (
+      prev: PlayerView | undefined,
+      incoming: PlayerView | undefined
+    ): boolean => Boolean(prev && incoming && incoming.me.slot !== prev.me.slot);
+
     source.onmessage = (event) => {
       try {
         const payload = JSON.parse(event.data) as MatchEvent;
@@ -38,7 +48,8 @@ export function useMatchEvents(
           if (payload.view) {
             queryClient.setQueryData(matchViewQueryKey(matchId), (prev: PlayerView | undefined) => {
               if (prev?.phase === "completed") return prev;
-              return payload.view!;
+              if (isOtherSlot(prev, payload.view)) return prev;
+              return pickNewerView(prev, payload.view!);
             });
           } else {
             void refreshMatchView(queryClient, matchId);
@@ -47,7 +58,9 @@ export function useMatchEvents(
         }
         if (payload.type === "match_ended") {
           if (payload.finalView) {
-            queryClient.setQueryData(matchViewQueryKey(matchId), payload.finalView);
+            queryClient.setQueryData(matchViewQueryKey(matchId), (prev: PlayerView | undefined) =>
+              isOtherSlot(prev, payload.finalView) ? prev : payload.finalView!
+            );
           } else {
             void refreshMatchView(queryClient, matchId);
           }
@@ -55,14 +68,26 @@ export function useMatchEvents(
         }
         if (payload.type === "match_started") {
           if (payload.view) {
-            queryClient.setQueryData(matchViewQueryKey(matchId), payload.view);
+            queryClient.setQueryData(matchViewQueryKey(matchId), (prev: PlayerView | undefined) =>
+              isOtherSlot(prev, payload.view) ? prev : payload.view!
+            );
           } else {
             void refreshMatchView(queryClient, matchId);
           }
           handlersRef.current.onMatchStarted?.();
         }
         if (payload.type === "opponent_locked") {
-          void refreshMatchView(queryClient, matchId);
+          // Patch the flag directly instead of refetching — the only thing this
+          // event changes is the opponent's locked state for the current round.
+          queryClient.setQueryData(
+            matchViewQueryKey(matchId),
+            (prev: PlayerView | undefined) => {
+              if (!prev || prev.phase !== "decide") return prev;
+              if (prev.market.currentRound !== payload.round) return prev;
+              if (prev.opponentHasLocked) return prev;
+              return { ...prev, opponentHasLocked: true };
+            }
+          );
           handlersRef.current.onOpponentLocked?.(payload.round);
         }
         if (payload.type === "opponent_disconnected") {

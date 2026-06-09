@@ -4,32 +4,7 @@ import { FloatingIcons } from "@/components/FloatingIcons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ECON_WORDLE, MARGIN_GAME_NAME, priceWarPaths } from "@/lib/games/routes";
-
-const GAMES = [
-  {
-    id: "econ-wordle",
-    title: "Econ Wordle",
-    description:
-      "Guess the daily economics term in six tries. A quick, free puzzle — and every word links to the lesson that teaches it.",
-    href: ECON_WORDLE,
-    status: "live" as const,
-    cta: "Play today's puzzle",
-    thumbnail: "/games/econ-wordle-thumbnail.png",
-    thumbnailAlt: "Econ Wordle daily puzzle grid with letter tiles",
-  },
-  {
-    id: "price-war",
-    title: MARGIN_GAME_NAME,
-    description:
-      "Turn-based economics strategy. Protect your margins — pick moves across sales, marketing, and operations to outmaneuver your opponent.",
-    href: priceWarPaths.lobby,
-    status: "live" as const,
-    cta: "Play",
-    thumbnail: "/games/margin-thumbnail.png",
-    thumbnailAlt: "Margin strategy game — rival coffee shops facing off",
-  },
-];
+import { PLAY_CATALOG_GAMES } from "@/lib/games/catalog";
 
 export default function PlayCatalogPage() {
   return (
@@ -46,7 +21,7 @@ export default function PlayCatalogPage() {
       </div>
 
       <section className="grid grid-cols-1 gap-xl sm:grid-cols-2 lg:grid-cols-3">
-        {GAMES.map((game) => (
+        {PLAY_CATALOG_GAMES.map((game) => (
           <Card
             key={game.id}
             className="group overflow-hidden rounded-xl border-border bg-surface-raised transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-primary/30 hover:shadow-lg motion-reduce:transform-none motion-reduce:hover:shadow"

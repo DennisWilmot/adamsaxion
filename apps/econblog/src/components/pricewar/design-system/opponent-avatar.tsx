@@ -44,11 +44,27 @@ export function OpponentAvatarFace({
   kind,
   size = 42,
   ring,
+  avatarUrl,
 }: {
   kind: OpponentAvatarKind;
   size?: number;
   ring: string;
+  avatarUrl?: string | null | undefined;
 }) {
+  if (avatarUrl && kind === "human") {
+    return (
+      <PortraitFrame size={size} ring={ring}>
+        <Image
+          src={avatarUrl}
+          alt=""
+          fill
+          sizes={`${size}px`}
+          style={{ objectFit: "cover", objectPosition: "center top" }}
+        />
+      </PortraitFrame>
+    );
+  }
+
   if (kind === "guide") {
     return (
       <PortraitFrame size={size} ring={ring}>

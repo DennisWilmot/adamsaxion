@@ -27,6 +27,7 @@ export type MatchOutcome =
 export interface PlayerPublicState {
   slot: PlayerSlot;
   displayName: string;
+  avatarUrl?: string | null;
   currentPrice: number;
   brandTier: number;
   isBot: boolean;

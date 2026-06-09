@@ -7,6 +7,7 @@ import { LayoutDashboard } from "lucide-react";
 import { signInWithGoogle } from "@/lib/auth/client";
 import { authPageUrl } from "@/lib/auth/redirect";
 import { lessonZeroPath } from "@/lib/constants/lessons";
+import { LANDING_CTA_START_LESSON_ZERO } from "@/lib/landing/content";
 import { UserAccountMenu } from "@/components/UserAccountMenu";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
@@ -45,10 +46,6 @@ function HeaderAuthActionsInner({
     await signInWithGoogle(authNextPath());
   }
 
-  function handleStartForFree() {
-    window.location.href = authPageUrl(lessonZeroPath(), "signup");
-  }
-
   if (loading) {
     return (
       <Link
@@ -83,13 +80,12 @@ function HeaderAuthActionsInner({
 
   return (
     <div className="hidden items-center gap-sm sm:flex">
-      <button
-        type="button"
-        onClick={handleStartForFree}
-        className="h-8 rounded-lg bg-primary px-lg text-sm font-semibold text-surface-raised transition-colors hover:bg-primary-hover"
+      <Link
+        href={lessonZeroPath()}
+        className="h-8 rounded-lg bg-primary px-lg text-sm font-semibold text-surface-raised transition-colors hover:bg-primary-hover inline-flex items-center"
       >
-        Start for free
-      </button>
+        {LANDING_CTA_START_LESSON_ZERO}
+      </Link>
       <button
         type="button"
         onClick={() => void handleSignIn()}
@@ -194,20 +190,15 @@ function MobileAuthActionsInner({
     );
   }
 
-  function handleStartForFree() {
-    onClose();
-    window.location.href = authPageUrl(lessonZeroPath(), "signup");
-  }
-
   return (
     <>
-      <button
-        type="button"
-        onClick={handleStartForFree}
+      <Link
+        href={lessonZeroPath()}
+        onClick={onClose}
         className="block w-full py-sm text-left text-sm font-semibold text-primary"
       >
-        Start for free
-      </button>
+        {LANDING_CTA_START_LESSON_ZERO}
+      </Link>
       <button
         type="button"
         onClick={() => void handleSignIn()}

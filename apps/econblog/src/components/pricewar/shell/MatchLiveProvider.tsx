@@ -14,7 +14,8 @@ import {
   shouldRedirectToPhasePath,
 } from "@/client/pricewar/match-routing";
 import { isMatchSessionPath, isTerminalMatchPath } from "@/client/pricewar/match-shell-paths";
-import { refreshMatchView } from "@/client/pricewar/match-view-cache";
+import { matchViewQueryKey, refreshMatchView } from "@/client/pricewar/match-view-cache";
+import type { MarginMatchView } from "@/client/pricewar/match-view-types";
 import { OpponentDisconnectedOverlay } from "@/components/pricewar/shell/MatchStatusOverlays";
 
 export function MatchLiveProvider({ children }: { children: React.ReactNode }) {
@@ -91,7 +92,12 @@ export function MatchLiveProvider({ children }: { children: React.ReactNode }) {
     onRoundResolved: async () => {
       logMarginShell("MatchLiveProvider", "sse:round_resolved", { pathname });
       setDisconnectGraceEndsAt(null);
-      const freshView = await refreshMatchView(queryClient, matchId);
+      // useMatchEvents already wrote the resolved view into the cache from the
+      // SSE payload — read it directly and only fall back to the network if the
+      // event somehow arrived without a view.
+      const freshView =
+        queryClient.getQueryData<MarginMatchView>(matchViewQueryKey(matchId)) ??
+        (await refreshMatchView(queryClient, matchId));
       if (!freshView) return;
 
       if (freshView.phase === "completed") {

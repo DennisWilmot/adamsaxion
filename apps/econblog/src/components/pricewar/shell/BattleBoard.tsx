@@ -1,8 +1,8 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import type { PlayerView } from "@adamsaxion/pricewar-types";
-import { AvatarOpponent, AvatarPlayer } from "@/components/pricewar/design-system/avatars";
+import { UserPortrait } from "@/components/pricewar/design-system/UserPortrait";
 import {
   Eyebrow,
   MT,
@@ -10,6 +10,9 @@ import {
   StatusDot,
 } from "@/components/pricewar/design-system/margin-kit";
 import { useLiveClockMs } from "@/client/pricewar/hooks/useLiveClockMs";
+import { useGameAudio } from "@/client/pricewar/audio/useGameAudio";
+
+const CLOCK_DANGER_MS = 6_000;
 
 type BoardStatus = "connecting" | "thinking" | "locked" | "revealed";
 
@@ -41,6 +44,12 @@ function deriveStatuses(view: PlayerView, reveal: boolean): { you: BoardStatus; 
       you: view.meHasLocked ? "locked" : "thinking",
       opp: view.opponentHasLocked ? "locked" : "thinking",
     };
+  }
+  // Round is resolved but not yet flipped face-up (the anticipation dwell before
+  // a reveal). Both sides have committed — show "locked", not "thinking", so it
+  // never reads like the match jumped back to deciding.
+  if (view.phase === "report" || view.phase === "completed") {
+    return { you: "locked", opp: "locked" };
   }
   return { you: "thinking", opp: "thinking" };
 }
@@ -201,6 +210,22 @@ export function BattleBoard({
   const minutes = Math.floor(Math.max(0, liveClockMs) / 60_000);
   const seconds = Math.floor((Math.max(0, liveClockMs) % 60_000) / 1000);
 
+  // Telegraph the danger: in the final seconds the clock turns red, pulses, and
+  // ticks louder — so a timeout loss reads as earned, not a sudden jump.
+  const clockDanger = clockActive && liveClockMs > 0 && liveClockMs <= CLOCK_DANGER_MS;
+  const { play } = useGameAudio();
+  const lastDangerSecond = useRef<number | null>(null);
+  useEffect(() => {
+    if (!clockDanger) {
+      lastDangerSecond.current = null;
+      return;
+    }
+    if (lastDangerSecond.current !== seconds) {
+      lastDangerSecond.current = seconds;
+      play("clock.tick.escalate");
+    }
+  }, [clockDanger, seconds, play]);
+
   const { you: youStatus, opp: oppStatus } = deriveStatuses(view, reveal);
   const youCap = capacityPct(view, reveal);
   const oppCap = reveal
@@ -250,8 +275,15 @@ export function BattleBoard({
             border: `1px solid ${MT.rule}`,
           }}
         >
-          <StatusDot color={reveal ? MT.green : MT.blue} />
-          <span className="mono" style={{ fontSize: 12, color: MT.ink2 }}>
+          <StatusDot color={clockDanger ? MT.red : reveal ? MT.green : MT.blue} />
+          <span
+            className={`mono${clockDanger ? " mtx-clock-danger" : ""}`}
+            style={{
+              fontSize: 12,
+              fontWeight: clockDanger ? 800 : undefined,
+              color: clockDanger ? MT.red : MT.ink2,
+            }}
+          >
             {timerLabel}
           </span>
           {timerSub && (
@@ -262,7 +294,15 @@ export function BattleBoard({
       <div style={{ display: "flex", alignItems: "stretch", gap: 8 }}>
         <BoardSide
           name={view.opponent.displayName}
-          avatar={<AvatarOpponent size={44} ring={MT.ink4} />}
+          avatar={
+            <UserPortrait
+              avatarUrl={view.opponent.avatarUrl}
+              isBot={view.opponent.isBot}
+              kind="opponent"
+              size={44}
+              ring={MT.ink4}
+            />
+          }
           status={oppStatus}
           price={view.opponent.currentPrice}
           cap={oppCap}
@@ -289,7 +329,7 @@ export function BattleBoard({
         <BoardSide
           name="You"
           you
-          avatar={<AvatarPlayer size={44} ring={MT.blue} />}
+          avatar={<UserPortrait avatarUrl={view.me.avatarUrl} size={44} ring={MT.blue} />}
           status={youStatus}
           price={view.me.currentPrice}
           cap={youCap}

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Settings, Shield } from "lucide-react";
-import { AvatarPlayer } from "../../design-system/avatars";
+import { UserPortrait } from "../../design-system/UserPortrait";
 import { CD } from "../../design-system/tokens";
 import { LOBBY } from "../lobby/lobby-tokens";
 import { LobbyIcon } from "../lobby/LobbyIcon";
@@ -11,11 +11,13 @@ import { MARGIN_GAME_NAME } from "@/lib/games/routes";
 
 export function LobbyHeader({
   username,
+  avatarUrl,
   elo,
   unrated,
   onlineNow,
 }: {
   username: string;
+  avatarUrl?: string | null;
   elo: number | null;
   unrated: boolean;
   onlineNow?: number;
@@ -86,7 +88,7 @@ export function LobbyHeader({
               <span style={{ fontSize: 11, color: CD.ink3 }}>Elo</span>
             </>
           )}
-          <AvatarPlayer size={30} />
+          <UserPortrait avatarUrl={avatarUrl} size={30} />
           <span style={{ fontSize: 12, color: CD.ink, fontWeight: 600, maxWidth: 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {username}
           </span>

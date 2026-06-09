@@ -12,6 +12,7 @@ import {
 export const profiles = pgTable("profiles", {
   id: uuid("id").primaryKey(),
   username: text("username").unique().notNull(),
+  avatarUrl: text("avatar_url"),
   totalXp: integer("total_xp").default(0).notNull(),
   currentLevel: integer("current_level").default(1).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),

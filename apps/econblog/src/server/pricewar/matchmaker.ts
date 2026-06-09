@@ -4,7 +4,6 @@ import {
   getPlayMode,
   beginBriefingClocks,
   COFFEE_SHOP_SCENARIO,
-  BOT_PERSONAS,
 } from "@adamsaxion/pricewar-engine";
 import type { MatchId } from "@adamsaxion/pricewar-types";
 import * as repo from "./repository";
@@ -16,15 +15,7 @@ import {
   getHumanOnlyWindowSec,
   getHumanPolishMinSec,
 } from "./margin-matchmaking";
-
-const SYNTHETIC_BOT_IDS = BOT_PERSONAS.filter((p) => p.id !== "bot.tutorial").map(
-  (p) => p.id
-);
-
-function pickRandomSyntheticPersonaId(): string {
-  const idx = Math.floor(Math.random() * SYNTHETIC_BOT_IDS.length);
-  return SYNTHETIC_BOT_IDS[idx] ?? "bot.budget";
-}
+import { getSyntheticOpponent, pickSyntheticOpponent } from "@/lib/pricewar/synthetic-opponents";
 
 function queuedStatus(entry: NonNullable<Awaited<ReturnType<typeof repo.getQueueEntry>>>) {
   const elapsedSec = Math.floor((Date.now() - entry.enqueuedAt.getTime()) / 1000);
@@ -40,9 +31,15 @@ function queuedStatus(entry: NonNullable<Awaited<ReturnType<typeof repo.getQueue
 export async function createVsBotMatch(args: {
   userId: string;
   playerName: string;
+  playerAvatarUrl?: string | null;
   scenarioId: string;
   playModeId: string;
   botPersonalityId: string;
+  displayName?: string;
+  syntheticOpponentId?: string | null;
+  opponentAvatarUrl?: string | null;
+  opponentRatingAtStart?: number | null;
+  humanRatingAtStart?: number | null;
 }): Promise<{ matchId: MatchId }> {
   const playMode = getPlayMode(args.playModeId);
   if (!playMode) {
@@ -50,6 +47,10 @@ export async function createVsBotMatch(args: {
   }
 
   const bot = getBotPersona(args.botPersonalityId) ?? getBotPersona("bot.random")!;
+  const synthetic = getSyntheticOpponent(args.syntheticOpponentId);
+  const opponentName = args.displayName ?? synthetic?.displayName ?? bot.label;
+  const opponentAvatarUrl =
+    args.opponentAvatarUrl ?? synthetic?.avatarUrl ?? null;
   const rngSeed = crypto.randomUUID();
 
   const baseState = createInitialMatchState({
@@ -57,8 +58,10 @@ export async function createVsBotMatch(args: {
     playModeId: args.playModeId,
     rngSeed,
     playerAName: args.playerName,
-    playerBName: bot.label,
+    playerBName: opponentName,
     playerBIsBot: true,
+    playerAAvatarUrl: args.playerAvatarUrl ?? null,
+    playerBAvatarUrl: opponentAvatarUrl,
   });
   const state =
     args.playModeId === "tutorial"
@@ -69,11 +72,17 @@ export async function createVsBotMatch(args: {
 
   const matchId = await repo.createMatchWithPlayers({
     state,
-    playerA: { userId: args.userId, displayName: args.playerName },
+    playerA: {
+      userId: args.userId,
+      displayName: args.playerName,
+      ratingAtStart: args.humanRatingAtStart ?? null,
+    },
     playerB: {
-      displayName: bot.label,
+      displayName: opponentName,
       isBot: true,
       botPersonalityId: bot.id,
+      syntheticOpponentId: args.syntheticOpponentId ?? null,
+      ratingAtStart: args.opponentRatingAtStart ?? null,
     },
   });
 
@@ -84,8 +93,18 @@ export async function createVsBotMatch(args: {
 }
 
 export async function createPvpMatch(args: {
-  playerA: { userId: string; displayName: string; ratingAtStart?: number | null };
-  playerB: { userId: string; displayName: string; ratingAtStart?: number | null };
+  playerA: {
+    userId: string;
+    displayName: string;
+    avatarUrl?: string | null;
+    ratingAtStart?: number | null;
+  };
+  playerB: {
+    userId: string;
+    displayName: string;
+    avatarUrl?: string | null;
+    ratingAtStart?: number | null;
+  };
   scenarioId: string;
   playModeId: string;
 }): Promise<{ matchId: MatchId }> {
@@ -97,6 +116,8 @@ export async function createPvpMatch(args: {
     rngSeed,
     playerAName: args.playerA.displayName,
     playerBName: args.playerB.displayName,
+    playerAAvatarUrl: args.playerA.avatarUrl ?? null,
+    playerBAvatarUrl: args.playerB.avatarUrl ?? null,
   });
   state.phase = "waiting_for_opponent";
   state.timerMeta = {
@@ -161,8 +182,8 @@ async function tryPairHumanFromQueue(args: {
   }
 
   const [opponentProfile, myProfile] = await Promise.all([
-    repo.getProfileUsername(opponent.userId),
-    repo.getProfileUsername(args.userId),
+    repo.getProfilePublic(opponent.userId),
+    repo.getProfilePublic(args.userId),
   ]);
 
   let ratingA: number | null = null;
@@ -187,12 +208,14 @@ async function tryPairHumanFromQueue(args: {
   const { matchId } = await createPvpMatch({
     playerA: {
       userId: args.userId,
-      displayName: myProfile ?? "Player",
+      displayName: myProfile?.username ?? "Player",
+      avatarUrl: myProfile?.avatarUrl ?? null,
       ratingAtStart: ratingA,
     },
     playerB: {
       userId: opponent.userId,
-      displayName: opponentProfile ?? "Opponent",
+      displayName: opponentProfile?.username ?? "Opponent",
+      avatarUrl: opponentProfile?.avatarUrl ?? null,
       ratingAtStart: ratingB,
     },
     scenarioId: args.scenarioId,
@@ -270,15 +293,36 @@ export async function advanceMatchmaking(args: {
 
   if (elapsedSec >= humanWindow + syntheticDelay) {
     await repo.removeFromQueue(args.userId);
-    const botPersonalityId = pickRandomSyntheticPersonaId();
+
+    let humanRating: number | null = null;
+    if (isMarginRatedEnabled()) {
+      const row = await getUserRatingForMode({
+        userId: args.userId,
+        scenarioId: entry.scenarioId,
+        playModeId: entry.playModeId,
+      });
+      humanRating = row.rating;
+    }
+
+    const synthetic = pickSyntheticOpponent({ playerRating: humanRating });
+    const playMode = getPlayMode(entry.playModeId);
+    const ratedSynthetic = isMarginRatedEnabled() && Boolean(playMode?.affectsRating);
+    const profile = await repo.getProfilePublic(args.userId);
+
     const { matchId } = await createVsBotMatch({
       userId: args.userId,
       playerName: args.playerName,
+      playerAvatarUrl: profile?.avatarUrl ?? null,
       scenarioId: entry.scenarioId,
       playModeId: entry.playModeId,
-      botPersonalityId,
+      botPersonalityId: synthetic.botPersonalityId,
+      displayName: synthetic.displayName,
+      syntheticOpponentId: synthetic.id,
+      opponentAvatarUrl: synthetic.avatarUrl,
+      opponentRatingAtStart: ratedSynthetic ? synthetic.rating : null,
+      humanRatingAtStart: ratedSynthetic ? humanRating : null,
     });
-    await maybeSubmitBotTurn(matchId, botPersonalityId);
+    await maybeSubmitBotTurn(matchId, synthetic.botPersonalityId);
     return { kind: "matched", matchId };
   }
 

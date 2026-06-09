@@ -2,6 +2,7 @@ import type { QueryClient } from "@tanstack/react-query";
 import type { PlayerView } from "@adamsaxion/pricewar-types";
 import { clearMatchSessionStorage } from "@/client/pricewar/match-session-storage";
 import { getMatchPhasePath } from "@/client/pricewar/match-routing";
+import { pickNewerView } from "@/client/pricewar/match-view-progress";
 import { logMarginShell } from "@/client/pricewar/margin-shell-debug";
 import { priceWarPaths } from "@/lib/games/routes";
 
@@ -33,8 +34,11 @@ export async function refreshMatchView(
   const res = await fetch(`/api/pricewar/match/${matchId}/view`, { cache: "no-store" });
   if (!res.ok) return null;
   const freshView = (await res.json()) as PlayerView;
-  queryClient.setQueryData(matchViewQueryKey(matchId), freshView);
-  return freshView;
+  const stored = queryClient.setQueryData<PlayerView>(
+    matchViewQueryKey(matchId),
+    (prev) => pickNewerView(prev, freshView)
+  );
+  return stored ?? freshView;
 }
 
 type MatchRouter = {

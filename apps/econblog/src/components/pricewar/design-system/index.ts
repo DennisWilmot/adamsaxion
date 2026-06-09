@@ -13,6 +13,7 @@ export {
 export type * from "./types";
 export { CafeDuelRoot } from "./CafeDuelRoot";
 export { AvatarPlayer, AvatarOpponent, AvatarCoach } from "./avatars";
+export { UserPortrait } from "./UserPortrait";
 export {
   isRatedHumanOpponent,
   OpponentAvatarFace,

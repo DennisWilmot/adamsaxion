@@ -10,10 +10,21 @@ import type { MatchId, PlayerSlot, SubmittedMove } from "@adamsaxion/pricewar-ty
 import { COFFEE_SHOP_SCENARIO } from "./matchmaker";
 import * as repo from "./repository";
 import { emitMatchEvent } from "./sse";
+import { enrichOpponentView } from "./player-view";
 import { finalizeMatchRatings } from "./ratings";
 import { onPlayerSubmitClock, ensureMatchLifecycle } from "./clock";
 
-/** Both slots submitted but phase still `decide` — reconcile (e.g. missed resolve after lock-in). */
+/**
+ * Reconcile a round that should have resolved but is still in `decide`.
+ *
+ * This is the safety net behind the deferred (post-response) resolution kicked
+ * off by `POST /submit`: if that background task is dropped (process restart,
+ * etc.) the next `GET /view` poll drives the round forward. It handles two
+ * cases — both slots already locked (resolve now), and a bot match where the
+ * human has locked but the bot has not yet submitted (drive the bot turn).
+ * Every underlying write is idempotent (`onConflictDoNothing`), so racing with
+ * the deferred resolution is safe.
+ */
 export async function tryResolveStaleLockedRound(matchId: MatchId): Promise<void> {
   const state = await repo.loadMatch(matchId);
   if (!state || state.phase !== "decide") return;
@@ -21,15 +32,18 @@ export async function tryResolveStaleLockedRound(matchId: MatchId): Promise<void
   const round = state.market.currentRound;
   const subA = await repo.getSubmission(matchId, round, "A");
   const subB = await repo.getSubmission(matchId, round, "B");
-  if (!subA || !subB) return;
 
   try {
-    await resolveRoundIfReady({
-      matchId,
-      round,
-      slot: "A",
-      mySubmission: subA,
-    });
+    if (subA && subB) {
+      await resolveRoundIfReady({ matchId, round, slot: "A", mySubmission: subA });
+      return;
+    }
+    if (subA && !subB) {
+      const botPersonalityId = await repo.getBotPersonalityId(matchId);
+      if (botPersonalityId) {
+        await maybeSubmitBotTurn(matchId, botPersonalityId);
+      }
+    }
   } catch (err) {
     console.error("[pricewar] stale locked-round reconcile failed", { matchId, round, err });
   }
@@ -83,7 +97,11 @@ export async function resolveRoundIfReady(args: {
   });
 
   for (const playerSlot of ["A", "B"] as const) {
-    const view = toPlayerView(stateToSave, playerSlot, { opponentHasLocked: true });
+    const rawView = toPlayerView(stateToSave, playerSlot, {
+      opponentHasLocked: true,
+      meHasLocked: true,
+    });
+    const view = await enrichOpponentView(args.matchId, playerSlot, rawView);
     emitMatchEvent(args.matchId, {
       type: "round_resolved",
       round: args.round,
@@ -95,10 +113,15 @@ export async function resolveRoundIfReady(args: {
   if (stateToSave.phase === "completed") {
     await finalizeMatchRatings(args.matchId, stateToSave);
     for (const playerSlot of ["A", "B"] as const) {
+      const finalView = await enrichOpponentView(
+        args.matchId,
+        playerSlot,
+        toPlayerView(stateToSave, playerSlot)
+      );
       emitMatchEvent(args.matchId, {
         type: "match_ended",
         outcome: stateToSave.outcome,
-        finalView: toPlayerView(stateToSave, playerSlot),
+        finalView,
       });
     }
   } else {
@@ -158,7 +181,7 @@ export async function submitTurn(args: {
 
   const clockState = await repo.loadMatch(args.matchId);
   if (!clockState || clockState.phase === "completed") {
-    return { submitted: true, opponentLocked: false, resolved: false, round };
+    return { submitted: true, round, slot, pendingResolution: false };
   }
 
   const { inserted } = await repo.recordSubmission({
@@ -180,12 +203,12 @@ export async function submitTurn(args: {
 
   emitMatchEvent(args.matchId, { type: "opponent_locked", round });
 
-  return resolveRoundIfReady({
-    matchId: args.matchId,
-    round,
-    slot,
-    mySubmission: args.moves,
-  });
+  // Resolution (bot move + engine resolveTurn + report/rating writes) is the
+  // heavy part of the request. We defer it to after the response is flushed
+  // (see the submit route's `after()` call) so locking in feels instant; the
+  // resolved round is delivered to clients over SSE, with the /view poll as a
+  // reconciliation backstop.
+  return { submitted: true, round, slot, pendingResolution: true };
 }
 
 export async function engineAutopass(args: {

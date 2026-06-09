@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { AvatarPlayer } from "@/components/pricewar/design-system/avatars";
+import { UserPortrait } from "@/components/pricewar/design-system/UserPortrait";
 import { MT } from "@/components/pricewar/design-system/margin-kit";
 import { MARGIN_GAME_NAME, priceWarPaths } from "@/lib/games/routes";
 import { isMarginRatedEnabledClient } from "@/lib/games/margin-flags";
@@ -42,7 +42,15 @@ export function MarginShellWordmark() {
   );
 }
 
-export function ShellEloChip({ elo, eloTrend }: { elo: number; eloTrend?: string | null }) {
+export function ShellEloChip({
+  elo,
+  eloTrend,
+  avatarUrl,
+}: {
+  elo: number;
+  eloTrend?: string | null;
+  avatarUrl?: string | null | undefined;
+}) {
   if (!isMarginRatedEnabledClient()) return null;
 
   return (
@@ -67,7 +75,7 @@ export function ShellEloChip({ elo, eloTrend }: { elo: number; eloTrend?: string
           </span>
         )}
       </div>
-      <AvatarPlayer size={28} />
+      <UserPortrait avatarUrl={avatarUrl} size={28} />
     </div>
   );
 }

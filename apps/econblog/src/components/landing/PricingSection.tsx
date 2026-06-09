@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import {
   ArrowRight,
   Check,
@@ -57,7 +57,7 @@ const PLANS: Plan[] = [
     features: PRICING.paidIncludes,
     badge: "Most popular",
     cta: {
-      label: "Subscribe monthly",
+      label: `Subscribe monthly — ${PRICING.monthly.amount}`,
       href: "/subscribe",
       variant: "primary",
     },
@@ -72,52 +72,22 @@ const PLANS: Plan[] = [
     features: PRICING.lifetimeIncludes,
     badge: "Best value",
     cta: {
-      label: "Get lifetime access",
+      label: `Get lifetime access — ${PRICING.lifetime.amount}`,
       href: "/subscribe",
       variant: "primary",
     },
   },
 ];
 
-const BILLING_CYCLE_MS = 3500;
-
 export function PricingSection() {
   const [billing, setBilling] = useState<Billing>("monthly");
-  const [paused, setPaused] = useState(false);
-  const sectionRef = useRef<HTMLElement>(null);
-  const [inView, setInView] = useState(false);
-
-  useEffect(() => {
-    const node = sectionRef.current;
-    if (!node) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => setInView(entry?.isIntersecting ?? false),
-      { threshold: 0.2 }
-    );
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (paused || !inView) return;
-
-    const tick = window.setInterval(() => {
-      setBilling((prev) => (prev === "monthly" ? "lifetime" : "monthly"));
-    }, BILLING_CYCLE_MS);
-
-    return () => window.clearInterval(tick);
-  }, [paused, inView]);
 
   const featuredId: Plan["id"] = billing === "monthly" ? "monthly" : "lifetime";
 
   return (
     <section
-      ref={sectionRef}
       id="pricing"
       className="border-t border-border-subtle bg-surface-raised px-xl py-4xl"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
     >
       <div className="mx-auto max-w-[1040px]">
         <ScrollReveal>
@@ -127,9 +97,12 @@ export function PricingSection() {
           <h2 className="mb-md text-center font-display text-[32px] font-medium text-balance text-foreground">
             Choose how you want in
           </h2>
-          <p className="mx-auto mb-2xl max-w-[40rem] text-center font-body text-base text-foreground-secondary">
-            Lesson Zero is free forever. Subscribe for the full curriculum,
-            mastery exams, and your personalized path.
+          <p className="mx-auto mb-md max-w-[40rem] text-center font-body text-base text-foreground-secondary">
+            Start free with Wordle, Lesson Zero, and Margin practice. Upgrade once for the full
+            curriculum, ranked play, and AI debriefs.
+          </p>
+          <p className="mx-auto mb-2xl max-w-[40rem] text-center font-body text-sm text-foreground-muted">
+            Members get a personalized lesson path, XP progression, and leaderboard standing.
           </p>
         </ScrollReveal>
 
@@ -192,21 +165,15 @@ export function PricingSection() {
           ))}
         </div>
 
-        <div className="mt-3xl flex justify-center border-t border-border-subtle pt-3xl">
+        <p className="mt-3xl text-center font-body text-sm text-foreground-secondary">
+          Not ready to subscribe?{" "}
           <Link
             href={lessonZeroPath()}
-            className="group relative inline-flex items-center justify-center gap-md overflow-hidden rounded-full bg-primary px-2xl py-lg font-display text-xl font-semibold text-surface-raised shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-lg sm:px-3xl sm:py-xl sm:text-[1.75rem]"
+            className="font-semibold text-primary hover:text-primary-hover"
           >
-            <span
-              aria-hidden
-              className="absolute inset-0 animate-landing-shimmer bg-gradient-to-r from-transparent via-white/15 to-transparent"
-            />
-            <span className="relative z-10 flex items-center gap-md">
-              Start with Lesson Zero
-              <ArrowRight className="size-5 transition-transform group-hover:translate-x-0.5" />
-            </span>
+            Start free — no account needed.
           </Link>
-        </div>
+        </p>
       </div>
     </section>
   );

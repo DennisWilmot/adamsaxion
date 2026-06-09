@@ -1,9 +1,11 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { PlayerView } from "@adamsaxion/pricewar-types";
+import type { MarginMatchView } from "@/client/pricewar/match-view-types";
 
 import { matchViewQueryKey } from "@/client/pricewar/match-view-cache";
+import { pickNewerView } from "@/client/pricewar/match-view-progress";
 
 function matchViewPollMs(view: PlayerView | undefined): number | false {
   if (!view) return 1500;
@@ -26,12 +28,17 @@ function matchViewPollMs(view: PlayerView | undefined): number | false {
 }
 
 export function useMatchView(matchId: string) {
+  const queryClient = useQueryClient();
   return useQuery({
     queryKey: matchViewQueryKey(matchId),
-    queryFn: async (): Promise<PlayerView> => {
+    queryFn: async (): Promise<MarginMatchView> => {
       const res = await fetch(`/api/pricewar/match/${matchId}/view`, { cache: "no-store" });
       if (!res.ok) throw new Error("Failed to load match");
-      return res.json();
+      const incoming = (await res.json()) as MarginMatchView;
+      // Reject stale poll results that would regress a freshly-resolved view
+      // (prevents the on-screen cash/numbers from bouncing backwards).
+      const prev = queryClient.getQueryData<MarginMatchView>(matchViewQueryKey(matchId));
+      return pickNewerView(prev, incoming);
     },
     refetchInterval: (query) => matchViewPollMs(query.state.data),
     refetchOnWindowFocus: true,

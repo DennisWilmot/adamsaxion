@@ -11,7 +11,7 @@ function readSec(envKey: string, prodDefault: number, e2eDefault?: number): numb
 }
 
 export function getHumanOnlyWindowSec(): number {
-  return readSec("MARGIN_HUMAN_ONLY_WINDOW_SEC", 30, 0);
+  return readSec("MARGIN_HUMAN_ONLY_WINDOW_SEC", 2, 0);
 }
 
 export function getSyntheticDelayMinSec(): number {
@@ -19,7 +19,7 @@ export function getSyntheticDelayMinSec(): number {
 }
 
 export function getSyntheticDelayMaxSec(): number {
-  return readSec("MARGIN_SYNTHETIC_DELAY_MAX_SEC", 70, 3);
+  return readSec("MARGIN_SYNTHETIC_DELAY_MAX_SEC", 40, 3);
 }
 
 export function getHumanPolishMinSec(): number {

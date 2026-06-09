@@ -97,6 +97,7 @@ async function seedProfiles(db: ReturnType<typeof drizzle>) {
       .values({
         id: user.id,
         username: user.username,
+        avatarUrl: `/api/avatars/${user.id}`,
         totalXp: 0,
         currentLevel: 1,
       })

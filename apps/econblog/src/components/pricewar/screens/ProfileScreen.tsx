@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { CafeDuelRoot } from "../design-system/CafeDuelRoot";
-import { AvatarPlayer } from "../design-system/avatars";
+import { UserPortrait } from "../design-system/UserPortrait";
 import { CoffeeBackdrop } from "../design-system/CoffeeBackdrop";
 import { CoachBubble } from "../design-system/CoachBubble";
 import { PillBtn } from "../design-system/controls";
@@ -22,6 +22,8 @@ import { RecentMatch } from "./shared/RecentMatch";
 import { Stat } from "./shared/Stat";
 
 export interface ProfileScreenProps {
+  username: string;
+  avatarUrl?: string | null;
   elo: number | null;
   isPaid?: boolean;
   matches: HistoryMatch[];
@@ -49,7 +51,13 @@ function computeStats(matches: HistoryMatch[]) {
   return { wins, losses, streak: streakType === "win" ? streak : 0 };
 }
 
-export function ProfileScreen({ elo, isPaid = false, matches }: ProfileScreenProps) {
+export function ProfileScreen({
+  username,
+  avatarUrl,
+  elo,
+  isPaid = false,
+  matches,
+}: ProfileScreenProps) {
   const router = useRouter();
   const stats = computeStats(matches);
   const completedCount = matches.filter((m) => m.phase === "completed").length;
@@ -73,11 +81,11 @@ export function ProfileScreen({ elo, isPaid = false, matches }: ProfileScreenPro
       >
         <CoffeeBackdrop opacity={0.05} />
         <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 22, flexWrap: "wrap" }}>
-          <AvatarPlayer size={112} ring={CD.primary} />
+          <UserPortrait avatarUrl={avatarUrl} size={112} ring={CD.primary} />
           <div style={{ flex: 1, minWidth: 200 }}>
             <div className="tab">Profile · Match history</div>
             <h1 className="serif" style={{ fontSize: 44, color: CD.ink, marginTop: 4, lineHeight: 1 }}>
-              You
+              {username}
             </h1>
             <div style={{ fontSize: 13, color: CD.ink2, marginTop: 10 }}>
               <span style={{ color: CD.ink3 }}>main </span>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { AvatarOpponent, AvatarPlayer } from "../design-system/avatars";
+import { UserPortrait } from "../design-system/UserPortrait";
 import { CD } from "../design-system/tokens";
 import { Eyebrow, MT } from "../design-system/margin-kit";
 import { ModePicker } from "@/components/pricewar/shell/ModePicker";
@@ -9,6 +9,7 @@ import { ModePicker } from "@/components/pricewar/shell/ModePicker";
 export type LeaderboardRow = {
   rank: number;
   name: string;
+  avatarUrl?: string | null;
   elo: number;
   isYou?: boolean;
 };
@@ -122,11 +123,13 @@ export function LeaderboardScreen({
                   {r.rank}
                 </span>
                 <span style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-                  {r.isYou ? (
-                    <AvatarPlayer size={34} ring={CD.primary} />
-                  ) : (
-                    <AvatarOpponent size={34} />
-                  )}
+                  <UserPortrait
+                    avatarUrl={r.avatarUrl}
+                    isBot={!r.isYou}
+                    kind={r.isYou ? "player" : "opponent"}
+                    size={34}
+                    ring={r.isYou ? CD.primary : undefined}
+                  />
                   <span
                     className="serif"
                     style={{

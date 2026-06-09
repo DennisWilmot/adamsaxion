@@ -1,8 +1,11 @@
+import { after } from "next/server";
 import type { MatchId, SubmittedMove } from "@adamsaxion/pricewar-types";
 import { requireAuthedUser } from "@/server/pricewar/auth";
 import { jsonError, jsonOk } from "@/server/pricewar/http";
 import { consumeRateLimit } from "@/server/pricewar/rate-limit";
-import { submitTurn } from "@/server/pricewar/resolver";
+import { resolveRoundIfReady, submitTurn } from "@/server/pricewar/resolver";
+import { buildPlayerView } from "@/server/pricewar/player-view";
+import { loadMatch } from "@/server/pricewar/repository";
 
 export async function POST(
   request: Request,
@@ -48,5 +51,40 @@ export async function POST(
     return jsonError(result.error);
   }
 
-  return jsonOk(result);
+  if (result.pendingResolution) {
+    after(async () => {
+      try {
+        await resolveRoundIfReady({
+          matchId,
+          round: result.round,
+          slot: result.slot,
+          mySubmission: moves,
+        });
+      } catch (err) {
+        console.error("[pricewar] deferred round resolution failed", {
+          matchId,
+          round: result.round,
+          err,
+        });
+      }
+    });
+  }
+
+  // The submission is already recorded (and resolution is scheduled above), so a
+  // hiccup while building the optimistic view must NOT turn this into a non-OK
+  // response — the client would roll back a move that actually went through and
+  // the round would visibly flicker back into the decide phase.
+  let view = null;
+  try {
+    const state = await loadMatch(matchId);
+    view = state ? await buildPlayerView(matchId, result.slot, state) : null;
+  } catch (err) {
+    console.error("[pricewar] submit view build failed (non-fatal)", {
+      matchId,
+      round: result.round,
+      err,
+    });
+  }
+
+  return jsonOk({ ...result, view });
 }

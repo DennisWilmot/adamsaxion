@@ -16,6 +16,7 @@ export interface Player {
   name: string;
   cash: number;
   trend?: number[];
+  avatarUrl?: string | null | undefined;
 }
 
 export interface Opponent {
@@ -24,6 +25,7 @@ export interface Opponent {
   price: number;
   locked: boolean;
   isBot?: boolean;
+  avatarUrl?: string | null | undefined;
 }
 
 export interface PickValue {

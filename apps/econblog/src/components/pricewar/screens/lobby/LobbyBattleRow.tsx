@@ -60,6 +60,7 @@ export function LobbyBattleRow({ match }: { match: HistoryMatch }) {
       >
         <OpponentAvatarFace
           kind={avatarKind}
+          avatarUrl={match.opponentAvatarUrl}
           ring={
             active ? LOBBY.livePill : won ? LOBBY.winPill : lost ? LOBBY.lossPill : LOBBY.cardBorder
           }

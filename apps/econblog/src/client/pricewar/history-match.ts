@@ -18,6 +18,8 @@ export interface HistoryMatch {
   remainingMs?: number | null;
   opponentName?: string;
   opponentIsBot?: boolean;
+  opponentAvatarUrl?: string | null;
+  opponentSyntheticId?: string | null;
   myCash?: number;
 }
 

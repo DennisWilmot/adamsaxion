@@ -162,6 +162,7 @@ export function GameTabs({
   forfeitControl,
   elo,
   eloTrend,
+  avatarUrl,
   rulesOpen,
   onToggleRules,
 }: {
@@ -171,6 +172,7 @@ export function GameTabs({
   forfeitControl?: ReactNode;
   elo?: number | null;
   eloTrend?: string | null;
+  avatarUrl?: string | null;
   rulesOpen?: boolean;
   onToggleRules?: () => void;
 }) {
@@ -329,7 +331,13 @@ export function GameTabs({
           marginLeft: 8,
         }}
       >
-        {showElo && <ShellEloChip elo={elo} {...(eloTrend != null ? { eloTrend } : {})} />}
+        {showElo && (
+          <ShellEloChip
+            elo={elo}
+            {...(eloTrend != null ? { eloTrend } : {})}
+            avatarUrl={avatarUrl}
+          />
+        )}
         {inMatch && forfeitControl}
         {onShellHome && onToggleRules ? (
           <button

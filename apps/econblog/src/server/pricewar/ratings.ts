@@ -30,9 +30,46 @@ export async function finalizeMatchRatings(
   if (!playMode?.affectsRating) return;
 
   const participants = await repo.getMatchParticipants(matchId);
-  if (participants.some((p) => p.isBot)) return;
-
+  const human = participants.find((p) => p.userId && !p.isBot);
+  const bot = participants.find((p) => p.isBot);
   const humans = participants.filter((p) => p.userId && !p.isBot);
+
+  const useReducedK = reducedK(state.outcome, state.playModeId);
+
+  if (human && bot && bot.ratingAtStart != null) {
+    const humanRating = await repo.getOrCreateRating({
+      userId: human.userId!,
+      scenarioId: state.scenarioId,
+      playModeId: state.playModeId,
+    });
+    const humanSlot = human.slot as PlayerSlot;
+    const delta = computeRatingDelta({
+      rating: humanRating.rating,
+      opponentRating: bot.ratingAtStart,
+      gamesPlayed: humanRating.gamesPlayed,
+      score: slotScore(state.outcome, humanSlot),
+      reducedK: useReducedK,
+    });
+    const after = applyRatingDelta(humanRating.rating, delta);
+    await repo.applyRatingUpdates({
+      matchId,
+      updates: [
+        {
+          userId: human.userId!,
+          slot: humanSlot,
+          scenarioId: state.scenarioId,
+          playModeId: state.playModeId,
+          ratingBefore: humanRating.rating,
+          ratingAfter: after,
+          ratingDelta: delta,
+          gamesPlayed: humanRating.gamesPlayed,
+        },
+      ],
+    });
+    return;
+  }
+
+  if (participants.some((p) => p.isBot)) return;
   if (humans.length !== 2) return;
 
   const slotA = humans.find((p) => p.slot === "A")!;
@@ -48,8 +85,6 @@ export async function finalizeMatchRatings(
     scenarioId: state.scenarioId,
     playModeId: state.playModeId,
   });
-
-  const useReducedK = reducedK(state.outcome, state.playModeId);
 
   const deltaA = computeRatingDelta({
     rating: ratingA.rating,

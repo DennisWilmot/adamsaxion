@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import type { PlayerView } from "@adamsaxion/pricewar-types";
+import type { MarginMatchView } from "@/client/pricewar/match-view-types";
 import { CoachBubble } from "@/components/pricewar/design-system/CoachBubble";
 import { CD } from "@/components/pricewar/design-system/tokens";
 import { isMarginRatedEnabledClient } from "@/lib/games/margin-flags";
@@ -13,7 +13,7 @@ export function BriefingControls({
   onBegin,
   starting = false,
 }: {
-  view: PlayerView;
+  view: MarginMatchView;
   onBegin: () => void;
   starting?: boolean;
 }) {
@@ -45,6 +45,7 @@ export function BriefingControls({
   const myElo = isPaid ? (ratingQuery.data?.rating ?? null) : null;
   const isRated =
     isMarginRatedEnabledClient() && view.playModeId !== "tutorial" && isPaid;
+  const opponentElo = isRated ? (view.opponentRating ?? null) : null;
   const showClock = view.playModeId !== "tutorial";
 
   return (
@@ -59,6 +60,15 @@ export function BriefingControls({
               · Your Elo{" "}
               <span className="num" style={{ color: CD.ink, fontWeight: 700 }}>
                 {myElo.toLocaleString()}
+              </span>
+            </>
+          ) : null}
+          {isRated && opponentElo != null ? (
+            <>
+              {" "}
+              · {firstName}&apos;s Elo{" "}
+              <span className="num" style={{ color: CD.ink, fontWeight: 700 }}>
+                {opponentElo.toLocaleString()}
               </span>
             </>
           ) : null}

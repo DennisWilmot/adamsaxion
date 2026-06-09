@@ -31,6 +31,22 @@ export function LandingFooter() {
                 </li>
                 <li>
                   <Link
+                    href="/play/econ-wordle"
+                    className="font-body text-sm text-foreground-secondary hover:text-foreground transition-colors"
+                  >
+                    Econ Wordle
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/play/price-war"
+                    className="font-body text-sm text-foreground-secondary hover:text-foreground transition-colors"
+                  >
+                    Margin
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/subscribe"
                     className="font-body text-sm text-foreground-secondary hover:text-foreground transition-colors"
                   >

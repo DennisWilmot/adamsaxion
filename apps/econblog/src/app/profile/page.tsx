@@ -7,6 +7,7 @@ import { ProfilePathSection } from "@/components/profile/ProfilePathSection";
 import { ProfilePathSkeleton } from "@/components/profile/ProfilePathSkeleton";
 import { getSessionUser } from "@/lib/supabase/session-user";
 import { getUserSubscriptionView } from "@/lib/subscription/service";
+import { resolveUserAvatarUrl } from "@/lib/user-profile";
 
 export default async function ProfilePage() {
   const user = await getSessionUser();
@@ -32,6 +33,7 @@ export default async function ProfilePage() {
       .select({
         id: profiles.id,
         username: profiles.username,
+        avatarUrl: profiles.avatarUrl,
         totalXp: profiles.totalXp,
         currentLevel: profiles.currentLevel,
       })
@@ -54,7 +56,7 @@ export default async function ProfilePage() {
   const xpInLevel = profile.totalXp % 1000;
   const levelProgress = (xpInLevel / 1000) * 100;
   const xpToNext = 1000 - xpInLevel;
-  const avatarUrl = user.user_metadata?.avatar_url ?? null;
+  const avatarUrl = resolveUserAvatarUrl(profile, user);
 
   return (
     <div className="mx-auto max-w-[72rem] px-xl py-3xl">

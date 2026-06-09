@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { db } from "@/db";
 import { profiles } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { resolveUserAvatarUrl } from "@/lib/user-profile";
 
 export async function GET() {
   try {
@@ -29,7 +30,7 @@ export async function GET() {
       email: user.email,
       totalXp: profile.totalXp,
       currentLevel: profile.currentLevel,
-      avatarUrl: user.user_metadata?.avatar_url ?? null,
+      avatarUrl: resolveUserAvatarUrl(profile, user),
       createdAt: profile.createdAt,
     });
   } catch (error) {

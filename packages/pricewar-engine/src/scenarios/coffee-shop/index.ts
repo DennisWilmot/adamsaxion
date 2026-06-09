@@ -32,10 +32,16 @@ export const COFFEE_SHOP_SCENARIO: ScenarioConfig = {
   actionCatalogVersion: "0.1.0",
 };
 
-function playerPublic(slot: PlayerSlot, displayName: string, isBot: boolean) {
+function playerPublic(
+  slot: PlayerSlot,
+  displayName: string,
+  isBot: boolean,
+  avatarUrl?: string | null
+) {
   return {
     slot,
     displayName,
+    avatarUrl: avatarUrl ?? null,
     currentPrice: COFFEE_SHOP_SIM.startingPriceCents,
     brandTier: 2,
     isBot,
@@ -54,6 +60,8 @@ export function createInitialMatchState(args: {
   playerBName: string;
   playerAIsBot?: boolean;
   playerBIsBot?: boolean;
+  playerAAvatarUrl?: string | null;
+  playerBAvatarUrl?: string | null;
 }): MatchState {
   const playMode = getPlayMode(args.playModeId);
   const perPlayerMs =
@@ -78,8 +86,18 @@ export function createInitialMatchState(args: {
       eventLog: [],
     },
     playersPublic: {
-      A: playerPublic("A", args.playerAName, args.playerAIsBot ?? false),
-      B: playerPublic("B", args.playerBName, args.playerBIsBot ?? false),
+      A: playerPublic(
+        "A",
+        args.playerAName,
+        args.playerAIsBot ?? false,
+        args.playerAAvatarUrl
+      ),
+      B: playerPublic(
+        "B",
+        args.playerBName,
+        args.playerBIsBot ?? false,
+        args.playerBAvatarUrl
+      ),
     },
     playersPrivate: {
       A: playerPrivate(),

@@ -1,10 +1,10 @@
 import type { MatchId } from "@adamsaxion/pricewar-types";
-import { toPlayerView } from "@adamsaxion/pricewar-engine";
 import { requireAuthedUser } from "@/server/pricewar/auth";
 import { jsonError, jsonOk } from "@/server/pricewar/http";
 import { ensureMatchLifecycle } from "@/server/pricewar/clock";
 import { tryResolveStaleLockedRound } from "@/server/pricewar/resolver";
-import { getPlayerSlot, getSubmission, loadMatch } from "@/server/pricewar/repository";
+import { buildPlayerView } from "@/server/pricewar/player-view";
+import { getPlayerSlot, loadMatch } from "@/server/pricewar/repository";
 
 function isDebugRequest(request: Request): boolean {
   try {
@@ -37,19 +37,9 @@ export async function GET(
   await tryResolveStaleLockedRound(matchId);
   state = (await loadMatch(matchId)) ?? state;
 
-  const round = state.market.currentRound;
-  const otherSlot = slot === "A" ? "B" : "A";
-  const mySubmission = await getSubmission(matchId, round, slot);
-  const opponentSubmission = await getSubmission(matchId, round, otherSlot);
-
-  const view = toPlayerView(state, slot, {
-    opponentHasLocked: Boolean(opponentSubmission),
-    meHasLocked: Boolean(mySubmission),
+  const view = await buildPlayerView(matchId, slot, state, {
+    debug: isDebugRequest(request),
   });
-
-  if (!isDebugRequest(request)) {
-    view.opponent = { ...view.opponent, isBot: false };
-  }
 
   return jsonOk(view);
 }

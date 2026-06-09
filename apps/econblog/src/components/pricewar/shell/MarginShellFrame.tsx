@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import type { PlayerView } from "@adamsaxion/pricewar-types";
+import { useUserProfile } from "@/client/hooks/useUserProfile";
 import {
   GameTabs,
   ShellViewport,
@@ -32,6 +33,7 @@ export function MarginShellFrame({
   eloTrend?: string | null;
 }) {
   const historyQuery = usePriceWarHistory();
+  const profileQuery = useUserProfile();
 
   return (
     <ShellViewport>
@@ -42,6 +44,7 @@ export function MarginShellFrame({
         {...(forfeitControl ? { forfeitControl } : {})}
         {...(elo != null ? { elo } : {})}
         {...(eloTrend != null ? { eloTrend } : {})}
+        avatarUrl={profileQuery.data?.avatarUrl ?? null}
       />
       {flat ? (
         <div style={{ padding: "22px 24px 30px", maxWidth: 980, margin: "0 auto", width: "100%" }}>

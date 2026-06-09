@@ -1,4 +1,4 @@
-import { LANDING_STATS } from "@/lib/landing/content";
+import Link from "next/link";
 
 export function LessonCarouselSkeleton() {
   return (
@@ -8,13 +8,14 @@ export function LessonCarouselSkeleton() {
       aria-label="Loading curriculum preview"
       className="relative overflow-hidden border-y border-border-subtle bg-surface-sunken pb-3xl pt-xl"
     >
-      <p className="mb-xl text-center font-body text-sm text-foreground-secondary">
-        <span className="text-xs font-semibold uppercase tracking-[0.15em] text-foreground-muted">
-          From the curriculum
-        </span>{" "}
-        ({LANDING_STATS.lessonCount} lessons across {LANDING_STATS.phaseCount}{" "}
-        phases)
-      </p>
+      <div className="mx-auto mb-xl max-w-[40rem] px-lg text-center">
+        <Link
+          href="/lessons"
+          className="inline-block font-body text-sm font-semibold text-primary transition-colors hover:text-primary-hover"
+        >
+          Browse all lessons →
+        </Link>
+      </div>
 
       <div className="overflow-hidden px-xl">
         <div className="flex gap-xl">

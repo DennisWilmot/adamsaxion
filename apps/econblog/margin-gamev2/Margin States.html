@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Margin · Price War — full state handoff</title>
+<style>
+  html, body { background: #e7ebf2; height: 100%; margin: 0; overflow: hidden; }
+  #app { height: 100vh; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" data-presets="typescript,react" src="design-canvas.jsx"></script>
+<script type="text/babel" data-presets="typescript,react" src="margin-tight-kit.jsx"></script>
+<script type="text/babel" data-presets="typescript,react" src="margin-tight-screens.jsx"></script>
+<script type="text/babel" data-presets="typescript,react" src="margin-shell.jsx"></script>
+<script type="text/babel" data-presets="typescript,react" src="margin-home.jsx"></script>
+<script type="text/babel" data-presets="typescript,react" src="margin-match.jsx"></script>
+<script type="text/babel" data-presets="typescript,react" src="margin-terminal.jsx"></script>
+<script type="text/babel" data-presets="typescript,react" src="margin-extra.jsx"></script>
+
+<script type="text/babel" data-presets="typescript,react">
+  const Canvas = window.DesignCanvas, Section = window.DCSection, Board = window.DCArtboard;
+  const W = window;
+
+  function App() {
+    return (
+      <Canvas>
+        <Section id="catalog" title="Catalog & Shell" subtitle="Everything under GameShell — GameTabs = Home | one tab per active match | +. Home carries the game-type dropdown (Standard · Blitz · vs CPU). History lives in the top brand bar.">
+          <Board id="games"  label="/play · games catalog → Margin card" width={1280} height={560}><W.Catalog /></Board>
+          <Board id="home"   label="/play/price-war · Home (Up next | Submitted | Waiting)" width={1280} height={820}><W.Home /></Board>
+          <Board id="home-dd" label="/play/price-war · Home — game-type dropdown open" width={1280} height={820}><W.Home dropdownOpen /></Board>
+          <Board id="queue"  label="/play/price-war/queue?mode=blitz · searching" width={1280} height={720}><W.QueueSearching /></Board>
+          <Board id="history" label="/play/price-war/history · match history" width={1280} height={720}><W.MatchHistory /></Board>
+        </Section>
+
+        <Section id="round-loop" title="Match shell · the round loop" subtitle="MatchSessionShell — brand bar + match tabs, then the 3-col grid [ Left controls ][ CoffeeBattleBoard ][ Turn log ], driven by server phase. Review is full-bleed. Loop: briefing → decide → review → waiting → report → Continue.">
+          <Board id="match-lobby" label="phase: waiting_for_opponent · match-lobby" width={1280} height={820}><W.MatchLobby /></Board>
+          <Board id="briefing" label="phase: briefing · clock already running" width={1280} height={880}><W.Briefing /></Board>
+          <Board id="decide" label="phase: decide (not locked) · canonical" width={1280} height={1000}><W.DecideScreen /></Board>
+          <Board id="review" label="phase: decide → review · FULL-BLEED" width={900} height={760}><W.Review /></Board>
+          <Board id="waiting" label="phase: decide / resolving · you locked, opp not" width={1280} height={840}><W.Waiting /></Board>
+          <Board id="report" label="phase: report · round delta + Continue" width={1280} height={900}><W.Report /></Board>
+          <Board id="austerity" label="phase: decide · low cash (AusterityBanner)" width={1280} height={880}><W.AusterityDecide /></Board>
+        </Section>
+
+        <Section id="onboarding" title="Onboarding" subtitle="Tutorial bootstrap drops you into a guided first turn — coach suggests 3 actions, you accept / swap / pick your own, then it hands off to a real match.">
+          <Board id="tutorial" label="/play/price-war/tutorial · guided first turn" width={1280} height={880}><W.TutorialBoot /></Board>
+        </Section>
+
+        <Section id="terminal" title="Terminal states" subtitle="Match-ending screens, all FULL-BLEED. getMatchEndPath routes by outcome + reason. Every loss — bankruptcy, disconnect, timeout, forfeit — closes the loop on a clear 'Morgan wins'.">
+          <Board id="postmatch-win" label="completed · postmatch (you win)" width={920} height={1180}><W.PostmatchWin /></Board>
+          <Board id="postmatch-loss" label="completed · postmatch (normal loss)" width={920} height={980}><W.PostmatchLoss /></Board>
+          <Board id="bankruptcy" label="completed · bankruptcy · Out of cash (Morgan wins)" width={920} height={840}><W.Bankruptcy /></Board>
+          <Board id="disconnected" label="completed · you disconnected (forfeit_on_abandonment)" width={920} height={820}><W.YouDisconnected /></Board>
+          <Board id="timeout" label="completed · you ran out of time (forfeit_on_timeout)" width={920} height={720}><W.YouTimedOut /></Board>
+          <Board id="forfeited" label="completed · you forfeited (voluntary)" width={920} height={640}><W.YouForfeited /></Board>
+          <Board id="opp-forfeit" label="completed · Morgan forfeited (you win)" width={920} height={620}><W.OppForfeited /></Board>
+          <Board id="opp-timeout" label="completed · Morgan ran out of time (you win)" width={920} height={620}><W.OppTimedOut /></Board>
+          <Board id="abandoned" label="completed · Morgan stepped out / abandoned (you win)" width={920} height={760}><W.Abandoned /></Board>
+        </Section>
+
+        <Section id="overlays" title="Overlays & error modals" subtitle="Drawn over a dimmed match (ModalShell), plus the API-block error modals. Phase-drift redirects are handled by MatchLiveProvider — no dedicated screen.">
+          <Board id="disconnect" label="overlay · opponent disconnected · grace timer" width={900} height={600}><W.DisconnectOverlay /></Board>
+          <Board id="forfeit" label="overlay · forfeit · type FORFEIT to confirm" width={900} height={680}><W.ForfeitOverlay /></Board>
+          <Board id="err-match" label="error · already in match (free tier)" width={900} height={560}><W.ErrorAlreadyInMatch /></Board>
+          <Board id="err-forbidden" label="error · forbidden / not available" width={900} height={560}><W.ErrorForbidden /></Board>
+        </Section>
+
+        <Section id="lessons" title="Lessons (upsell)" subtitle="Prof. Aldo lesson CTAs surface inline wherever a teachable moment appears — the in-match Report, both post-match screens, austerity, and bankruptcy. Tapping one opens this preview; it's the upsell into a short lesson tied to what just happened.">
+          <Board id="lesson-preview" label="overlay · lesson CTA → preview / upsell" width={900} height={680}><W.LessonPreview /></Board>
+        </Section>
+      </Canvas>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('app')).render(<App />);
+</script>
+
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="200" fill="#eef1f6"/>
+  <rect x="44" y="56" width="50" height="60" rx="7" fill="#fff" stroke="#0a52c4" stroke-width="3"/>
+  <rect x="106" y="56" width="50" height="60" rx="7" fill="#e8f0ff" stroke="#0a52c4" stroke-width="3"/>
+  <text x="100" y="100" text-anchor="middle" font-family="monospace" font-size="13" fill="#0a52c4">VS</text>
+  <text x="100" y="150" text-anchor="middle" font-family="Georgia, serif" font-size="20" font-style="italic" fill="#0b1220">Margin</text>
+</svg>
+</template>
+</body>
+</html>

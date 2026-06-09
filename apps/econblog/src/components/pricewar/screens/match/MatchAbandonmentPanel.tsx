@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type { PlayerView } from "@adamsaxion/pricewar-types";
 import type { CoachReportPayload } from "@adamsaxion/pricewar-engine";
-import { AvatarOpponent, AvatarPlayer } from "@/components/pricewar/design-system/avatars";
+import { UserPortrait } from "@/components/pricewar/design-system/UserPortrait";
 import { MatchTerminalFrame } from "./MatchTerminalFrame";
 import { CoachLessonBlock } from "@/components/pricewar/screens/shared/CoachLessonBlock";
 import { PillBtn } from "@/components/pricewar/design-system/controls";
@@ -85,7 +85,7 @@ export function MatchAbandonmentPanel({
           }}
         >
           <div style={{ textAlign: "center" }}>
-            <AvatarPlayer size={96} ring={CD.primary} />
+            <UserPortrait avatarUrl={view.me.avatarUrl} size={96} ring={CD.primary} />
             <div className="serif" style={{ fontSize: 22, color: CD.ink, marginTop: 10 }}>
               You
             </div>
@@ -98,7 +98,13 @@ export function MatchAbandonmentPanel({
             vs
           </div>
           <div style={{ textAlign: "center", opacity: 0.5, filter: "grayscale(0.6)" }}>
-            <AvatarOpponent size={96} ring={CD.ink4} />
+            <UserPortrait
+              avatarUrl={view.opponent.avatarUrl}
+              isBot={view.opponent.isBot}
+              kind="opponent"
+              size={96}
+              ring={CD.ink4}
+            />
             <div className="serif" style={{ fontSize: 22, color: CD.ink, marginTop: 10 }}>
               {view.opponent.displayName}
             </div>

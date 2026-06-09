@@ -87,6 +87,7 @@ export async function createMatchWithPlayers(args: {
     displayName: string;
     isBot: boolean;
     botPersonalityId?: string;
+    syntheticOpponentId?: string | null;
     ratingAtStart?: number | null;
   };
 }): Promise<MatchId> {
@@ -119,11 +120,39 @@ export async function createMatchWithPlayers(args: {
       slot: "B",
       isBot: args.playerB.isBot,
       botPersonalityId: args.playerB.botPersonalityId ?? null,
+      syntheticOpponentId: args.playerB.syntheticOpponentId ?? null,
       ratingAtStart: args.playerB.ratingAtStart ?? null,
     },
   ]);
 
   return matchId;
+}
+
+export async function getOpponentPresentation(
+  matchId: MatchId,
+  viewerSlot: PlayerSlot
+): Promise<{
+  syntheticOpponentId: string | null;
+  ratingAtStart: number | null;
+  isBot: boolean;
+} | null> {
+  const otherSlot: PlayerSlot = viewerSlot === "A" ? "B" : "A";
+  const [row] = await db
+    .select({
+      syntheticOpponentId: matchPlayers.syntheticOpponentId,
+      ratingAtStart: matchPlayers.ratingAtStart,
+      isBot: matchPlayers.isBot,
+    })
+    .from(matchPlayers)
+    .where(and(eq(matchPlayers.matchId, matchId), eq(matchPlayers.slot, otherSlot)))
+    .limit(1);
+
+  if (!row) return null;
+  return {
+    syntheticOpponentId: row.syntheticOpponentId,
+    ratingAtStart: row.ratingAtStart,
+    isBot: row.isBot,
+  };
 }
 
 export async function getBotPersonalityId(matchId: MatchId): Promise<string | null> {
@@ -307,6 +336,7 @@ export async function listUserMatches(userId: string) {
         updatedAt: row.updatedAt.toISOString(),
         opponentName: gameState.playersPublic[oppSlot].displayName,
         opponentIsBot: gameState.playersPublic[oppSlot].isBot,
+        opponentAvatarUrl: gameState.playersPublic[oppSlot].avatarUrl ?? null,
       };
     }
 
@@ -324,6 +354,7 @@ export async function listUserMatches(userId: string) {
       remainingMs: gameState.clocks[playerSlot]?.remainingMs ?? null,
       opponentName: gameState.playersPublic[oppSlot].displayName,
       opponentIsBot: gameState.playersPublic[oppSlot].isBot,
+      opponentAvatarUrl: gameState.playersPublic[oppSlot].avatarUrl ?? null,
       myCash: gameState.playersPrivate[playerSlot].cash,
     };
   });
@@ -426,10 +457,7 @@ export async function getMatchSummary(matchId: MatchId, userId: string) {
 
   if (!row) return null;
 
-  const participants = await getMatchParticipants(matchId);
-  const hasBot = participants.some((p) => p.isBot);
-  const isRated =
-    !hasBot && (row.ratingAtStart != null || row.ratingDelta != null);
+  const isRated = row.ratingAtStart != null || row.ratingDelta != null;
 
   const slot = row.slot as PlayerSlot;
   const cashSeriesRaw = await loadMatchCashSeries(matchId);
@@ -508,6 +536,7 @@ export async function listLeaderboard(args: {
     rating: number;
     gamesPlayed: number;
     username: string;
+    avatarUrl: string | null;
   }>
 > {
   const limit = args.limit ?? 50;
@@ -517,6 +546,7 @@ export async function listLeaderboard(args: {
       rating: ratings.rating,
       gamesPlayed: ratings.gamesPlayed,
       username: profiles.username,
+      avatarUrl: profiles.avatarUrl,
     })
     .from(ratings)
     .innerJoin(profiles, eq(ratings.userId, profiles.id))
@@ -642,13 +672,24 @@ export async function applyRatingUpdates(args: {
   }
 }
 
-export async function getProfileUsername(userId: string): Promise<string | null> {
+export async function getProfilePublic(userId: string): Promise<{
+  username: string;
+  avatarUrl: string | null;
+} | null> {
   const [row] = await db
-    .select({ username: profiles.username })
+    .select({
+      username: profiles.username,
+      avatarUrl: profiles.avatarUrl,
+    })
     .from(profiles)
     .where(eq(profiles.id, userId))
     .limit(1);
-  return row?.username ?? null;
+  return row ?? null;
+}
+
+export async function getProfileUsername(userId: string): Promise<string | null> {
+  const profile = await getProfilePublic(userId);
+  return profile?.username ?? null;
 }
 
 export async function enqueueUser(args: {

@@ -14,11 +14,54 @@ export const LANDING_STATS = {
   masteryPool: "~200",
 } as const;
 
+export const LANDING_CTA_START_LESSON_ZERO = "Start Lesson Zero — free";
+
 export const LANDING_NAV = [
   { label: "How it works", href: "#how-it-works" },
   { label: "Curriculum", href: "#curriculum" },
+  { label: "Try it now", href: "#try-now" },
   { label: "Pricing", href: "#pricing" },
 ] as const;
+
+export const TRY_IT_NOW = [
+  {
+    gameId: "econ-wordle" as const,
+    title: "Econ Wordle",
+    badge: "No account",
+    description:
+      "Guess today's economics term in six tries. Share your grid, read the definition, and jump to the lesson that teaches it.",
+    href: "/play/econ-wordle",
+    cta: "Play Wordle",
+  },
+  {
+    title: "Lesson Zero",
+    badge: "No account",
+    description:
+      "One full interactive lesson — context, gates, and the format proof. See how Adam's Axioms teaches before you subscribe.",
+    href: "/lessons/lesson-zero",
+    cta: LANDING_CTA_START_LESSON_ZERO,
+    thumbnail: "/carousel/lesson-zero.webp",
+    thumbnailAlt: "Lesson Zero: How a Currency Dies — Zimbabwe hyperinflation",
+  },
+  {
+    gameId: "price-war" as const,
+    title: "Margin",
+    badge: "Free account",
+    description:
+      "Run a coffee shop in a 15-minute practice match. Tutorial included. Compete unrated on the free tier.",
+    href: "/play/price-war",
+    cta: "Play Margin",
+  },
+] as const;
+
+export const HOW_IT_WORKS_HEADLINE = {
+  highlight: "play",
+  before: "Learn the loop. Then ",
+  after: " the loop.",
+} as const;
+
+export const HOW_IT_WORKS_SUBHEAD =
+  "Every lesson follows the same rigorous path. When you're ready, Margin puts those ideas on the clock.";
 
 export const AUDIENCE = [
   {
@@ -31,9 +74,9 @@ export const AUDIENCE = [
     },
   },
   {
-    title: "Career & policy curious",
+    title: "Curious readers & debaters",
     description:
-      "Build frameworks for pricing, incentives, and tradeoffs you can apply at work, in debates, and when reading the news.",
+      "Build frameworks for pricing, incentives, and tradeoffs — for the news, policy debates, and everyday decisions.",
     image: {
       src: "/audience/career-policy.webp",
       label: "Real decisions",
@@ -89,13 +132,11 @@ export const HOW_IT_WORKS = [
   },
   {
     step: "Step 5",
-    title: "Game",
+    title: "Match",
     icon: "/how-it-works/game.webp",
-    comingSoon: true,
-    summary:
-      "Strategic 1v1 games to reinforce what you just learned.",
+    summary: "Apply what you learned in a head-to-head Margin duel.",
     detail:
-      "After you know the material, you will compete head to head in turn-based games built around the same concepts. Think of it as chess with economic reasoning: each move tests whether you can outthink an opponent using the ideas you just learned. This feature is in development.",
+      "After you know the material, compete in turn-based strategy matches built around the same concepts. Run a coffee shop, set prices, and outthink your opponent under time pressure. Free tier includes tutorial and 15-minute practice games.",
   },
 ] as const;
 
@@ -115,19 +156,14 @@ export const OUTCOME_STATS = [
     label: "mastery exams",
     sub: "Prove it under timed pressure",
   },
+  {
+    value: "2+",
+    label: "economics games",
+    sub: "Wordle daily + Margin practice on free tier",
+  },
 ] as const;
 
 export const OUTCOME_TESTIMONIALS = [
-  {
-    name: "Sarah Okonkwo",
-    color: "#2E6B9C",
-    review:
-      "The quiz gates are no joke. You can't just skim and move on, you actually have to apply the concept or you're stuck. Took me three tries on the elasticity gate and I was frustrated at the time but it's the reason I still remember it months later. Highly recommend if you want something that actually sticks.",
-    highlight:
-      "Took me three tries on the elasticity gate and I was frustrated at the time but it's the reason I still remember it months later.",
-    initials: "SO",
-    stars: 5,
-  },
   {
     name: "David Chen",
     color: "#C4943E",
@@ -136,6 +172,26 @@ export const OUTCOME_TESTIMONIALS = [
     highlight:
       "I went through the pricing and market structure lessons over a weekend and ended up redoing how we price tiers at work on Monday.",
     initials: "DC",
+    stars: 5,
+  },
+  {
+    name: "Rachel Simmons",
+    color: "#5C6B8A",
+    review:
+      "I started this because I felt stupid reading the economics section of the newspaper. Six weeks in and I actually understand what a rate hike does, why CPI matters, what people mean when they talk about yield curves. My coworker sent me an article about the Fed last week and I understood every word of it. That's never happened before.",
+    highlight:
+      "My coworker sent me an article about the Fed last week and I understood every word of it.",
+    initials: "RS",
+    stars: 5,
+  },
+  {
+    name: "Sarah Okonkwo",
+    color: "#2E6B9C",
+    review:
+      "The quiz gates are no joke. You can't just skim and move on, you actually have to apply the concept or you're stuck. Took me three tries on the elasticity gate and I was frustrated at the time but it's the reason I still remember it months later. Highly recommend if you want something that actually sticks.",
+    highlight:
+      "Took me three tries on the elasticity gate and I was frustrated at the time but it's the reason I still remember it months later.",
+    initials: "SO",
     stars: 5,
   },
   {
@@ -159,16 +215,6 @@ export const OUTCOME_TESTIMONIALS = [
     stars: 5,
   },
   {
-    name: "Rachel Simmons",
-    color: "#5C6B8A",
-    review:
-      "I started this because I felt stupid reading the economics section of the newspaper. Six weeks in and I actually understand what a rate hike does, why CPI matters, what people mean when they talk about yield curves. My coworker sent me an article about the Fed last week and I understood every word of it. That's never happened before.",
-    highlight:
-      "My coworker sent me an article about the Fed last week and I understood every word of it.",
-    initials: "RS",
-    stars: 5,
-  },
-  {
     name: "James Akintunde",
     color: "#8B6E4E",
     review:
@@ -178,11 +224,6 @@ export const OUTCOME_TESTIMONIALS = [
     initials: "JA",
     stars: 5,
   },
-] as const;
-
-export const APP_SCREENSHOT_PLACEHOLDERS = [
-  { label: "onboarding" },
-  { label: "learning-path" },
 ] as const;
 
 export const CURRICULUM_PHASES = Object.entries(PHASE_LABELS).map(([phase, label]) => ({

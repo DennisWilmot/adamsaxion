@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Price War · Adam's Axioms · Print</title>
+<style>
+  html, body { background: #fff; margin: 0; color: #0a0a0a; }
+  #app { min-height: 100vh; }
+
+  /* Each slide takes its own page */
+  .print-page {
+    page-break-after: always;
+    break-after: page;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    padding: 28px 32px 40px;
+    box-sizing: border-box;
+    min-height: 100vh;
+  }
+  .print-page:last-child { page-break-after: auto; break-after: auto; }
+  .print-label {
+    font-size: 13px; font-weight: 600; letter-spacing: 0.02em;
+    color: #4b5563; margin-bottom: 14px;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  .print-cover { padding-top: 80px; }
+
+  @page { size: 1500px 1100px; margin: 0; }
+
+  @media print {
+    html, body { background: #fff; }
+    .print-page { min-height: auto; padding: 24px 32px; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+</head>
+<body>
+<div id="app"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" data-presets="typescript,react" src="cafe-duel-atoms.tsx"></script>
+<script type="text/babel" data-presets="typescript,react" src="cafe-duel-cards.tsx"></script>
+<script type="text/babel" data-presets="typescript,react" src="cafe-duel-screens.tsx"></script>
+<script type="text/babel" data-presets="typescript,react" src="cafe-duel-flow.tsx"></script>
+<script type="text/babel" data-presets="typescript,react" src="cafe-duel-edge.tsx"></script>
+<script type="text/babel" data-presets="typescript,react" src="cafe-duel-meta.tsx"></script>
+<script type="text/babel" data-presets="typescript,react" src="cafe-duel-extra.tsx"></script>
+<script type="text/babel" data-presets="typescript,react" src="cafe-duel-print-app.tsx"></script>
+</body>
+</html>

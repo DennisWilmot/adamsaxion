@@ -82,7 +82,7 @@ export async function POST(request: Request) {
   }
 
   const [profile] = await db
-    .select({ username: profiles.username })
+    .select({ username: profiles.username, avatarUrl: profiles.avatarUrl })
     .from(profiles)
     .where(eq(profiles.id, auth.user.id))
     .limit(1);
@@ -90,6 +90,7 @@ export async function POST(request: Request) {
   const { matchId } = await createVsBotMatch({
     userId: auth.user.id,
     playerName: profile?.username ?? "Player",
+    playerAvatarUrl: profile?.avatarUrl ?? null,
     scenarioId: body.scenarioId ?? "coffee-shop",
     playModeId,
     botPersonalityId,

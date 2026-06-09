@@ -32,15 +32,18 @@ function avatarInitial(user: User, displayName: string | null) {
 export function UserAccountMenu({
   user,
   displayName,
+  avatarUrl,
   compact = false,
 }: {
   user: User;
   displayName: string | null;
+  avatarUrl?: string | null;
   compact?: boolean;
 }) {
   const router = useRouter();
   const label = avatarLabel(user, displayName);
-  const avatarUrl = user.user_metadata?.avatar_url as string | undefined;
+  const resolvedAvatarUrl =
+    avatarUrl ?? (user.user_metadata?.avatar_url as string | undefined) ?? null;
 
   async function handleSignOut() {
     const supabase = createClient();
@@ -57,8 +60,8 @@ export function UserAccountMenu({
           className="flex h-8 items-center justify-center gap-sm rounded-lg bg-surface-sunken px-sm text-sm font-medium text-foreground-muted transition-colors hover:bg-border hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 sm:px-md"
           aria-label="Account menu"
         >
-          {avatarUrl ? (
-            <img src={avatarUrl} alt="" className="h-6 w-6 rounded-full" />
+          {resolvedAvatarUrl ? (
+            <img src={resolvedAvatarUrl} alt="" className="h-6 w-6 rounded-full object-cover" />
           ) : (
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
               {avatarInitial(user, displayName)}
@@ -95,6 +98,7 @@ export function UserAccountMenu({
 export function UserAccountMenuLoader({ compact = false }: { compact?: boolean }) {
   const [user, setUser] = useState<User | null>(null);
   const [displayName, setDisplayName] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -114,6 +118,7 @@ export function UserAccountMenuLoader({ compact = false }: { compact?: boolean }
   useEffect(() => {
     if (!user) {
       setDisplayName(null);
+      setAvatarUrl(null);
       return;
     }
 
@@ -123,6 +128,7 @@ export function UserAccountMenuLoader({ compact = false }: { compact?: boolean }
       .then((data) => {
         if (!cancelled && data?.username) {
           setDisplayName(data.username);
+          setAvatarUrl(data.avatarUrl ?? null);
         }
       })
       .catch(() => {});
@@ -136,5 +142,5 @@ export function UserAccountMenuLoader({ compact = false }: { compact?: boolean }
     return null;
   }
 
-  return <UserAccountMenu user={user} displayName={displayName} compact={compact} />;
+  return <UserAccountMenu user={user} displayName={displayName} avatarUrl={avatarUrl} compact={compact} />;
 }

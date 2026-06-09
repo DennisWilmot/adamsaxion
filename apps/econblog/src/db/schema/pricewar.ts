@@ -47,6 +47,7 @@ export const matchPlayers = pricewar.table(
       .notNull(),
     userId: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }),
     botPersonalityId: text("bot_personality_id"),
+    syntheticOpponentId: text("synthetic_opponent_id"),
     slot: text("slot").notNull(),
     isBot: boolean("is_bot").notNull(),
     ratingAtStart: integer("rating_at_start"),

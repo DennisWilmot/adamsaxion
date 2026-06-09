@@ -1,6 +1,7 @@
 "use client";
 
 import { AvatarOpponent, AvatarPlayer } from "./avatars";
+import { UserPortrait } from "./UserPortrait";
 import { CoffeeBackdrop } from "./CoffeeBackdrop";
 import { CashTicker, CashTrend } from "./CashTicker";
 import { RoundDots } from "./Domain";
@@ -66,7 +67,7 @@ export function MatchBar({
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: compact ? 10 : 14 }}>
-          <AvatarPlayer size={avatarSize} ring={CD.primary} />
+          <UserPortrait avatarUrl={you.avatarUrl} size={avatarSize} ring={CD.primary} />
           <div>
             <div
               style={{
@@ -192,7 +193,13 @@ export function MatchBar({
               )}
             </div>
           </div>
-          <AvatarOpponent size={avatarSize} ring={CD.ink4} />
+          <UserPortrait
+            avatarUrl={opp.avatarUrl}
+            isBot={opp.isBot}
+            kind="opponent"
+            size={avatarSize}
+            ring={CD.ink4}
+          />
         </div>
       </div>
     </div>

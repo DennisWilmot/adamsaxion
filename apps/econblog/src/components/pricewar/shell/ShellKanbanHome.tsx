@@ -224,6 +224,7 @@ function KanbanCard({ match }: { match: HistoryMatch }) {
               ...(match.opponentName ? { opponentName: match.opponentName } : {}),
               ...(match.opponentIsBot != null ? { opponentIsBot: match.opponentIsBot } : {}),
             })}
+            avatarUrl={match.opponentAvatarUrl}
             size={34}
             ring={MT.rule}
           />

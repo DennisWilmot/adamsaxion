@@ -1,20 +1,19 @@
 import Link from "next/link";
-import { ArrowRight, ImageIcon } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { lessonZeroPath } from "@/lib/constants/lessons";
-import {
-  APP_SCREENSHOT_PLACEHOLDERS,
-} from "@/lib/landing/content";
+import { LANDING_CTA_START_LESSON_ZERO } from "@/lib/landing/content";
 import { STATIC_CAROUSEL_LESSONS } from "@/lib/landing/carousel-manifest";
 import { HeroBackgroundDiagrams } from "@/components/landing/LessonDiagram";
 import { LandingFooter } from "@/components/landing/LandingFooter";
 import { LandingXpToast } from "@/components/landing/LandingXpToast";
 import { LessonCarousel } from "@/components/landing/LessonCarousel";
+import { TryItNowSection } from "@/components/landing/TryItNowSection";
 import { AudienceCards } from "@/components/landing/AudienceCards";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
+import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
 import { OutcomesSection } from "@/components/landing/OutcomesSection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { BrushUnderline } from "@/components/landing/BrushUnderline";
-import { ScrollReveal } from "@/components/landing/ScrollReveal";
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -66,6 +65,23 @@ function PrimaryCta({
   );
 }
 
+function SecondaryCta({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex items-center justify-center rounded-lg border border-border px-xl py-md font-body text-base font-semibold text-foreground transition-colors hover:bg-surface"
+    >
+      {children}
+    </Link>
+  );
+}
+
 export function LandingPage() {
   return (
     <div>
@@ -92,25 +108,26 @@ export function LandingPage() {
           </h1>
 
           <p className="font-body text-xl sm:text-[1.35rem] font-medium text-foreground-secondary leading-relaxed max-w-[560px] mx-auto mb-2xl opacity-0 animate-landing-fade-up [animation-delay:0.35s]">
-            Structured lessons, quiz gates, XP progression, and a personalized path.
-            Built for undergrad prep, career decisions, and serious self-study.
+            Structured lessons, quiz gates, and XP progression. Try Lesson Zero free
+            — no account needed.
           </p>
 
-          <div className="flex flex-col items-center justify-center gap-lg sm:flex-row opacity-0 animate-landing-fade-up [animation-delay:0.5s]">
-            <PrimaryCta href={lessonZeroPath()}>Start Lesson Zero, Free</PrimaryCta>
-            <a
-              href="#how-it-works"
-              className="font-body text-sm font-medium text-foreground-muted hover:text-foreground transition-colors"
-            >
-              See how it works ↓
-            </a>
+          <div className="flex flex-col items-center justify-center gap-md sm:flex-row opacity-0 animate-landing-fade-up [animation-delay:0.5s]">
+            <PrimaryCta href={lessonZeroPath()}>{LANDING_CTA_START_LESSON_ZERO}</PrimaryCta>
+            <SecondaryCta href="#curriculum">Browse the curriculum ↓</SecondaryCta>
           </div>
         </div>
       </section>
 
       <LessonCarousel lessons={STATIC_CAROUSEL_LESSONS} />
 
+      <TryItNowSection />
+
       <HowItWorksSection />
+
+      <TestimonialsSection />
+
+      <OutcomesSection />
 
       {/* Who it's for */}
       <section className="border-t border-border-subtle bg-surface-sunken px-xl py-4xl">
@@ -127,58 +144,12 @@ export function LandingPage() {
 
           <AudienceCards />
 
-          <div className="mt-3xl flex justify-center">
-            <PrimaryCta href="/subscribe">Sign up now</PrimaryCta>
-          </div>
-        </div>
-      </section>
-
-      <OutcomesSection />
-
-      {/* Personalization */}
-      <section
-        id="personalization"
-        className="border-t border-border-subtle bg-surface-sunken px-xl py-4xl"
-      >
-        <div className="max-w-[1100px] mx-auto grid lg:grid-cols-2 gap-3xl items-start">
-          <div>
-            <SectionLabel>Personalization</SectionLabel>
-            <SectionTitle>A path built around what you care about</SectionTitle>
-            <p className="font-body text-base text-foreground-secondary leading-relaxed -mt-2xl mb-xl">
-              Short onboarding captures your goals and interests. We recommend a
-              lesson sequence — you can follow it or pick anything from the catalog.
-            </p>
-            <Link
-              href="/subscribe"
-              className="inline-flex items-center justify-center rounded-lg border border-border px-xl py-md font-body text-sm font-semibold text-foreground hover:bg-surface transition-colors"
-            >
-              Unlock your path
+          <p className="mt-3xl text-center font-body text-sm text-foreground-secondary">
+            Not sure where to start?{" "}
+            <Link href="#try-now" className="font-semibold text-primary hover:text-primary-hover">
+              Try it free — no account needed
             </Link>
-          </div>
-
-          <div className="grid gap-lg sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-            {APP_SCREENSHOT_PLACEHOLDERS.map((screenshot) => (
-              <figure
-                key={screenshot.label}
-                className="overflow-hidden rounded-xl border border-border bg-surface-raised shadow-sm"
-              >
-                <div className="relative flex aspect-[16/10] items-center justify-center bg-[linear-gradient(145deg,var(--color-surface-sunken)_0%,var(--color-surface)_100%)]">
-                  <div
-                    aria-hidden
-                    className="pointer-events-none absolute inset-3 rounded-lg border border-dashed border-border/70"
-                  />
-                  <div className="relative z-10 flex flex-col items-center gap-sm px-lg text-center">
-                    <div className="flex size-11 items-center justify-center rounded-lg border border-border-subtle bg-surface/80">
-                      <ImageIcon className="size-5 text-foreground-muted" />
-                    </div>
-                    <p className="font-body text-xs text-foreground-muted">
-                      App screenshot
-                    </p>
-                  </div>
-                </div>
-              </figure>
-            ))}
-          </div>
+          </p>
         </div>
       </section>
 

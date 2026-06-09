@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { HOW_IT_WORKS } from "@/lib/landing/content";
+import { HOW_IT_WORKS, HOW_IT_WORKS_HEADLINE, HOW_IT_WORKS_SUBHEAD } from "@/lib/landing/content";
 import { CircleHighlight } from "@/components/landing/CircleHighlight";
 import { LandingImage } from "@/components/landing/LandingImage";
 
@@ -37,16 +37,14 @@ export function HowItWorksSection() {
         >
           <div className="flex-[1_1_400px] min-w-[280px]">
             <h2 className="font-display font-semibold text-[clamp(2rem,5vw,3rem)] text-foreground leading-[1.1] mb-md">
-              <CircleHighlight color="#E6A800" className="mr-3 sm:mr-5">
-                Five
+              {HOW_IT_WORKS_HEADLINE.before}
+              <CircleHighlight color="#E6A800" className="mx-1">
+                {HOW_IT_WORKS_HEADLINE.highlight}
               </CircleHighlight>
-              steps,
-              <br />
-              every lesson.
+              {HOW_IT_WORKS_HEADLINE.after}
             </h2>
             <p className="font-body text-base text-foreground-secondary max-w-[480px] mb-3xl leading-relaxed">
-              Each lesson follows the same rigorous loop. No passive reading. You
-              engage with the idea until it sticks, or you don&apos;t move forward.
+              {HOW_IT_WORKS_SUBHEAD}
             </p>
 
             <div className="mb-xl h-0.5 overflow-hidden rounded-full bg-border-subtle">
@@ -59,7 +57,6 @@ export function HowItWorksSection() {
             <div className="flex flex-col gap-xs">
               {HOW_IT_WORKS.map((step, index) => {
                 const isActive = index === activeStep;
-                const isComingSoon = "comingSoon" in step && step.comingSoon;
 
                 return (
                   <button
@@ -80,20 +77,13 @@ export function HowItWorksSection() {
                       {index + 1}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <div className="mb-xs flex flex-wrap items-center gap-sm">
-                        <h3
-                          className={`font-display text-xl font-semibold transition-colors duration-700 ${
-                            isActive ? "text-foreground" : "text-foreground-muted"
-                          }`}
-                        >
-                          {step.title}
-                        </h3>
-                        {isComingSoon ? (
-                          <span className="rounded-md border border-gold/30 bg-gold-subtle px-sm py-0.5 font-body text-[10px] font-semibold uppercase tracking-wide text-gold">
-                            Coming soon
-                          </span>
-                        ) : null}
-                      </div>
+                      <h3
+                        className={`mb-xs font-display text-xl font-semibold transition-colors duration-700 ${
+                          isActive ? "text-foreground" : "text-foreground-muted"
+                        }`}
+                      >
+                        {step.title}
+                      </h3>
                       <p
                         className={`overflow-hidden font-body text-sm leading-relaxed text-foreground-secondary transition-all duration-700 ease-in-out ${
                           isActive ? "max-h-24 opacity-100" : "max-h-0 opacity-0"
@@ -136,12 +126,6 @@ export function HowItWorksSection() {
                 <p className="font-body text-[15px] text-foreground-secondary leading-relaxed">
                   {active.detail}
                 </p>
-
-                {"comingSoon" in active && active.comingSoon ? (
-                  <p className="mt-lg inline-block rounded-lg border border-gold/30 bg-gold-subtle px-md py-sm font-body text-sm text-gold">
-                    Coming soon: 1v1 strategy games
-                  </p>
-                ) : null}
               </div>
             </article>
           </div>

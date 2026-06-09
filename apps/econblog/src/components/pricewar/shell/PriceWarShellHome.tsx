@@ -7,6 +7,7 @@ import { startPlayFlow } from "@/client/pricewar/join-queue";
 import { usePriceWarError } from "@/components/pricewar/screens/PriceWarErrorModal";
 import { MarginRulesSidePanel } from "@/components/pricewar/shell/MarginRulesSidePanel";
 import { ShellKanbanHome } from "@/components/pricewar/shell/ShellKanbanHome";
+import { useUserProfile } from "@/client/hooks/useUserProfile";
 import {
   GameTabs,
   ShellViewport,
@@ -20,6 +21,7 @@ export function PriceWarShellHome() {
   const queryClient = useQueryClient();
   const { showApiError } = usePriceWarError();
   const historyQuery = usePriceWarHistory();
+  const profileQuery = useUserProfile();
   const [starting, setStarting] = useState(false);
   const [selectedMode, setSelectedMode] = useState(DEFAULT_MARGIN_PLAY_MODE);
   const [rulesOpen, setRulesOpen] = useState(false);
@@ -66,6 +68,7 @@ export function PriceWarShellHome() {
         matches={historyQuery.data?.matches ?? []}
         view={null}
         elo={ratingQuery.data?.rating ?? null}
+        avatarUrl={profileQuery.data?.avatarUrl ?? null}
         rulesOpen={rulesOpen}
         onToggleRules={() => setRulesOpen((open) => !open)}
       />

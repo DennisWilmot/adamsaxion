@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { LANDING_STATS } from "@/lib/landing/content";
 import { LandingImage } from "@/components/landing/LandingImage";
 import type { LessonMeta } from "@/lib/types/lesson";
 
@@ -9,10 +8,12 @@ function LessonCard({
   lesson,
   index,
   priority,
+  decorative,
 }: {
   lesson: LessonMeta;
   index: number;
   priority?: boolean;
+  decorative?: boolean;
 }) {
   const gateLabel =
     lesson.subsectionCount === 1
@@ -22,6 +23,8 @@ function LessonCard({
   return (
     <Link
       href={`/lessons/${lesson.id}`}
+      tabIndex={decorative ? -1 : undefined}
+      aria-hidden={decorative || undefined}
       className="group w-[280px] flex-shrink-0 overflow-hidden rounded-xl border border-border bg-surface-raised transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
     >
       <div className="relative h-40 overflow-hidden border-b border-border-subtle bg-surface-sunken">
@@ -85,6 +88,7 @@ export function LessonCarousel({ lessons }: LessonCarouselProps) {
   return (
     <section
       id="curriculum"
+      aria-label="Curriculum preview"
       className="relative overflow-hidden border-y border-border-subtle bg-surface-sunken pb-3xl pt-xl"
     >
       <div
@@ -96,13 +100,14 @@ export function LessonCarousel({ lessons }: LessonCarouselProps) {
         className="pointer-events-none absolute inset-y-0 right-0 z-10 w-20 bg-gradient-to-l from-surface-sunken to-transparent"
       />
 
-      <p className="mb-xl text-center font-body text-sm text-foreground-secondary">
-        <span className="text-xs font-semibold uppercase tracking-[0.15em] text-foreground-muted">
-          From the curriculum
-        </span>{" "}
-        ({LANDING_STATS.lessonCount} lessons across {LANDING_STATS.phaseCount}{" "}
-        phases)
-      </p>
+      <div className="mx-auto mb-xl max-w-[40rem] px-lg text-center">
+        <Link
+          href="/lessons"
+          className="inline-block font-body text-sm font-semibold text-primary transition-colors hover:text-primary-hover"
+        >
+          Browse all lessons →
+        </Link>
+      </div>
 
       <div className="overflow-hidden">
         <div
@@ -117,6 +122,7 @@ export function LessonCarousel({ lessons }: LessonCarouselProps) {
               lesson={lesson}
               index={index % lessons.length}
               priority={index < 8}
+              decorative={index >= lessons.length}
             />
           ))}
         </div>

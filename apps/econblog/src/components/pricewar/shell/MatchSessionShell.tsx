@@ -38,7 +38,8 @@ import {
 import { logPhaseRedirect } from "@/client/pricewar/explain-phase-redirect";
 import { logMarginShell } from "@/client/pricewar/margin-shell-debug";
 import { getMatchPhasePath, isActiveReportPath } from "@/client/pricewar/match-routing";
-import { refreshMatchView } from "@/client/pricewar/match-view-cache";
+import { matchViewQueryKey, refreshMatchView } from "@/client/pricewar/match-view-cache";
+import type { MarginMatchView } from "@/client/pricewar/match-view-types";
 import { SHELL } from "@/components/pricewar/design-system/shell-tokens";
 import { DomainGlyph, DomainTag } from "@/components/pricewar/design-system/Domain";
 import { DomainRow } from "@/components/pricewar/design-system/DomainRow";
@@ -73,7 +74,11 @@ import { MatchBankruptcyPanel } from "@/components/pricewar/screens/match/MatchB
 import { MatchAbandonmentPanel } from "@/components/pricewar/screens/match/MatchAbandonmentPanel";
 import type { CoachReportPayload } from "@adamsaxion/pricewar-engine";
 import { BattleBoard } from "@/components/pricewar/shell/BattleBoard";
+import { TerminalTransitionOverlay } from "@/components/pricewar/shell/TerminalTransitionOverlay";
+import { useGameAudio } from "@/client/pricewar/audio/useGameAudio";
+import { useRoundReveal, type RoundResult } from "@/client/pricewar/reveal/useRoundReveal";
 import { priceWarPaths } from "@/lib/games/routes";
+import { useUserProfile } from "@/client/hooks/useUserProfile";
 import {
   GameTabs,
   ShellViewport,
@@ -1168,11 +1173,15 @@ function ReportControls({
       <p style={{ color: CD.ink2, fontSize: 13, lineHeight: 1.5, margin: "0 0 12px" }}>
         The report has been added to the turn log. Review it, then continue.
       </p>
-      {myDelta != null && (
-        <div className="num serif" style={{ fontSize: 34, color: myDelta >= 0 ? CD.green : CD.red, marginBottom: 12 }}>
-          {myDelta >= 0 ? "+" : "−"}${Math.abs(myDelta).toLocaleString()}
-        </div>
-      )}
+      {/* Reserve the delta line's height whether or not the report has loaded yet,
+          so the number fills in without resizing the card. */}
+      <div style={{ minHeight: 46, marginBottom: 12 }}>
+        {myDelta != null && (
+          <div className="num serif" style={{ fontSize: 34, color: myDelta >= 0 ? CD.green : CD.red }}>
+            {myDelta >= 0 ? "+" : "−"}${Math.abs(myDelta).toLocaleString()}
+          </div>
+        )}
+      </div>
       <MarginBtn kind="primary" size="lg" onClick={onContinue} disabled={continuing}>
         {continuing
           ? "Preparing..."
@@ -1183,6 +1192,61 @@ function ReportControls({
               : `Continue to Round ${(view.market.lastResolvedRound ?? view.market.currentRound) + 1} →`}
       </MarginBtn>
     </ActionCard>
+  );
+}
+
+function RoundRevealAnticipation({
+  opponentName,
+  onSkip,
+}: {
+  opponentName: string;
+  onSkip: () => void;
+}) {
+  const first = opponentName.split(" ")[0] ?? opponentName;
+  return (
+    <button
+      type="button"
+      onClick={onSkip}
+      className="mtx-fade-rise"
+      style={{
+        textAlign: "left",
+        border: `1px solid ${MT.rule}`,
+        borderRadius: 13,
+        background: MT.paper2,
+        padding: 16,
+        cursor: "pointer",
+        width: "100%",
+        height: "100%",
+      }}
+    >
+      <Eyebrow>Locked in</Eyebrow>
+      <div
+        className="mtx-thinking"
+        style={{
+          marginTop: 8,
+          display: "flex",
+          alignItems: "center",
+          gap: 9,
+          fontSize: 16,
+          fontWeight: 700,
+          color: MT.ink,
+        }}
+      >
+        <span style={{ display: "inline-flex", gap: 4 }}>
+          {[0, 1, 2].map((i) => (
+            <span
+              key={i}
+              className="mtq-dot"
+              style={{ width: 6, height: 6, borderRadius: 99, background: MT.blue }}
+            />
+          ))}
+        </span>
+        {first} is deciding…
+      </div>
+      <div style={{ marginTop: 8, fontSize: 12, color: MT.ink3 }}>
+        Tap to reveal the round →
+      </div>
+    </button>
   );
 }
 
@@ -1201,6 +1265,7 @@ export function MatchSessionShell({ matchId }: { matchId: string }) {
   const [playAgainLoading, setPlayAgainLoading] = useState(false);
 
   const historyQuery = usePriceWarHistory();
+  const profileQuery = useUserProfile();
 
   const resolvedRoundCount = view
     ? Math.max(
@@ -1266,6 +1331,33 @@ export function MatchSessionShell({ matchId }: { matchId: string }) {
   const pathPanel = panelFromMatchPath(pathname);
   const panel = view ? resolvePanel(view, pathname) : null;
 
+  const audio = useGameAudio();
+  const [terminalBeatDone, setTerminalBeatDone] = useState(false);
+  useEffect(() => {
+    setTerminalBeatDone(false);
+  }, [matchId]);
+
+  const revealRound = view
+    ? view.market.lastResolvedRound ?? view.market.currentRound
+    : 0;
+  const revealRoundResult: RoundResult = (() => {
+    if (!view || !latestReport) return "neutral";
+    const mySlot = view.me.slot;
+    const oppSlot = mySlot === "A" ? "B" : "A";
+    const my = latestReport.deltas[mySlot].cashDelta;
+    const opp = latestReport.deltas[oppSlot].cashDelta;
+    if (my > opp) return "win";
+    if (my < opp) return "loss";
+    return "neutral";
+  })();
+  const verdictDataReady = revealRound > 0 && reports.some((r) => r.round === revealRound);
+  const roundReveal = useRoundReveal({
+    enabled: panel === "report",
+    resolvedRound: revealRound,
+    roundResult: revealRoundResult,
+    dataReady: verdictDataReady,
+  });
+
   useEffect(() => {
     if (!view) {
       logMarginShell("MatchSessionShell", "loading", { pathname, matchId, pathPanel });
@@ -1330,6 +1422,7 @@ export function MatchSessionShell({ matchId }: { matchId: string }) {
           matchId={matchId}
           view={null}
           matches={historyQuery.data?.matches ?? []}
+          avatarUrl={profileQuery.data?.avatarUrl ?? null}
         />
         <div style={{ padding: 10 }}>
           <div
@@ -1349,6 +1442,10 @@ export function MatchSessionShell({ matchId }: { matchId: string }) {
 
   const currentView = view;
   const activePanel = panel ?? resolvePanel(currentView, pathname);
+  const isTerminalPanel =
+    activePanel === "terminal-postmatch" ||
+    activePanel === "terminal-bankruptcy" ||
+    activePanel === "terminal-abandoned";
   const lockedMoves = loadLockedMoves(matchId, currentView.market.currentRound);
   const youWon =
     currentView.outcome.kind === "win" && currentView.outcome.winner === currentView.me.slot;
@@ -1387,27 +1484,78 @@ export function MatchSessionShell({ matchId }: { matchId: string }) {
 
   async function submitDraft() {
     if (!view) return;
+    const round = view.market.currentRound;
+    const submittedDraft = draft;
+    const queryKey = matchViewQueryKey(matchId);
+    const previousView = queryClient.getQueryData<MarginMatchView>(queryKey);
+    const decidePath = priceWarPaths.match.root(matchId);
+    const waitingTarget = priceWarPaths.match.waiting(matchId);
+
     setSubmitting(true);
+    audio.play("lock.commit");
+
+    // Optimistic lock-in: mark our moves as locked and move to the waiting
+    // screen immediately. The server confirms below and the resolved round
+    // arrives over SSE — we never block the UI on the network round-trip.
+    saveLockedMoves(matchId, round, submittedDraft);
+    queryClient.setQueryData<MarginMatchView>(queryKey, (prev) => {
+      // Only mark *this* round's decide view as locked — never mutate a view
+      // that has already resolved/advanced (which would regress the phase).
+      if (!prev || prev.phase !== "decide" || prev.market.currentRound !== round) {
+        return prev;
+      }
+      return { ...prev, meHasLocked: true };
+    });
+    clearDraft(matchId);
+    logMarginShell("MatchSessionShell", "submit optimistic → waiting", {
+      from: pathname,
+      to: waitingTarget,
+    });
+    router.replace(waitingTarget);
+
+    const rollback = (data: unknown, fallbackMessage: string) => {
+      // Restore the editable decide view ONLY if the round is still pending. If
+      // the round already resolved (report) or advanced while the request was in
+      // flight, keep the newer state instead of flickering back to decide.
+      if (previousView) {
+        queryClient.setQueryData<MarginMatchView>(queryKey, (prev) => {
+          if (!prev) return previousView;
+          if (prev.phase === "decide" && prev.market.currentRound === round) {
+            return previousView;
+          }
+          return prev;
+        });
+      }
+      saveDraft(matchId, round, submittedDraft);
+      setDraft(submittedDraft);
+      showApiError(data as Parameters<typeof showApiError>[0], fallbackMessage);
+      router.replace(decidePath);
+    };
+
     try {
-      saveLockedMoves(matchId, view.market.currentRound, draft);
       const res = await fetch(`/api/pricewar/match/${matchId}/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ moves: draft }),
+        body: JSON.stringify({ moves: submittedDraft }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        showApiError(data, "Submit failed");
+        rollback(data, "Submit failed");
         return;
       }
-      clearDraft(matchId);
-      await refreshMatchView(queryClient, matchId);
-      const waitingTarget = priceWarPaths.match.waiting(matchId);
-      logMarginShell("MatchSessionShell", "submit ok → waiting", {
-        from: pathname,
-        to: waitingTarget,
-      });
-      router.replace(waitingTarget);
+      const confirmedView = (data as { view?: MarginMatchView | null }).view;
+      if (confirmedView) {
+        queryClient.setQueryData<MarginMatchView>(queryKey, (prev) => {
+          // Don't clobber a fresher view already pushed by SSE (the round may
+          // have resolved, completed, or advanced before this response landed).
+          if (!prev) return confirmedView;
+          if (prev.phase !== "decide") return prev;
+          if (prev.market.currentRound !== confirmedView.market.currentRound) return prev;
+          return confirmedView;
+        });
+      }
+    } catch {
+      rollback({}, "Submit failed");
     } finally {
       setSubmitting(false);
     }
@@ -1415,6 +1563,7 @@ export function MatchSessionShell({ matchId }: { matchId: string }) {
 
   async function continueFromReport() {
     setContinuing(true);
+    audio.play("round.start");
     try {
       if (latestReport) {
         const privateLine = latestReport.privateSummary[currentView.me.slot];
@@ -1458,6 +1607,7 @@ export function MatchSessionShell({ matchId }: { matchId: string }) {
         matchId={matchId}
         view={view}
         matches={historyQuery.data?.matches ?? []}
+        avatarUrl={view?.me.avatarUrl ?? profileQuery.data?.avatarUrl ?? null}
         forfeitControl={
           canForfeitMatch(view) ? (
             <ShellForfeitButton matchId={matchId} opponentName={view.opponent.displayName} />
@@ -1467,12 +1617,19 @@ export function MatchSessionShell({ matchId }: { matchId: string }) {
       <div style={{ padding: 10 }}>
         <div
           style={{
+            position: "relative",
             background: CD.paper,
             border: `1px solid ${SHELL.content.border}`,
             minHeight: isFullBleedPanel(activePanel) ? undefined : "calc(100dvh - 100px)",
             overflow: isFullBleedPanel(activePanel) ? "hidden" : undefined,
           }}
         >
+          {isTerminalPanel && currentView.phase === "completed" && !terminalBeatDone && (
+            <TerminalTransitionOverlay
+              view={currentView}
+              onDone={() => setTerminalBeatDone(true)}
+            />
+          )}
           {activePanel === "review" ? (
             <MatchReviewPanel
               embedded
@@ -1573,17 +1730,57 @@ export function MatchSessionShell({ matchId }: { matchId: string }) {
                 )}
                 {activePanel === "waiting" && <WaitingControls view={view} lockedMoves={lockedMoves} />}
                 {activePanel === "report" && (
-                  <ReportControls
-                    view={view}
-                    latestReport={latestReport}
-                    continuing={continuing}
-                    onContinue={() => void continueFromReport()}
-                  />
+                  // Reserve the final report card's geometry for the whole panel
+                  // so the verdict reveal crossfades in place instead of growing
+                  // the card and shoving the layout around. The anticipation
+                  // dwell is overlaid on top of the (invisible) reserved card.
+                  <div style={{ position: "relative" }}>
+                    <div
+                      aria-hidden={!roundReveal.showVerdict}
+                      style={{
+                        opacity: roundReveal.showVerdict ? 1 : 0,
+                        transition: "opacity .35s ease",
+                        pointerEvents: roundReveal.showVerdict ? "auto" : "none",
+                      }}
+                    >
+                      <ReportControls
+                        view={view}
+                        latestReport={latestReport}
+                        continuing={continuing}
+                        onContinue={() => void continueFromReport()}
+                      />
+                    </div>
+                    {!roundReveal.showVerdict && (
+                      <div style={{ position: "absolute", inset: 0 }}>
+                        <RoundRevealAnticipation
+                          opponentName={view.opponent.displayName}
+                          onSkip={() => roundReveal.skip()}
+                        />
+                      </div>
+                    )}
+                  </div>
                 )}
               </section>
               <section style={{ display: "flex", flexDirection: "column", gap: 14, minWidth: 0 }}>
                 {!(activePanel === "decide" && isAusterityMode(view.me.cash)) && (
-                  <BattleBoard view={view} reveal={activePanel === "report"} />
+                  <div
+                    onClick={
+                      activePanel === "report" && !roundReveal.showVerdict
+                        ? () => roundReveal.skip()
+                        : undefined
+                    }
+                    style={{
+                      cursor:
+                        activePanel === "report" && !roundReveal.showVerdict
+                          ? "pointer"
+                          : undefined,
+                    }}
+                  >
+                    <BattleBoard
+                      view={view}
+                      reveal={activePanel === "report" ? roundReveal.boardReveal : false}
+                    />
+                  </div>
                 )}
                 {activePanel === "decide" && isAusterityMode(view.me.cash) && (
                   <DecideControls

@@ -46,6 +46,7 @@ export async function GET(request: Request) {
     rank: index + 1,
     userId: row.userId,
     name: row.username,
+    avatarUrl: row.avatarUrl,
     elo: row.rating,
     ...(canSeeOwnRank && row.userId === auth.user.id ? { isYou: true as const } : {}),
   }));
