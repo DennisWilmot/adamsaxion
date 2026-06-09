@@ -42,8 +42,8 @@ export function Header() {
   const isLanding = pathname === "/";
   const isGameRoute = pathname.startsWith("/play");
   const isWideGameRoute = usesWideGameShell(pathname);
-  const showLandingNav = isLanding && !user;
-  const showAppNav = Boolean(user);
+  const showLandingNav = isLanding;
+  const showAppNav = Boolean(user) && !isLanding;
   const navItems = isGameRoute ? GAME_NAV_ITEMS : APP_NAV_ITEMS;
 
   useEffect(() => {

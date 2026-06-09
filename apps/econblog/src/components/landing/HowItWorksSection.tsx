@@ -5,7 +5,8 @@ import { HOW_IT_WORKS, HOW_IT_WORKS_HEADLINE, HOW_IT_WORKS_SUBHEAD } from "@/lib
 import { CircleHighlight } from "@/components/landing/CircleHighlight";
 import { LandingImage } from "@/components/landing/LandingImage";
 
-const AUTO_ADVANCE_MS = 1500;
+const AUTO_ADVANCE_MS = 3500;
+const STEP_TRANSITION_MS = 250;
 
 export function HowItWorksSection() {
   const [activeStep, setActiveStep] = useState(0);
@@ -49,52 +50,55 @@ export function HowItWorksSection() {
 
             <div className="mb-xl h-0.5 overflow-hidden rounded-full bg-border-subtle">
               <div
-                className="h-full rounded-full bg-primary transition-[width] duration-700 ease-in-out"
-                style={{ width: `${progressPct}%` }}
+                className="h-full rounded-full bg-primary transition-[width] ease-out"
+                style={{
+                  width: `${progressPct}%`,
+                  transitionDuration: `${STEP_TRANSITION_MS}ms`,
+                }}
               />
             </div>
 
             <div className="flex flex-col gap-xs">
-              {HOW_IT_WORKS.map((step, index) => {
-                const isActive = index === activeStep;
-
-                return (
-                  <button
-                    key={step.title}
-                    type="button"
-                    onClick={() => setActiveStep(index)}
-                    className={`flex w-full gap-lg rounded-xl border px-xl py-lg text-left transition-all duration-700 ease-in-out ${
-                      isActive
-                        ? "border-border bg-surface-sunken translate-x-1 opacity-100"
-                        : "border-transparent opacity-50 hover:opacity-70"
+              {HOW_IT_WORKS.map((step, index) => (
+                <button
+                  key={step.title}
+                  type="button"
+                  onClick={() => setActiveStep(index)}
+                  className={`flex w-full gap-lg rounded-xl border px-xl py-lg text-left transition-all ease-out ${
+                    index === activeStep
+                      ? "border-border bg-surface-sunken translate-x-1 opacity-100"
+                      : "border-transparent opacity-50 hover:opacity-70"
+                  }`}
+                  style={{ transitionDuration: `${STEP_TRANSITION_MS}ms` }}
+                >
+                  <span
+                    className={`shrink-0 pt-0.5 font-display text-2xl font-medium tabular-nums transition-colors ease-out ${
+                      index === activeStep ? "text-foreground" : "text-foreground-muted"
                     }`}
+                    style={{ transitionDuration: `${STEP_TRANSITION_MS}ms` }}
                   >
-                    <span
-                      className={`shrink-0 pt-0.5 font-display text-2xl font-medium tabular-nums transition-colors duration-700 ${
-                        isActive ? "text-foreground" : "text-foreground-muted"
+                    {index + 1}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <h3
+                      className={`mb-xs font-display text-xl font-semibold transition-colors ease-out ${
+                        index === activeStep ? "text-foreground" : "text-foreground-muted"
                       }`}
+                      style={{ transitionDuration: `${STEP_TRANSITION_MS}ms` }}
                     >
-                      {index + 1}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <h3
-                        className={`mb-xs font-display text-xl font-semibold transition-colors duration-700 ${
-                          isActive ? "text-foreground" : "text-foreground-muted"
-                        }`}
-                      >
-                        {step.title}
-                      </h3>
-                      <p
-                        className={`overflow-hidden font-body text-sm leading-relaxed text-foreground-secondary transition-all duration-700 ease-in-out ${
-                          isActive ? "max-h-24 opacity-100" : "max-h-0 opacity-0"
-                        }`}
-                      >
-                        {step.summary}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
+                      {step.title}
+                    </h3>
+                    <p
+                      className={`overflow-hidden font-body text-sm leading-relaxed text-foreground-secondary transition-all ease-out ${
+                        index === activeStep ? "max-h-24 opacity-100" : "max-h-0 opacity-0"
+                      }`}
+                      style={{ transitionDuration: `${STEP_TRANSITION_MS}ms` }}
+                    >
+                      {step.summary}
+                    </p>
+                  </div>
+                </button>
+              ))}
             </div>
           </div>
 
@@ -109,9 +113,10 @@ export function HowItWorksSection() {
                     fill
                     sizes="(max-width: 768px) 100vw, 400px"
                     priority={index === 0}
-                    className={`object-cover object-center transition-opacity duration-700 ease-in-out ${
+                    className={`object-cover object-center transition-opacity ease-out ${
                       index === activeStep ? "opacity-100" : "opacity-0"
                     }`}
+                    style={{ transitionDuration: `${STEP_TRANSITION_MS}ms` }}
                   />
                 ))}
               </div>

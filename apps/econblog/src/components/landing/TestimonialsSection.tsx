@@ -11,7 +11,7 @@ export function TestimonialsSection() {
     <section className="border-t border-border-subtle bg-surface-sunken px-xl py-4xl">
       <div className="mx-auto max-w-[1200px]">
         <p className="mb-lg text-center font-body text-[11px] font-semibold uppercase tracking-[0.15em] text-primary">
-          Social proof
+          What others are saying
         </p>
 
         <div className="relative overflow-hidden">

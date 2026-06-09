@@ -65,7 +65,6 @@ import { MatchReviewPanel } from "@/components/pricewar/screens/match/MatchRevie
 import { BriefingControls } from "@/components/pricewar/screens/match/MatchBriefingPanel";
 import { MatchDecideCoach } from "@/components/pricewar/screens/match/MatchDecideCoach";
 import { AusterityBanner, isAusterityMode } from "@/components/pricewar/screens/AusterityBanner";
-import { AusterityLockLegend } from "@/components/pricewar/screens/AusterityLockLegend";
 import { LessonNudge } from "@/components/pricewar/screens/shared/LessonNudge";
 import { formatMoveTileMeta } from "@/client/pricewar/move-tile-meta";
 import { ActionCard } from "@/components/pricewar/shell/ActionCard";
@@ -523,7 +522,6 @@ function CompactMoveCard({
   disabled,
   expanded,
   onExpand,
-  suppressDisabledFade,
 }: {
   moveId: MoveId;
   title: string;
@@ -532,7 +530,6 @@ function CompactMoveCard({
   disabled: boolean;
   expanded: boolean;
   onExpand: () => void;
-  suppressDisabledFade?: boolean;
 }) {
   const move = MOVE_BY_ID.get(moveId);
   const domain = move?.domain ?? "sales";
@@ -550,7 +547,7 @@ function CompactMoveCard({
         borderRadius: 11,
         border: `1px solid ${expanded || drafted ? accent.c : CD.rule}`,
         background: drafted || expanded ? accent.soft : CD.cardstock,
-        opacity: disabled && !drafted && !suppressDisabledFade ? 0.55 : 1,
+        opacity: disabled && !drafted ? 0.55 : 1,
         cursor: disabled && !drafted ? "not-allowed" : "pointer",
         color: CD.ink,
         padding: "12px 10px 12px 16px",
@@ -767,7 +764,28 @@ function DecideControls({
   );
   const visibleDomains = movesByDomain.map((g) => g.domain);
   const domainMoves = movesByDomain.find((g) => g.domain === activeDomain)?.moves ?? [];
-  const visibleMoves = austerityMode ? COFFEE_SHOP_MOVES : domainMoves;
+
+  function getCardInput(moveId: MoveId) {
+    if (cardInputs[moveId] != null) return cardInputs[moveId];
+    const def = MOVE_BY_ID.get(moveId);
+    if (!def) return {};
+    return defaultMoveInput(def, view.me.currentPrice);
+  }
+
+  function isMoveUsable(moveId: MoveId) {
+    if (draftedIds.has(moveId)) return true;
+    const input = getCardInput(moveId);
+    const cost = estimateMoveCost(moveId, input, { staffCount: view.me.staffCount });
+    const unaffordable = cost > view.me.cash;
+    const legal = legalByMove?.get(moveId);
+    const blocked = legal != null && !legal.available;
+    const slotFull = draft.length >= 3;
+    return !unaffordable && !blocked && !slotFull;
+  }
+
+  const visibleMoves = austerityMode
+    ? COFFEE_SHOP_MOVES.filter((move) => isMoveUsable(move.id))
+    : domainMoves;
   const expandedMove = visibleMoves.find((move) => move.id === expandedMoveId) ?? null;
   const expandedInput = expandedMove ? getCardInput(expandedMove.id) : null;
   const expandedCost = expandedMove && expandedInput
@@ -784,13 +802,6 @@ function DecideControls({
       setActiveDomain(visibleDomains[0]);
     }
   }, [activeDomain, visibleDomains]);
-
-  function getCardInput(moveId: MoveId) {
-    if (cardInputs[moveId] != null) return cardInputs[moveId];
-    const def = MOVE_BY_ID.get(moveId);
-    if (!def) return {};
-    return defaultMoveInput(def, view.me.currentPrice);
-  }
 
   function setCardInput(moveId: MoveId, input: unknown) {
     setCardInputs((prev) => ({ ...prev, [moveId]: input }));
@@ -849,26 +860,19 @@ function DecideControls({
           const disabled =
             (draft.length >= 3 && !draftedIds.has(move.id)) || unaffordable || blocked;
           const meta = formatMoveTileMeta(move, cost, legal, view.me.cash);
-          const card = (
-            <CompactMoveCard
-              moveId={move.id}
-              title={move.name}
-              meta={meta}
-              drafted={draftedIds.has(move.id)}
-              disabled={disabled}
-              expanded={expandedMoveId === move.id}
-              onExpand={() => setExpandedMoveId((prev) => (prev === move.id ? null : move.id))}
-              suppressDisabledFade={austerityMode}
-            />
+          return (
+            <div key={move.id}>
+              <CompactMoveCard
+                moveId={move.id}
+                title={move.name}
+                meta={meta}
+                drafted={draftedIds.has(move.id)}
+                disabled={disabled}
+                expanded={expandedMoveId === move.id}
+                onExpand={() => setExpandedMoveId((prev) => (prev === move.id ? null : move.id))}
+              />
+            </div>
           );
-          if (austerityMode && disabled && !draftedIds.has(move.id)) {
-            return (
-              <div key={move.id} style={{ opacity: 0.42, position: "relative" }}>
-                {card}
-              </div>
-            );
-          }
-          return <div key={move.id}>{card}</div>;
         })}
       </div>
       {expandedMove && (
@@ -1725,7 +1729,6 @@ export function MatchSessionShell({ matchId }: { matchId: string }) {
                       ctx="You've dropped into austerity. Learn the moves that pull a shop back from the brink."
                       cta="Learn this →"
                     />
-                    <AusterityLockLegend />
                   </>
                 )}
                 {activePanel === "waiting" && <WaitingControls view={view} lockedMoves={lockedMoves} />}
