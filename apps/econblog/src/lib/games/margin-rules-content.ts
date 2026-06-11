@@ -1,4 +1,5 @@
 import { COFFEE_SHOP_SCENARIO, listPlayModes } from "@adamsaxion/pricewar-engine";
+import { MARGIN_BETA_PHRASE } from "@/lib/games/margin-branding";
 import { MARGIN_GAME_NAME } from "@/lib/games/routes";
 
 export type MarginRulesSection = {
@@ -21,7 +22,7 @@ const PLAY_MODE_LINES = listPlayModes()
 export const MARGIN_RULES_SECTIONS: MarginRulesSection[] = [
   {
     title: "Objective",
-    body: `${MARGIN_GAME_NAME} is a turn-based economics duel. You run a coffee shop against a rival in the same market. Protect your margins, react to news and demand, and finish with more cash than your opponent after ${COFFEE_SHOP_SCENARIO.totalRounds} rounds.`,
+    body: `${MARGIN_GAME_NAME} is a turn-based economics duel, currently ${MARGIN_BETA_PHRASE}. You run a coffee shop against a rival in the same market. Protect your margins, react to news and demand, and finish with more cash than your opponent after ${COFFEE_SHOP_SCENARIO.totalRounds} rounds.`,
   },
   {
     title: "Each round",

@@ -9,6 +9,11 @@ export function stepPolicies(ctx: PipelineContext): void {
     const pub = ctx.state.playersPublic[slot];
     const opp = ctx.state.playersPublic[slot === "A" ? "B" : "A"];
 
+    if (sim.flashSaleOriginalPriceCents != null && sim.flashSaleActiveRound !== ctx.round) {
+      pub.currentPrice = sim.flashSaleOriginalPriceCents;
+      sim.flashSaleOriginalPriceCents = null;
+    }
+
     if (sim.priceMatchRoundsRemaining > 0) {
       pub.currentPrice = opp.currentPrice;
       sim.priceMatchRoundsRemaining -= 1;
@@ -36,6 +41,12 @@ export function stepPolicies(ctx: PipelineContext): void {
       ctx.scratch.inputCostMultiplier[slot] *= 1.1;
     }
 
+    if (sim.equipmentLevel > 1 && ctx.round - sim.equipmentDepreciationRound >= 6) {
+      sim.equipmentLevel -= 1;
+      sim.equipmentDepreciationRound = ctx.round;
+      ctx.scratch.privateActionNotes[slot].push("Equipment wore down from lack of maintenance.");
+    }
+
     if (sim.trainingBudgetPerRound > 0 && priv.cash >= sim.trainingBudgetPerRound) {
       priv.cash -= sim.trainingBudgetPerRound;
       sim.avgSkill = Math.min(1, sim.avgSkill + sim.trainingBudgetPerRound * COSTS.trainingSkillPerDollar);
@@ -47,8 +58,11 @@ export function stepPolicies(ctx: PipelineContext): void {
       sim.rdProjectRoundsRemaining -= 1;
       if (sim.rdProjectRoundsRemaining === 0) {
         if (ctx.rng.next() < 0.55) {
-          sim.productQuality = Math.min(1, sim.productQuality + 0.1);
+          sim.qualityAdjustment += 0.1;
           setRep(priv, repUnit(priv.reputation) + 0.03);
+          ctx.scratch.privateActionNotes[slot].push("R&D paid off. Quality improved.");
+        } else {
+          ctx.scratch.privateActionNotes[slot].push("R&D failed to produce a useful breakthrough.");
         }
       }
     }
@@ -63,6 +77,8 @@ export function stepPolicies(ctx: PipelineContext): void {
       sim.targetedCampaignRounds -= 1;
     }
 
+    sim.roundsAtSupplierTier += 1;
+
     writeSim(priv, sim);
   }
 }
@@ -71,10 +87,25 @@ export function stepPostActionPolicies(ctx: PipelineContext): void {
   for (const slot of ["A", "B"] as const) {
     const sim = getSim(ctx.state, slot);
     const pub = ctx.state.playersPublic[slot];
+    const supplierCap = ctx.scratch.supplierTierCap[slot];
+    let changed = false;
+
+    if (supplierCap != null) {
+      sim.opponentSupplierCap = supplierCap;
+      if (sim.supplierTier > supplierCap) {
+        sim.supplierTier = supplierCap;
+        sim.roundsAtSupplierTier = 0;
+      }
+      changed = true;
+    }
 
     if (sim.surgePricingActive && ctx.scratch.demandTotal > COFFEE_SHOP_SIM.baseFootTraffic * 1.1) {
       pub.currentPrice = Math.min(800, Math.round(pub.currentPrice * 1.2));
       sim.surgePricingActive = false;
+      changed = true;
+    }
+
+    if (changed) {
       writeSim(ctx.state.playersPrivate[slot], sim);
     }
   }

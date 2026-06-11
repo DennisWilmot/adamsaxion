@@ -100,13 +100,13 @@ Rated matchmaking requires `MARGIN_RATED_ENABLED` and is **paid-only** when enab
 
 - Play today’s Econ Wordle and share your grid
 - Try one full interactive lesson — no credit card
-- Learn Margin: tutorial plus 15-minute practice games running a coffee shop
+- Learn Margin (beta): tutorial plus 15-minute practice games running a coffee shop
 
 ### Member
 
 - Every lesson, quiz gate, and mastery exam
 - Personalized path and full XP progression
-- All Margin scenarios, Blitz mode, and ranked play when live
+- All Margin (beta) scenarios, Blitz mode, and ranked play when live
 - AI debrief after matches
 - Run multiple matches at once (up to five)
 

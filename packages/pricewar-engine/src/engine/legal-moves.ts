@@ -63,11 +63,8 @@ function prerequisiteFailure(
     case "sales.s04":
       if (sim.flashSaleActiveRound === round - 1) return entry.prerequisite;
       break;
-    case "sales.s05":
-      if (repUnit(priv.reputation) < 0.6) return entry.prerequisite;
-      break;
     case "sales.s06":
-      if (sim.menuBreadth < 2 || priv.cash < 30) return entry.prerequisite;
+      if (repUnit(priv.reputation) < 0.6) return entry.prerequisite;
       break;
     case "procurement.p02":
       if (sim.supplierTier <= 1) return entry.prerequisite;
@@ -77,6 +74,9 @@ function prerequisiteFailure(
       break;
     case "procurement.p05":
       if (priv.cash < COSTS.exclusiveDeal || sim.supplierTier < 3) return entry.prerequisite;
+      break;
+    case "procurement.p01":
+      if (sim.opponentSupplierCap != null && sim.supplierTier >= sim.opponentSupplierCap) return entry.prerequisite;
       break;
     case "operations.o05":
       if (sim.rdProjectRoundsRemaining > 0 || sim.equipmentLevel >= 5 || priv.cash < COSTS.equipmentUpgrade) {

@@ -1,4 +1,5 @@
 import type { PipelineContext } from "../context";
+import { getSim } from "../../../simulation/player-sim";
 
 export function stepTriggers(ctx: PipelineContext): void {
   const scenario = ctx.scenario;
@@ -44,14 +45,14 @@ export function stepTriggers(ctx: PipelineContext): void {
   if (endedByBankruptcy) {
     // completed
   } else if (isFinalRound) {
-    const cashA = ctx.state.playersPrivate.A.cash;
-    const cashB = ctx.state.playersPrivate.B.cash;
-    if (cashA === cashB) {
+    const scoreA = ctx.state.playersPrivate.A.cash + getSim(ctx.state, "A").securedProfit;
+    const scoreB = ctx.state.playersPrivate.B.cash + getSim(ctx.state, "B").securedProfit;
+    if (scoreA === scoreB) {
       ctx.state.outcome = { kind: "draw" };
     } else {
       ctx.state.outcome = {
         kind: "win",
-        winner: cashA > cashB ? "A" : "B",
+        winner: scoreA > scoreB ? "A" : "B",
         reason: "victory_points",
       };
     }

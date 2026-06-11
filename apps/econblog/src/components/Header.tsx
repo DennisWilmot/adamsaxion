@@ -23,7 +23,7 @@ const APP_NAV_ITEMS = [
 const GAME_NAV_ITEMS = [
   { label: "Lessons", href: "/lessons" },
   { label: "Games", href: PLAY_HUB },
-  { label: "Margin", href: priceWarPaths.lobby },
+  { label: "Margin (Beta)", href: priceWarPaths.lobby },
 ] as const;
 
 function navLinkActive(pathname: string, href: string) {

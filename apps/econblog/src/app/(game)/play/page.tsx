@@ -4,6 +4,7 @@ import { FloatingIcons } from "@/components/FloatingIcons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { MarginBetaBadge } from "@/components/games/MarginBetaBadge";
 import { PLAY_CATALOG_GAMES } from "@/lib/games/catalog";
 
 export default function PlayCatalogPage() {
@@ -38,8 +39,11 @@ export default function PlayCatalogPage() {
               />
             </div>
             <CardHeader className="p-xl pb-0">
-              <CardTitle className="flex items-center justify-between font-display text-lg font-bold leading-snug text-foreground">
-                {game.title}
+              <CardTitle className="flex items-center justify-between gap-sm font-display text-lg font-bold leading-snug text-foreground">
+                <span className="flex items-center gap-sm">
+                  {game.title}
+                  {game.status === "beta" ? <MarginBetaBadge /> : null}
+                </span>
                 {game.status === "live" && (
                   <Badge className="shrink-0 border-transparent bg-success-subtle font-body text-[10px] font-semibold uppercase tracking-widest text-success">
                     Available

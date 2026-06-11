@@ -42,7 +42,7 @@ export function LandingFooter() {
                     href="/play/price-war"
                     className="font-body text-sm text-foreground-secondary hover:text-foreground transition-colors"
                   >
-                    Margin
+                    Margin (Beta)
                   </Link>
                 </li>
                 <li>

@@ -66,7 +66,7 @@ export function evaluateCondition(
     case "customers_lost_vs_opponent":
       return customers < oppCustomers;
     case "overtime":
-      return sim.overtimeThisRound;
+      return sim.overtimeThisRound || scratch.overtimeUsed[slot];
     case "flash_sale":
       return sim.flashSaleActiveRound === round;
     case "bankruptcy_risk":

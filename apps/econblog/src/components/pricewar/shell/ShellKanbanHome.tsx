@@ -18,6 +18,7 @@ import {
   StatusPill,
 } from "@/components/pricewar/design-system/margin-kit";
 import { ModePicker } from "@/components/pricewar/shell/ModePicker";
+import { MARGIN_BETA_NOTICE } from "@/lib/games/margin-branding";
 
 export function ShellKanbanHome({
   matches,
@@ -90,6 +91,9 @@ export function ShellKanbanHome({
             }}
           >
             Hit Play to find an opponent. Finished matches collapse into History in the top bar.
+          </p>
+          <p style={{ fontSize: 12.5, color: MT.ink3, marginTop: 14, maxWidth: 440, marginInline: "auto" }}>
+            {MARGIN_BETA_NOTICE}
           </p>
         </MarginPanel>
       ) : (

@@ -98,8 +98,8 @@ export function PricingSection() {
             Choose how you want in
           </h2>
           <p className="mx-auto mb-md max-w-[40rem] text-center font-body text-base text-foreground-secondary">
-            Start free with Wordle, Lesson Zero, and Margin practice. Upgrade once for the full
-            curriculum, ranked play, and AI debriefs.
+            Start free with Wordle, Lesson Zero, and Margin (beta) practice. Upgrade once for the
+            full curriculum, ranked play, and AI debriefs.
           </p>
           <p className="mx-auto mb-2xl max-w-[40rem] text-center font-body text-sm text-foreground-muted">
             Members get a personalized lesson path, XP progression, and leaderboard standing.

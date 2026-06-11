@@ -26,6 +26,8 @@ export interface PipelineScratch {
   marketingBoost: { A: number; B: number };
   counterMarketing: { A: boolean; B: boolean };
   poachAttempt: { A: boolean; B: boolean };
+  supplierTierCap: { A: number | null; B: number | null };
+  overtimeUsed: { A: boolean; B: boolean };
   publicActions: { A: string[]; B: string[] };
   privateActionNotes: { A: string[]; B: string[] };
   inputCostMultiplier: { A: number; B: number };
@@ -75,6 +77,8 @@ function emptyScratch(state: MatchState): PipelineScratch {
     marketingBoost: { A: 0, B: 0 },
     counterMarketing: { A: false, B: false },
     poachAttempt: { A: false, B: false },
+    supplierTierCap: { A: null, B: null },
+    overtimeUsed: { A: false, B: false },
     publicActions: { A: [], B: [] },
     privateActionNotes: { A: [], B: [] },
     inputCostMultiplier: { A: 1, B: 1 },

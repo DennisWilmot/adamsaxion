@@ -1,3 +1,5 @@
+import { MARGIN_BETA_PHRASE } from "@/lib/games/margin-branding";
+
 /**
  * Free vs member offering — user-facing bullets and tier labels.
  * Full matrix: apps/econblog/OFFERING_FREE_PAID.md
@@ -15,14 +17,14 @@ export const OFFERING_TIER_LABELS = {
 export const OFFERING_FREE_INCLUDES = [
   "Daily Econ Wordle — play and share, no account",
   "One full interactive lesson to try the format",
-  "Margin tutorial and 15-minute practice games (coffee shop)",
+  `Margin (${MARGIN_BETA_PHRASE}) tutorial and 15-minute practice games (coffee shop)`,
 ] as const;
 
 /** Shown on landing + subscribe (member / monthly). */
 export const OFFERING_MEMBER_INCLUDES = [
   "Full curriculum — every lesson, gate, and mastery exam",
   "Personalized learning path, XP, levels, and rankings",
-  "All Margin scenarios, Blitz mode, and ranked play when live",
+  `All Margin (${MARGIN_BETA_PHRASE}) scenarios, Blitz mode, and ranked play when live`,
   "AI debrief after matches",
   "Play up to five matches at once",
 ] as const;

@@ -1,3 +1,4 @@
+import { MARGIN_BETA_PHRASE } from "@/lib/games/margin-branding";
 import { ECON_WORDLE, MARGIN_GAME_NAME, priceWarPaths } from "@/lib/games/routes";
 
 export type PlayCatalogGame = {
@@ -5,7 +6,7 @@ export type PlayCatalogGame = {
   title: string;
   description: string;
   href: string;
-  status: "live";
+  status: "live" | "beta";
   cta: string;
   thumbnail: string;
   thumbnailAlt: string;
@@ -28,12 +29,12 @@ export const PLAY_CATALOG_GAMES: PlayCatalogGame[] = [
     id: "price-war",
     title: MARGIN_GAME_NAME,
     description:
-      "Turn-based economics strategy. Protect your margins — pick moves across sales, marketing, and operations to outmaneuver your opponent.",
+      `Turn-based economics strategy, currently ${MARGIN_BETA_PHRASE}. Protect your margins — pick moves across sales, marketing, and operations to outmaneuver your opponent.`,
     href: priceWarPaths.lobby,
-    status: "live",
-    cta: "Play",
+    status: "beta",
+    cta: "Play beta",
     thumbnail: "/games/margin-thumbnail.png",
-    thumbnailAlt: "Margin strategy game — rival coffee shops facing off",
+    thumbnailAlt: "Margin strategy game (beta) — rival coffee shops facing off",
   },
 ];
 

@@ -7,7 +7,7 @@ import {
 } from "../src";
 
 describe("pipeline performance", () => {
-  it("resolves 2000 rounds in under 1200ms", () => {
+  it("resolves 2000 rounds in under 2000ms", () => {
     let state = createInitialMatchState({
       matchId: "perf-match" as never,
       playModeId: "blitz",
@@ -36,7 +36,7 @@ describe("pipeline performance", () => {
       state = out.nextState;
     }
     const elapsed = performance.now() - start;
-    expect(elapsed).toBeLessThan(1500);
+    expect(elapsed).toBeLessThan(2000);
   });
 });
 

@@ -11,7 +11,7 @@ export interface TutorialNarrationStep {
 export const TUTORIAL_NARRATION: TutorialNarrationStep[] = [
   {
     round: 1,
-    title: "Welcome to Margin",
+    title: "Welcome to Margin (Beta)",
     body:
       "Each round you pick up to 3 moves across sales, marketing, operations, and more. " +
       "Your opponent's price is always visible. Every point of margin counts.",

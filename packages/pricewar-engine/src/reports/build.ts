@@ -68,14 +68,14 @@ export function buildRoundReport(ctx: PipelineContext): RoundReport {
       A: {
         cashDelta: state.playersPrivate.A.cash - scratch.cashAtRoundStart.A,
         demandSatisfied: scratch.allocated.A,
-        reputationDelta: 0,
-        moraleDelta: 0,
+        reputationDelta: state.playersPrivate.A.reputation - scratch.reputationAtRoundStart.A,
+        moraleDelta: state.playersPrivate.A.morale - scratch.moraleAtRoundStart.A,
       },
       B: {
         cashDelta: state.playersPrivate.B.cash - scratch.cashAtRoundStart.B,
         demandSatisfied: scratch.allocated.B,
-        reputationDelta: 0,
-        moraleDelta: 0,
+        reputationDelta: state.playersPrivate.B.reputation - scratch.reputationAtRoundStart.B,
+        moraleDelta: state.playersPrivate.B.morale - scratch.moraleAtRoundStart.B,
       },
     },
   };

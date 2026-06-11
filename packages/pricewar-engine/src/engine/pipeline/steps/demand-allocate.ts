@@ -15,7 +15,6 @@ export function stepDemand(ctx: PipelineContext): void {
     const mSpend = sim.marketingBudgetPerRound;
     const mBoost = mSpend > 0 ? Math.min(0.35, mSpend / 400) : 0;
     ctx.scratch.marketingBoost[slot] = mBoost;
-    ctx.scratch.demandBoost[slot] += mBoost;
 
     if (sim.flashSaleActiveRound === ctx.round) {
       ctx.scratch.demandBoost[slot] += 0.25;
@@ -28,6 +27,9 @@ export function stepDemand(ctx: PipelineContext): void {
   if (ctx.scratch.counterMarketing.B) {
     ctx.scratch.marketingBoost.A *= 0.4;
   }
+
+  ctx.scratch.demandBoost.A += ctx.scratch.marketingBoost.A;
+  ctx.scratch.demandBoost.B += ctx.scratch.marketingBoost.B;
 
   const avgBoost = (ctx.scratch.demandBoost.A + ctx.scratch.demandBoost.B) / 2;
   ctx.scratch.demandTotal = Math.max(10, Math.round(total * (1 + avgBoost * 0.5)));

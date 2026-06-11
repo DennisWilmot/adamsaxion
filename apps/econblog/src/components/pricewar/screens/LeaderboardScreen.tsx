@@ -51,7 +51,7 @@ export function LeaderboardScreen({
         }}
       >
         <div>
-          <Eyebrow>Margin ladder</Eyebrow>
+          <Eyebrow>Margin ladder · Beta</Eyebrow>
           <h1
             className="serif"
             style={{

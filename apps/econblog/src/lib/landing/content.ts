@@ -1,3 +1,4 @@
+import { MARGIN_BETA_PHRASE } from "@/lib/games/margin-branding";
 import { CORPUS_LESSONS } from "@/lib/learning/corpus-lessons";
 import { PHASE_LABELS } from "@/lib/learning/onboarding-outcomes";
 import {
@@ -46,11 +47,11 @@ export const TRY_IT_NOW = [
   {
     gameId: "price-war" as const,
     title: "Margin",
-    badge: "Free account",
+    badge: `Beta · Free account`,
     description:
-      "Run a coffee shop in a 15-minute practice match. Tutorial included. Compete unrated on the free tier.",
+      `Run a coffee shop in a 15-minute practice match — Margin is ${MARGIN_BETA_PHRASE}. Tutorial included. Compete unrated on the free tier.`,
     href: "/play/price-war",
-    cta: "Play Margin",
+    cta: "Play Margin beta",
   },
 ] as const;
 
@@ -61,7 +62,7 @@ export const HOW_IT_WORKS_HEADLINE = {
 } as const;
 
 export const HOW_IT_WORKS_SUBHEAD =
-  "Every lesson follows the same rigorous path. When you're ready, Margin puts those ideas on the clock.";
+  `Every lesson follows the same rigorous path. When you're ready, Margin (${MARGIN_BETA_PHRASE}) puts those ideas on the clock.`;
 
 export const AUDIENCE = [
   {
@@ -134,9 +135,9 @@ export const HOW_IT_WORKS = [
     step: "Step 5",
     title: "Match",
     icon: "/how-it-works/game.webp",
-    summary: "Apply what you learned in a head-to-head Margin duel.",
+    summary: `Apply what you learned in a head-to-head Margin duel (${MARGIN_BETA_PHRASE}).`,
     detail:
-      "After you know the material, compete in turn-based strategy matches built around the same concepts. Run a coffee shop, set prices, and outthink your opponent under time pressure. Free tier includes tutorial and 15-minute practice games.",
+      `After you know the material, compete in turn-based strategy matches built around the same concepts. Margin is ${MARGIN_BETA_PHRASE} — balance and modes may change as we ship updates. Run a coffee shop, set prices, and outthink your opponent under time pressure. Free tier includes tutorial and 15-minute practice games.`,
   },
 ] as const;
 
@@ -159,7 +160,7 @@ export const OUTCOME_STATS = [
   {
     value: "2+",
     label: "economics games",
-    sub: "Wordle daily + Margin practice on free tier",
+    sub: `Wordle daily + Margin (${MARGIN_BETA_PHRASE}) practice on free tier`,
   },
 ] as const;
 

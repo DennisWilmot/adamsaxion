@@ -26,6 +26,13 @@ function readAmount(input: unknown, fallback = 0): number {
   return typeof v === "number" && v >= 0 ? v : fallback;
 }
 
+function readAmountOrUnits(input: unknown, fallback: number, unitValue: number): number {
+  const payload = input as { amount?: number; units?: number };
+  if (typeof payload.amount === "number" && payload.amount >= 0) return payload.amount;
+  if (typeof payload.units === "number" && payload.units > 0) return Math.floor(payload.units) * unitValue;
+  return fallback;
+}
+
 function readNewPrice(input: unknown): number | null {
   const v = (input as { newPrice?: number })?.newPrice;
   return typeof v === "number" ? v : null;
@@ -37,7 +44,8 @@ function readUnits(input: unknown, fallback = 1): number {
 }
 
 function readChoice(input: unknown, fallback: string): string {
-  const v = (input as { choice?: string })?.choice;
+  const payload = input as { choice?: string; choiceId?: string; modeId?: string };
+  const v = payload.choice ?? payload.choiceId ?? payload.modeId;
   return typeof v === "string" && v.length > 0 ? v : fallback;
 }
 
@@ -126,7 +134,7 @@ const salesS02: ActionHandler = (ctx) => {
     const cost = COSTS.menuExpand;
     if (!spend(ctx, ctx.slot, cost)) return {};
     if (sim.avgSkill < sim.menuBreadth * 0.2) {
-      sim.productQuality = Math.max(0.1, sim.productQuality - 0.05);
+      sim.qualityAdjustment -= 0.05;
       notePrivate(ctx, ctx.slot, "Your team struggled with the bigger menu. Quality slipped.");
     }
     sim.menuBreadth += 1;
@@ -139,7 +147,7 @@ const salesS03: ActionHandler = (ctx) => {
   withSim(ctx, (sim) => {
     if (sim.menuBreadth <= 1) return {};
     sim.menuBreadth -= 1;
-    sim.productQuality = Math.min(1, sim.productQuality + 0.03);
+    sim.qualityAdjustment += 0.03;
     return { menuBreadth: -1 };
   });
 };
@@ -150,10 +158,10 @@ const salesS04: ActionHandler = (ctx) => {
     if (ctx.state.playersPrivate[ctx.slot].cash <= 0) return {};
     const pub = ctx.state.playersPublic[ctx.slot];
     const prev = pub.currentPrice;
+    sim.flashSaleOriginalPriceCents = prev;
     pub.currentPrice = Math.round(prev * 0.6);
     sim.flashSaleActiveRound = ctx.round;
     setCooldown(sim, "sales.s04", ctx.round, ctx.round + COSTS.flashSaleCooldownRounds);
-    scratch().demandBoost[ctx.slot] += 0.25;
     notePublic(ctx, ctx.slot, "Flash sale: 40% off this round.");
     return { currentPrice: pub.currentPrice - prev, demandBoost: 0.25 };
   });
@@ -188,7 +196,7 @@ const salesS07: ActionHandler = (ctx) => {
   withSim(ctx, (sim) => {
     if (sim.menuBreadth < 2 || !spend(ctx, ctx.slot, COSTS.bundleSetup)) return {};
     sim.bundleRoundsRemaining = 3;
-    scratch().revenueMultiplier[ctx.slot] *= 0.85;
+    scratch().revenueMultiplier[ctx.slot] *= 1.08;
     return { bundleRoundsRemaining: 3, cash: -COSTS.bundleSetup };
   });
 };
@@ -204,12 +212,12 @@ const salesS08: ActionHandler = (ctx) => {
 
 const procurementP01: ActionHandler = (ctx) => {
   withSim(ctx, (sim) => {
+    if (sim.opponentSupplierCap != null && sim.supplierTier >= sim.opponentSupplierCap) return {};
     if (sim.supplierTier >= 5) return {};
     sim.supplierTier += 1;
     sim.roundsAtSupplierTier = 0;
-    sim.productQuality = Math.min(1, sim.productQuality + 0.04);
     scratch().inputCostMultiplier[ctx.slot] *= 1.08;
-    return { supplierTier: 1, productQuality: 0.04 };
+    return { supplierTier: 1 };
   });
 };
 
@@ -218,9 +226,8 @@ const procurementP02: ActionHandler = (ctx) => {
     if (sim.supplierTier <= 1) return {};
     sim.supplierTier -= 1;
     sim.roundsAtSupplierTier = 0;
-    sim.productQuality = Math.max(0.1, sim.productQuality - 0.04);
     scratch().inputCostMultiplier[ctx.slot] *= 0.92;
-    return { supplierTier: -1, productQuality: -0.04 };
+    return { supplierTier: -1 };
   });
 };
 
@@ -250,10 +257,7 @@ const procurementP05: ActionHandler = (ctx) => {
     markOnce(sim, "procurement.p05");
     sim.exclusiveSupplierDeal = true;
     sim.supplierTier = Math.max(sim.supplierTier, 4);
-    sim.opponentSupplierCap = 3;
-    const oppSim = getSim(ctx.state, other(ctx.slot));
-    oppSim.opponentSupplierCap = 3;
-    writeSim(ctx.state.playersPrivate[other(ctx.slot)], oppSim);
+    scratch().supplierTierCap[other(ctx.slot)] = 3;
     return { exclusiveSupplierDeal: 1, cash: -COSTS.exclusiveDeal };
   });
 };
@@ -272,7 +276,6 @@ const procurementP07: ActionHandler = (ctx) => {
     sim.localSourcing = true;
     // Downtown scenario: +10% cost, +5% quality
     scratch().inputCostMultiplier[ctx.slot] *= 1.1;
-    sim.productQuality = Math.min(1, sim.productQuality + 0.05);
     return { localSourcing: 1, inputCostMultiplier: 1.1 };
   });
 };
@@ -297,8 +300,7 @@ const operationsO05: ActionHandler = (ctx) => {
     if (sim.equipmentLevel >= 5 || onCooldown(sim, "equipment", ctx.round)) return {};
     if (!spend(ctx, ctx.slot, COSTS.equipmentUpgrade)) return {};
     sim.equipmentLevel += 1;
-    sim.capacityPerWorker += 2;
-    sim.totalCapacity = ctx.state.playersPrivate[ctx.slot].staffCount * sim.capacityPerWorker;
+    sim.equipmentDepreciationRound = ctx.round;
     setCooldown(sim, "equipment", ctx.round, ctx.round + 2);
     return { equipmentLevel: 1, cash: -COSTS.equipmentUpgrade };
   });
@@ -333,6 +335,7 @@ const operationsO08: ActionHandler = (ctx) => {
   }
   sim.overtimeThisRound = true;
   sim.overtimeLastRound = ctx.round;
+  scratch().overtimeUsed[ctx.slot] = true;
   sim.totalCapacity = Math.round(sim.totalCapacity * 1.3);
   setMorale(priv, moraleUnit(priv.morale) - 0.08);
   writeSim(priv, sim);
@@ -440,7 +443,6 @@ const marketingM01: ActionHandler = (ctx) => {
   withSim(ctx, (sim) => {
     const budget = readAmount(ctx.move.input, 0);
     sim.marketingBudgetPerRound = budget;
-    scratch().marketingBoost[ctx.slot] = budget > 0 ? Math.min(0.5, budget / 200) : 0;
     return { marketingBudgetPerRound: budget };
   });
 };
@@ -497,8 +499,8 @@ const marketingM07: ActionHandler = (ctx) => {
     if (oncePerMatch(sim, "marketing.m07") || !spend(ctx, ctx.slot, COSTS.rebrand)) return {};
     markOnce(sim, "marketing.m07");
     sim.rebranded = true;
-    sim.totalCapacity = Math.round(sim.totalCapacity * 0.8);
     sim.momentumBoostRounds = 3;
+    sim.rebrandCapacityPenaltyRounds = 1;
     return { rebranded: 1, cash: -COSTS.rebrand, momentumBoostRounds: 3 };
   });
 };
@@ -507,7 +509,7 @@ const marketingM07: ActionHandler = (ctx) => {
 
 const financeF01: ActionHandler = (ctx) => {
   withSim(ctx, (sim) => {
-    const amount = readAmount(ctx.move.input, 50);
+    const amount = readAmountOrUnits(ctx.move.input, 50, 50);
     const creditLimit = 500;
     if (amount <= 0 || sim.debt + amount > creditLimit) return {};
     sim.debt += amount;
@@ -518,7 +520,7 @@ const financeF01: ActionHandler = (ctx) => {
 
 const financeF02: ActionHandler = (ctx) => {
   withSim(ctx, (sim) => {
-    const amount = readAmount(ctx.move.input, 50);
+    const amount = readAmountOrUnits(ctx.move.input, 50, 50);
     if (sim.debt <= 0 || amount <= 0) return {};
     const repay = Math.min(amount, sim.debt, ctx.state.playersPrivate[ctx.slot].cash);
     if (repay <= 0 || !spend(ctx, ctx.slot, repay)) return {};

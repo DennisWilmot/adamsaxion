@@ -1,7 +1,7 @@
 import type { PipelineContext } from "../context";
 import { COFFEE_SHOP_SIM } from "../../../simulation/config";
 import { drawCoffeeShopEvent } from "../../../simulation/events";
-import { getSim } from "../../../simulation/player-sim";
+import { getSim, writeSim } from "../../../simulation/player-sim";
 
 function applyInsuranceToTraffic(ctx: PipelineContext, baseFactor: number): number {
   let combined = 1;
@@ -68,6 +68,16 @@ export function stepEvents(ctx: PipelineContext): void {
   }
   for (const slot of ["A", "B"] as const) {
     if (ctx.scratch.inputCostMultiplier[slot] > 1) {
+      const sim = getSim(ctx.state, slot);
+      if (event.id === "event.supply_disruption" && sim.inventoryBuffer > 0) {
+        ctx.scratch.inputCostMultiplier[slot] =
+          1 + (ctx.scratch.inputCostMultiplier[slot] - 1) * 0.35;
+        sim.inventoryBuffer = Math.max(0, sim.inventoryBuffer - 1);
+        writeSim(ctx.state.playersPrivate[slot], sim);
+        ctx.scratch.privateActionNotes[slot].push(
+          "Inventory buffer softened the supply shock."
+        );
+      }
       ctx.scratch.inputCostMultiplier[slot] = applyInsuranceToInputCost(
         ctx,
         ctx.scratch.inputCostMultiplier[slot]

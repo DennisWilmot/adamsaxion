@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { UserPortrait } from "@/components/pricewar/design-system/UserPortrait";
-import { MT } from "@/components/pricewar/design-system/margin-kit";
+import { MT, StatusPill } from "@/components/pricewar/design-system/margin-kit";
+import { MARGIN_BETA_LABEL } from "@/lib/games/margin-branding";
 import { MARGIN_GAME_NAME, priceWarPaths } from "@/lib/games/routes";
 import { isMarginRatedEnabledClient } from "@/lib/games/margin-flags";
 
@@ -38,6 +39,7 @@ export function MarginShellWordmark() {
       >
         {MARGIN_GAME_NAME}
       </span>
+      <StatusPill tone="warn">{MARGIN_BETA_LABEL}</StatusPill>
     </Link>
   );
 }

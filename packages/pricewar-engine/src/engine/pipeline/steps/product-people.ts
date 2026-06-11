@@ -18,7 +18,8 @@ export function stepProduct(ctx: PipelineContext): void {
           sim.equipmentLevel * 0.05 -
           menuPenalty +
           (sim.localSourcing ? 0.03 : 0) +
-          (DEPLOYMENT_QUALITY[sim.deploymentMode] ?? 0)
+          (DEPLOYMENT_QUALITY[sim.deploymentMode] ?? 0) +
+          sim.qualityAdjustment
       )
     );
 
@@ -52,6 +53,10 @@ export function stepPeople(ctx: PipelineContext): void {
     let perWorker = sim.capacityPerWorker + (sim.equipmentLevel - 1) * 2;
     let capacity = Math.round(priv.staffCount * perWorker * modeMult);
     if (sim.overtimeThisRound) capacity = Math.round(capacity * 1.3);
+    if (sim.rebrandCapacityPenaltyRounds > 0) {
+      capacity = Math.round(capacity * 0.8);
+      sim.rebrandCapacityPenaltyRounds -= 1;
+    }
     sim.totalCapacity = capacity;
     writeSim(priv, sim);
   }

@@ -32,8 +32,10 @@ export interface SimulationFields {
   bundleRoundsRemaining: number;
   bulkDiscountRoundsRemaining: number;
   rdProjectRoundsRemaining: number;
+  qualityAdjustment: number;
   rebranded: boolean;
   flashSaleActiveRound: number | null;
+  flashSaleOriginalPriceCents: number | null;
   surgePricingActive: boolean;
   exclusiveSupplierDeal: boolean;
   opponentSupplierCap: number | null;
@@ -48,6 +50,7 @@ export interface SimulationFields {
   poachAttempt: boolean;
   counterMarketingActive: boolean;
   overtimeThisRound: boolean;
+  rebrandCapacityPenaltyRounds: number;
   totalCapacity: number;
   capacityPerWorker: number;
   roundsAtSupplierTier: number;
@@ -76,8 +79,10 @@ const DEFAULTS: SimulationFields = {
   bundleRoundsRemaining: 0,
   bulkDiscountRoundsRemaining: 0,
   rdProjectRoundsRemaining: 0,
+  qualityAdjustment: 0,
   rebranded: false,
   flashSaleActiveRound: null,
+  flashSaleOriginalPriceCents: null,
   surgePricingActive: false,
   exclusiveSupplierDeal: false,
   opponentSupplierCap: null,
@@ -92,6 +97,7 @@ const DEFAULTS: SimulationFields = {
   poachAttempt: false,
   counterMarketingActive: false,
   overtimeThisRound: false,
+  rebrandCapacityPenaltyRounds: 0,
   totalCapacity: COFFEE_SHOP_SIM.startingStaff * 15,
   capacityPerWorker: 15,
   roundsAtSupplierTier: 3,

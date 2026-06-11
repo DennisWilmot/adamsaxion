@@ -3,6 +3,7 @@ import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { lessonZeroPath } from "@/lib/constants/lessons";
 import { LANDING_CTA_START_LESSON_ZERO, TRY_IT_NOW } from "@/lib/landing/content";
+import { MarginBetaBadge } from "@/components/games/MarginBetaBadge";
 import { getPlayCatalogGame } from "@/lib/games/catalog";
 import { ScrollReveal } from "@/components/landing/ScrollReveal";
 
@@ -58,8 +59,11 @@ export function TryItNowSection() {
                   </div>
 
                   <div className="flex flex-1 flex-col p-xl">
-                    <h3 className="mb-sm font-display text-xl font-medium text-foreground">
+                    <h3 className="mb-sm flex items-center gap-sm font-display text-xl font-medium text-foreground">
                       {item.title}
+                      {"gameId" in item && item.gameId === "price-war" ? (
+                        <MarginBetaBadge />
+                      ) : null}
                     </h3>
                     <p className="mb-lg flex-1 font-body text-sm leading-relaxed text-foreground-secondary">
                       {item.description}

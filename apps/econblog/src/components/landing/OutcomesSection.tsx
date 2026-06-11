@@ -23,7 +23,7 @@ export function OutcomesSection() {
               Prove it under pressure.
             </h2>
             <p className="max-w-[440px] font-body text-base leading-relaxed text-foreground-secondary">
-              Quiz gates, mastery exams, and Margin matches test whether the ideas stuck — not
+              Quiz gates, mastery exams, and Margin (beta) matches test whether the ideas stuck — not
               whether you watched a video.
             </p>
           </div>

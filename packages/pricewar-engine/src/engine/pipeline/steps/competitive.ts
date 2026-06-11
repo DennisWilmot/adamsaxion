@@ -1,5 +1,5 @@
 import type { PipelineContext } from "../context";
-import { getSim, writeSim, moraleUnit, setMorale, COSTS } from "../../../simulation/player-sim";
+import { getSim, writeSim, moraleUnit, setMorale } from "../../../simulation/player-sim";
 
 /** Resolves competitive HR actions simultaneously against actionBaseline. */
 export function stepCompetitive(ctx: PipelineContext): void {
@@ -17,10 +17,9 @@ export function stepCompetitive(ctx: PipelineContext): void {
     const defPriv = ctx.state.playersPrivate[defender];
     const defStaffBaseline = staffBaseline[defender];
     if (defStaffBaseline <= 1) return;
-    if (atkPriv.cash < COSTS.poach + getSim(ctx.state, attacker).wagePerWorker) return;
+    if (atkPriv.cash < getSim(ctx.state, attacker).wagePerWorker) return;
 
     const success = ctx.rng.next() < 0.55;
-    atkPriv.cash -= COSTS.poach;
     const atkSim = getSim(ctx.state, attacker);
     const defSim = getSim(ctx.state, defender);
 
