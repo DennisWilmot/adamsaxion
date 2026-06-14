@@ -40,6 +40,7 @@ export function Header() {
   const [displayName, setDisplayName] = useState<string | null>(null);
 
   const isLanding = pathname === "/";
+  const isAuthPage = pathname.startsWith("/auth");
   const isGameRoute = pathname.startsWith("/play");
   const isWideGameRoute = usesWideGameShell(pathname);
   const showLandingNav = isLanding;
@@ -122,6 +123,10 @@ export function Header() {
       cancelled = true;
     };
   }, [user, pathname]);
+
+  if (isAuthPage) {
+    return null;
+  }
 
   return (
     <header className="sticky top-0 z-50 border-b border-border-subtle bg-surface/85 backdrop-blur-lg">
