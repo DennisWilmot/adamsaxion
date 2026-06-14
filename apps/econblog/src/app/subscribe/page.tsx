@@ -2,11 +2,21 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { SubscribePlans } from "@/components/billing/SubscribePlans";
-import { getStripeSetupMessage } from "@/lib/stripe/config";
+import { getStripeSetupMessage, type CheckoutPlan } from "@/lib/stripe/config";
 import { getUserSubscriptionView } from "@/lib/subscription/service";
 import { LESSON_ZERO_SLUG } from "@/lib/constants/lessons";
 
-export default async function SubscribePage() {
+export default async function SubscribePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ plan?: string; next?: string; canceled?: string }>;
+}) {
+  const params = await searchParams;
+  const defaultPlan: CheckoutPlan | null =
+    params.plan === "lifetime" || params.plan === "monthly"
+      ? params.plan
+      : null;
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -15,6 +25,9 @@ export default async function SubscribePage() {
   const subscription = user
     ? await getUserSubscriptionView(user.id, user.email)
     : null;
+
+  const canUpgradeToLifetime =
+    subscription?.hasAccess && subscription.plan === "monthly";
 
   const setupMessage = getStripeSetupMessage();
 
@@ -35,7 +48,9 @@ export default async function SubscribePage() {
         <SubscribePlans
           isAuthenticated={!!user}
           hasAccess={subscription?.hasAccess ?? false}
+          canUpgradeToLifetime={canUpgradeToLifetime ?? false}
           setupMessage={setupMessage}
+          defaultPlan={defaultPlan}
         />
       </Suspense>
 

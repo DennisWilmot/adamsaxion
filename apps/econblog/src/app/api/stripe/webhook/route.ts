@@ -3,6 +3,8 @@ import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe/client";
 import {
   handleCheckoutCompleted,
+  handleChargeDisputeCreated,
+  handleChargeRefunded,
   handleSubscriptionDeleted,
   handleSubscriptionUpdated,
 } from "@/lib/stripe/webhooks";
@@ -51,6 +53,12 @@ export async function POST(request: Request) {
         await handleSubscriptionDeleted(
           event.data.object as Stripe.Subscription
         );
+        break;
+      case "charge.refunded":
+        await handleChargeRefunded(event.data.object as Stripe.Charge);
+        break;
+      case "charge.dispute.created":
+        await handleChargeDisputeCreated(event.data.object as Stripe.Dispute);
         break;
       default:
         break;

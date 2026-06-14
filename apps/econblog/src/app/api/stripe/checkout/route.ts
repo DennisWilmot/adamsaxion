@@ -45,10 +45,19 @@ export async function POST(request: Request) {
 
     const existing = await getSubscriptionRow(user.id);
     if (existing?.status === "active") {
-      return NextResponse.json(
-        { error: "You already have an active subscription" },
-        { status: 409 }
-      );
+      if (existing.plan === "lifetime") {
+        return NextResponse.json(
+          { error: "You already have lifetime access" },
+          { status: 409 }
+        );
+      }
+      if (plan === "monthly") {
+        return NextResponse.json(
+          { error: "You already have an active subscription" },
+          { status: 409 }
+        );
+      }
+      // monthly → lifetime upgrade: fall through
     }
 
     const stripe = getStripe();

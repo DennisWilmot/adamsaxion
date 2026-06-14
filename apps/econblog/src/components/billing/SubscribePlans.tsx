@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Check, Loader2 } from "lucide-react";
 import {
@@ -23,21 +23,42 @@ const LIFETIME_FEATURES = [...OFFERING_LIFETIME_INCLUDES];
 interface SubscribePlansProps {
   isAuthenticated: boolean;
   hasAccess: boolean;
+  canUpgradeToLifetime?: boolean;
   setupMessage?: string | null;
+  defaultPlan?: CheckoutPlan | null;
 }
 
 export function SubscribePlans({
   isAuthenticated,
   hasAccess,
+  canUpgradeToLifetime = false,
   setupMessage = null,
+  defaultPlan = null,
 }: SubscribePlansProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loadingPlan, setLoadingPlan] = useState<CheckoutPlan | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const autoTriggered = useRef(false);
 
   const next = searchParams.get("next") ?? "/lessons";
   const canceled = searchParams.get("canceled") === "1";
+
+  useEffect(() => {
+    if (!defaultPlan || !isAuthenticated || setupMessage || autoTriggered.current) {
+      return;
+    }
+
+    const canAutoCheckout =
+      !hasAccess ||
+      (canUpgradeToLifetime && defaultPlan === "lifetime");
+
+    if (canAutoCheckout) {
+      autoTriggered.current = true;
+      startCheckout(defaultPlan);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function startCheckout(plan: CheckoutPlan) {
     if (!isAuthenticated) {
@@ -71,7 +92,7 @@ export function SubscribePlans({
     }
   }
 
-  if (hasAccess) {
+  if (hasAccess && !canUpgradeToLifetime) {
     return (
       <div className="rounded-xl border border-success/30 bg-success/5 px-xl py-xl text-center">
         <p className="font-display font-semibold text-lg text-foreground mb-sm">
@@ -101,6 +122,11 @@ export function SubscribePlans({
 
   return (
     <div>
+      {canUpgradeToLifetime && (
+        <p className="mb-xl rounded-lg border border-primary/30 bg-primary-subtle/20 px-lg py-md font-body text-sm text-foreground-secondary text-center">
+          You&apos;re on Monthly. Upgrade to Lifetime and never pay again.
+        </p>
+      )}
       {setupMessage && (
         <p className="mb-xl rounded-lg border border-error/30 bg-error-subtle px-lg py-md font-body text-sm text-error text-center leading-relaxed">
           {setupMessage}
@@ -118,18 +144,20 @@ export function SubscribePlans({
       )}
 
       <div className="grid gap-xl md:grid-cols-2">
-        <PlanCard
-          plan="monthly"
-          title={PLAN_LABELS.monthly}
-          price={PLAN_PRICES.monthly.amount}
-          interval={PLAN_PRICES.monthly.interval ?? ""}
-          description="Full curriculum access, billed monthly."
-          features={MONTHLY_FEATURES}
-          highlighted
-          loading={loadingPlan === "monthly"}
-          disabled={!!setupMessage}
-          onSelect={() => startCheckout("monthly")}
-        />
+        {!canUpgradeToLifetime && (
+          <PlanCard
+            plan="monthly"
+            title={PLAN_LABELS.monthly}
+            price={PLAN_PRICES.monthly.amount}
+            interval={PLAN_PRICES.monthly.interval ?? ""}
+            description="Full curriculum access, billed monthly."
+            features={MONTHLY_FEATURES}
+            highlighted={defaultPlan !== "lifetime"}
+            loading={loadingPlan === "monthly"}
+            disabled={!!setupMessage}
+            onSelect={() => startCheckout("monthly")}
+          />
+        )}
         <PlanCard
           plan="lifetime"
           title={PLAN_LABELS.lifetime}
@@ -137,6 +165,7 @@ export function SubscribePlans({
           interval={PLAN_PRICES.lifetime.interval ?? ""}
           description="Pay once. Keep access for life."
           features={LIFETIME_FEATURES}
+          highlighted={canUpgradeToLifetime || defaultPlan === "lifetime"}
           loading={loadingPlan === "lifetime"}
           disabled={!!setupMessage}
           onSelect={() => startCheckout("lifetime")}

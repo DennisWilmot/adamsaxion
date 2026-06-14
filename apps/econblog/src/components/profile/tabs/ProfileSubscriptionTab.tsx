@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ExternalLink, Loader2 } from "lucide-react";
 import type { UserSubscriptionView } from "@/lib/subscription/types";
 import { PLAN_PRICES, type CheckoutPlan } from "@/lib/stripe/config";
+import type { BillingSummary } from "@/app/api/stripe/billing-summary/route";
 
 interface ProfileSubscriptionTabProps {
   subscription: UserSubscriptionView;
@@ -23,11 +24,43 @@ export function ProfileSubscriptionTab({
   subscription,
 }: ProfileSubscriptionTabProps) {
   const [portalLoading, setPortalLoading] = useState(false);
+  const [upgradeLoading, setUpgradeLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [billing, setBilling] = useState<BillingSummary | null>(null);
 
   const plan = subscription.plan as CheckoutPlan | null;
   const price = plan ? PLAN_PRICES[plan] : null;
   const nextCharge = formatPeriodEnd(subscription.currentPeriodEnd);
+
+  useEffect(() => {
+    if (!subscription.stripeCustomerId) return;
+    fetch("/api/stripe/billing-summary")
+      .then((r) => r.json())
+      .then((data: BillingSummary) => setBilling(data))
+      .catch(() => {});
+  }, [subscription.stripeCustomerId]);
+
+  async function handleUpgrade() {
+    setError(null);
+    setUpgradeLoading(true);
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: "lifetime", next: "/profile" }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Could not start checkout");
+        return;
+      }
+      if (data.url) window.location.href = data.url;
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setUpgradeLoading(false);
+    }
+  }
 
   async function openBillingPortal() {
     setError(null);
@@ -120,12 +153,17 @@ export function ProfileSubscriptionTab({
           ) : (
             <>
               {showUpgrade && (
-                <Link
-                  href="/subscribe?plan=lifetime"
-                  className="inline-flex rounded-full bg-primary px-xl py-md font-body text-sm font-semibold text-surface-raised hover:bg-primary-hover"
+                <button
+                  type="button"
+                  disabled={upgradeLoading}
+                  onClick={handleUpgrade}
+                  className="inline-flex items-center gap-sm rounded-full bg-primary px-xl py-md font-body text-sm font-semibold text-surface-raised hover:bg-primary-hover disabled:opacity-50"
                 >
-                  Upgrade to Lifetime (save vs monthly)
-                </Link>
+                  {upgradeLoading ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : null}
+                  Upgrade to Lifetime — {PLAN_PRICES.lifetime.amount}
+                </button>
               )}
                   {subscription.stripeCustomerId && (
                     <>
@@ -164,22 +202,38 @@ export function ProfileSubscriptionTab({
           <p className="mb-lg font-body text-[10px] font-semibold uppercase tracking-widest text-foreground-muted">
             Payment
           </p>
-          <div className="mb-lg flex gap-xs">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-10 flex-1 rounded-md bg-surface-sunken"
-              />
-            ))}
-          </div>
-          {subscription.stripeCustomerId ? (
+          {billing?.paymentMethod ? (
+            <>
+              <div className="mb-lg flex items-center gap-md">
+                <span className="font-body text-sm font-semibold capitalize text-foreground">
+                  {billing.paymentMethod.brand}
+                </span>
+                <span className="font-body text-sm text-foreground-secondary">
+                  •••• {billing.paymentMethod.last4}
+                </span>
+                <span className="font-body text-xs text-foreground-muted">
+                  {billing.paymentMethod.expMonth}/{String(billing.paymentMethod.expYear).slice(-2)}
+                </span>
+              </div>
+              <button
+                type="button"
+                disabled={portalLoading}
+                onClick={openBillingPortal}
+                className="rounded-full border border-border px-lg py-sm font-body text-sm font-semibold text-foreground hover:bg-surface-sunken disabled:opacity-50"
+              >
+                Update
+              </button>
+            </>
+          ) : subscription.stripeCustomerId && !billing ? (
+            <div className="mb-lg h-6 w-40 animate-pulse rounded bg-surface-sunken" />
+          ) : subscription.stripeCustomerId ? (
             <button
               type="button"
               disabled={portalLoading}
               onClick={openBillingPortal}
               className="rounded-full border border-border px-lg py-sm font-body text-sm font-semibold text-foreground hover:bg-surface-sunken disabled:opacity-50"
             >
-              Update
+              Manage payment
             </button>
           ) : (
             <p className="font-body text-sm text-foreground-muted">
@@ -192,44 +246,55 @@ export function ProfileSubscriptionTab({
           <p className="mb-lg font-body text-[10px] font-semibold uppercase tracking-widest text-foreground-muted">
             Receipts
           </p>
-          {subscription.stripeCustomerId ? (
-            <>
-              <ul className="divide-y divide-border-subtle">
-                {[0, 1, 2].map((offset) => {
-                  const d = new Date();
-                  d.setMonth(d.getMonth() - offset);
-                  const label = d
-                    .toLocaleDateString("en-US", {
-                      month: "short",
-                      year: "numeric",
-                    })
-                    .toUpperCase();
-                  return (
-                    <li
-                      key={offset}
-                      className="flex items-center justify-between py-md first:pt-0"
-                    >
+          {billing && billing.charges.length > 0 ? (
+            <ul className="divide-y divide-border-subtle">
+              {billing.charges.map((charge) => {
+                const date = new Date(charge.created * 1000).toLocaleDateString(
+                  "en-US",
+                  { month: "short", day: "numeric", year: "numeric" }
+                );
+                const amount = (charge.amount / 100).toLocaleString("en-US", {
+                  style: "currency",
+                  currency: charge.currency.toUpperCase(),
+                });
+                return (
+                  <li
+                    key={charge.id}
+                    className="flex items-center justify-between py-md first:pt-0"
+                  >
+                    <div>
                       <span className="font-body text-sm text-foreground-secondary">
-                        {label}
+                        {date}
                       </span>
-                      <button
-                        type="button"
-                        onClick={openBillingPortal}
+                      <span className="ml-md font-body text-sm font-medium text-foreground">
+                        {amount}
+                      </span>
+                    </div>
+                    {charge.receiptUrl ? (
+                      <a
+                        href={charge.receiptUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="font-body text-sm text-primary hover:text-primary-hover"
                       >
                         ↓
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-              <p className="mt-md font-body text-xs text-foreground-muted">
-                Download invoices in the billing portal.
-              </p>
-            </>
+                      </a>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
+          ) : subscription.stripeCustomerId && !billing ? (
+            <div className="space-y-md">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="h-5 animate-pulse rounded bg-surface-sunken" />
+              ))}
+            </div>
           ) : (
             <p className="font-body text-sm text-foreground-muted">
-              Receipts appear here once you subscribe.
+              {subscription.stripeCustomerId
+                ? "No charges found."
+                : "Receipts appear here once you subscribe."}
             </p>
           )}
         </section>

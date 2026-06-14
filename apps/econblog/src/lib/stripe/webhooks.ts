@@ -3,7 +3,10 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { subscriptions } from "@/db/schema";
 import { getStripe } from "./client";
-import { upsertSubscription } from "@/lib/subscription/service";
+import {
+  getSubscriptionRow,
+  upsertSubscription,
+} from "@/lib/subscription/service";
 import type { SubscriptionPlan, SubscriptionStatus } from "@/lib/subscription/types";
 
 function periodEnd(sub: Stripe.Subscription) {
@@ -46,6 +49,11 @@ async function syncSubscriptionFromStripe(
   stripeSub: Stripe.Subscription,
   userId: string
 ) {
+  const existing = await getSubscriptionRow(userId);
+  if (existing?.plan === "lifetime" && existing.status === "active") {
+    return;
+  }
+
   const customerId =
     typeof stripeSub.customer === "string"
       ? stripeSub.customer
@@ -92,6 +100,12 @@ export async function handleCheckoutCompleted(session: Stripe.Checkout.Session) 
   }
 
   if (session.mode === "payment") {
+    const [existingRow] = await db
+      .select({ stripeSubscriptionId: subscriptions.stripeSubscriptionId })
+      .from(subscriptions)
+      .where(eq(subscriptions.userId, userId))
+      .limit(1);
+
     await upsertSubscription({
       userId,
       stripeCustomerId: customerId,
@@ -101,6 +115,14 @@ export async function handleCheckoutCompleted(session: Stripe.Checkout.Session) 
       currentPeriodEnd: null,
       cancelAtPeriodEnd: false,
     });
+
+    if (existingRow?.stripeSubscriptionId) {
+      try {
+        await getStripe().subscriptions.cancel(existingRow.stripeSubscriptionId);
+      } catch (e) {
+        console.warn("[stripe] could not cancel monthly sub on lifetime upgrade:", e);
+      }
+    }
     return;
   }
 
@@ -124,9 +146,54 @@ export async function handleSubscriptionUpdated(stripeSub: Stripe.Subscription) 
   await syncSubscriptionFromStripe(stripeSub, userId);
 }
 
+async function revokeAccessByCustomerId(customerId: string) {
+  const [row] = await db
+    .select()
+    .from(subscriptions)
+    .where(eq(subscriptions.stripeCustomerId, customerId))
+    .limit(1);
+  if (!row) return;
+  await upsertSubscription({
+    userId: row.userId,
+    stripeCustomerId: customerId,
+    stripeSubscriptionId: row.stripeSubscriptionId,
+    plan: row.plan as SubscriptionPlan,
+    status: "canceled",
+    currentPeriodEnd: null,
+    cancelAtPeriodEnd: false,
+  });
+}
+
+export async function handleChargeRefunded(charge: Stripe.Charge) {
+  const customerId =
+    typeof charge.customer === "string"
+      ? charge.customer
+      : charge.customer?.id;
+  if (!customerId) return;
+  await revokeAccessByCustomerId(customerId);
+}
+
+export async function handleChargeDisputeCreated(dispute: Stripe.Dispute) {
+  const chargeId =
+    typeof dispute.charge === "string" ? dispute.charge : dispute.charge?.id;
+  if (!chargeId) return;
+  const charge = await getStripe().charges.retrieve(chargeId);
+  const customerId =
+    typeof charge.customer === "string"
+      ? charge.customer
+      : charge.customer?.id;
+  if (!customerId) return;
+  await revokeAccessByCustomerId(customerId);
+}
+
 export async function handleSubscriptionDeleted(stripeSub: Stripe.Subscription) {
   const userId = await resolveUserId(stripeSub);
   if (!userId) return;
+
+  const existing = await getSubscriptionRow(userId);
+  if (existing?.plan === "lifetime" && existing.status === "active") {
+    return;
+  }
 
   const customerId =
     typeof stripeSub.customer === "string"
