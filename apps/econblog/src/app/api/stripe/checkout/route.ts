@@ -58,6 +58,8 @@ export async function POST(request: Request) {
         ? body.next
         : "/lessons";
 
+    const isTestMode = process.env.STRIPE_SECRET_KEY?.startsWith("sk_test_");
+
     const sessionParams: Parameters<typeof stripe.checkout.sessions.create>[0] = {
       mode: plan === "monthly" ? "subscription" : "payment",
       line_items: [{ price: priceId, quantity: 1 }],
@@ -66,6 +68,10 @@ export async function POST(request: Request) {
       client_reference_id: user.id,
       metadata: { userId: user.id, plan },
       allow_promotion_codes: true,
+      // Link reuses saved real cards and fails in test mode with generic_decline.
+      ...(isTestMode
+        ? { wallet_options: { link: { display: "never" } } }
+        : {}),
     };
 
     if (existing?.stripeCustomerId) {

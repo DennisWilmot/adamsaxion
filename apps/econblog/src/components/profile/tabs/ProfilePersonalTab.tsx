@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -88,12 +87,11 @@ export function ProfilePersonalTab({
       <aside className="flex flex-col items-center gap-lg">
         <div className="relative mx-auto aspect-square w-full max-w-[11rem] overflow-hidden rounded-full border border-border bg-surface-sunken">
           {avatarUrl ? (
-            <Image
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
               src={avatarUrl}
               alt=""
-              fill
-              className="object-cover"
-              sizes="11rem"
+              className="absolute inset-0 size-full object-cover"
             />
           ) : (
             <div className="flex size-full items-center justify-center font-display text-4xl font-bold text-foreground">

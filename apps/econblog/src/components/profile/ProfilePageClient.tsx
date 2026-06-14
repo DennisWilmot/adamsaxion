@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { UserSubscriptionView } from "@/lib/subscription/types";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
@@ -53,6 +53,21 @@ export function ProfilePageClient({
   const [activeTab, setActiveTab] = useState<ProfileTabId>(initialTab);
   const [pathModalOpen, setPathModalOpen] = useState(false);
   const [pathBadge, setPathBadge] = useState("…");
+
+  useEffect(() => {
+    const tab = searchParams.get("tab") as ProfileTabId | null;
+    if (tab && VALID_TABS.has(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (searchParams.get("billing") !== "return") return;
+    router.refresh();
+    const url = new URL(window.location.href);
+    url.searchParams.delete("billing");
+    window.history.replaceState(null, "", url.toString());
+  }, [router, searchParams]);
 
   const handleTabChange = useCallback((tab: ProfileTabId) => {
     setActiveTab(tab);

@@ -68,11 +68,21 @@ export function ProfileSubscriptionTab({
                 {subscription.renewalLabel}
               </p>
             )}
-            {nextCharge && subscription.plan === "monthly" && (
-              <p className="mt-xs font-body text-xs text-foreground-muted">
-                Next charge {nextCharge}
-              </p>
-            )}
+            {nextCharge &&
+              subscription.plan === "monthly" &&
+              !subscription.cancelAtPeriodEnd && (
+                <p className="mt-xs font-body text-xs text-foreground-muted">
+                  Next charge {nextCharge}
+                </p>
+              )}
+            {nextCharge &&
+              subscription.plan === "monthly" &&
+              subscription.cancelAtPeriodEnd &&
+              subscription.hasAccess && (
+                <p className="mt-xs font-body text-xs text-foreground-muted">
+                  Expires {nextCharge}
+                </p>
+              )}
           </div>
           {price && (
             <div className="text-right">
@@ -90,7 +100,7 @@ export function ProfileSubscriptionTab({
 
         {subscription.cancelAtPeriodEnd && subscription.hasAccess && (
           <p className="mt-lg rounded-lg bg-surface-sunken px-lg py-md font-body text-sm text-foreground-secondary">
-            Your subscription is set to cancel at the end of the current billing
+            Your subscription is set to expire at the end of the current billing
             period. You keep full access until then.
           </p>
         )}
@@ -117,31 +127,33 @@ export function ProfileSubscriptionTab({
                   Upgrade to Lifetime (save vs monthly)
                 </Link>
               )}
-              {subscription.stripeCustomerId && (
-                <>
-                  <button
-                    type="button"
-                    disabled={portalLoading}
-                    onClick={openBillingPortal}
-                    className="inline-flex items-center gap-sm rounded-full border border-border px-xl py-md font-body text-sm font-semibold text-foreground hover:bg-surface-sunken disabled:opacity-50"
-                  >
-                    {portalLoading ? (
-                      <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                      <ExternalLink className="size-4" />
-                    )}
-                    Manage
-                  </button>
-                  <button
-                    type="button"
-                    disabled={portalLoading}
-                    onClick={openBillingPortal}
-                    className="rounded-full border border-border px-xl py-md font-body text-sm font-semibold text-foreground hover:bg-surface-sunken disabled:opacity-50"
-                  >
-                    Cancel
-                  </button>
-                </>
-              )}
+                  {subscription.stripeCustomerId && (
+                    <>
+                      <button
+                        type="button"
+                        disabled={portalLoading}
+                        onClick={openBillingPortal}
+                        className="inline-flex items-center gap-sm rounded-full border border-border px-xl py-md font-body text-sm font-semibold text-foreground hover:bg-surface-sunken disabled:opacity-50"
+                      >
+                        {portalLoading ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          <ExternalLink className="size-4" />
+                        )}
+                        Manage
+                      </button>
+                      {!subscription.cancelAtPeriodEnd && (
+                        <button
+                          type="button"
+                          disabled={portalLoading}
+                          onClick={openBillingPortal}
+                          className="rounded-full border border-border px-xl py-md font-body text-sm font-semibold text-foreground hover:bg-surface-sunken disabled:opacity-50"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </>
+                  )}
             </>
           )}
         </div>

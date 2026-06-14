@@ -39,6 +39,7 @@ export function ProfileMyPathTab({
 }: ProfileMyPathTabProps) {
   const { path, preferences } = dashboard;
   const lessons = path.lessons;
+  const isSuggested = path.isSuggested;
   const [page, setPage] = useState(0);
 
   const totalPages = Math.max(1, Math.ceil(lessons.length / LESSONS_PER_PAGE));
@@ -62,12 +63,23 @@ export function ProfileMyPathTab({
       <div className="grid gap-2xl lg:grid-cols-[1fr_18rem]">
         <div className="space-y-2xl">
           <section className="min-w-0 rounded-xl border border-border bg-surface-raised p-xl">
-            <p className="mb-sm font-body text-[10px] font-semibold uppercase tracking-widest text-foreground-muted">
-              Your path · {path.completedCount} / {path.totalCount}
-            </p>
-            <h2 className="mb-lg font-display text-xl font-semibold text-foreground">
+            <div className="mb-sm flex flex-wrap items-center gap-sm">
+              <p className="font-body text-[10px] font-semibold uppercase tracking-widest text-foreground-muted">
+                {isSuggested ? "Suggested path" : "Your path"} · {path.completedCount} /{" "}
+                {path.totalCount}
+              </p>
+              {isSuggested && (
+                <span className="rounded-full border border-border bg-surface-sunken px-sm py-px font-body text-[10px] font-semibold uppercase tracking-wide text-foreground-muted">
+                  Not personalized
+                </span>
+              )}
+            </div>
+            <h2 className="mb-sm font-display text-xl font-semibold text-foreground">
               {path.title}
             </h2>
+            <p className="mb-lg font-body text-sm text-foreground-secondary">
+              {path.tagline}
+            </p>
 
             <div className="mb-lg">
               <PathDotGrid lessons={lessons} />
@@ -84,10 +96,10 @@ export function ProfileMyPathTab({
 
             <button
               type="button"
-              onClick={onChangeFocus}
+              onClick={isSuggested ? onSetupPath : onChangeFocus}
               className="mt-xl rounded-full bg-primary px-lg py-sm font-body text-sm font-semibold text-surface-raised hover:bg-primary-hover"
             >
-              Change focus
+              {isSuggested ? "Personalize path" : "Change focus"}
             </button>
           </section>
 

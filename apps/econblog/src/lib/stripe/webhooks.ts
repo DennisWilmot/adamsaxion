@@ -1,4 +1,7 @@
 import type Stripe from "stripe";
+import { eq } from "drizzle-orm";
+import { db } from "@/db";
+import { subscriptions } from "@/db/schema";
 import { getStripe } from "./client";
 import { upsertSubscription } from "@/lib/subscription/service";
 import type { SubscriptionPlan, SubscriptionStatus } from "@/lib/subscription/types";
@@ -6,6 +9,37 @@ import type { SubscriptionPlan, SubscriptionStatus } from "@/lib/subscription/ty
 function periodEnd(sub: Stripe.Subscription) {
   const end = sub.items.data[0]?.current_period_end;
   return end ? new Date(end * 1000) : null;
+}
+
+/** Portal cancel often sets cancel_at instead of cancel_at_period_end. */
+function isPendingCancellation(sub: Stripe.Subscription) {
+  return sub.cancel_at_period_end || sub.cancel_at != null;
+}
+
+function accessUntil(sub: Stripe.Subscription) {
+  if (sub.cancel_at) {
+    return new Date(sub.cancel_at * 1000);
+  }
+  return periodEnd(sub);
+}
+
+async function resolveUserId(stripeSub: Stripe.Subscription) {
+  const fromMetadata = stripeSub.metadata?.userId;
+  if (fromMetadata) return fromMetadata;
+
+  const customerId =
+    typeof stripeSub.customer === "string"
+      ? stripeSub.customer
+      : stripeSub.customer?.id;
+  if (!customerId) return null;
+
+  const [row] = await db
+    .select({ userId: subscriptions.userId })
+    .from(subscriptions)
+    .where(eq(subscriptions.stripeCustomerId, customerId))
+    .limit(1);
+
+  return row?.userId ?? null;
 }
 
 async function syncSubscriptionFromStripe(
@@ -35,8 +69,8 @@ async function syncSubscriptionFromStripe(
     stripeSubscriptionId: stripeSub.id,
     plan: "monthly",
     status,
-    currentPeriodEnd: periodEnd(stripeSub),
-    cancelAtPeriodEnd: stripeSub.cancel_at_period_end,
+    currentPeriodEnd: accessUntil(stripeSub),
+    cancelAtPeriodEnd: isPendingCancellation(stripeSub),
   });
 }
 
@@ -82,16 +116,16 @@ export async function handleCheckoutCompleted(session: Stripe.Checkout.Session) 
 }
 
 export async function handleSubscriptionUpdated(stripeSub: Stripe.Subscription) {
-  const userId = stripeSub.metadata?.userId;
+  const userId = await resolveUserId(stripeSub);
   if (!userId) {
-    console.warn("[stripe] subscription.updated missing metadata.userId");
+    console.warn("[stripe] subscription.updated could not resolve userId");
     return;
   }
   await syncSubscriptionFromStripe(stripeSub, userId);
 }
 
 export async function handleSubscriptionDeleted(stripeSub: Stripe.Subscription) {
-  const userId = stripeSub.metadata?.userId;
+  const userId = await resolveUserId(stripeSub);
   if (!userId) return;
 
   const customerId =
@@ -105,7 +139,7 @@ export async function handleSubscriptionDeleted(stripeSub: Stripe.Subscription) 
     stripeSubscriptionId: null,
     plan: "monthly",
     status: "canceled",
-    currentPeriodEnd: periodEnd(stripeSub),
+    currentPeriodEnd: accessUntil(stripeSub),
     cancelAtPeriodEnd: false,
   });
 }

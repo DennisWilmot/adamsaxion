@@ -17,6 +17,7 @@ export function ProfileDashboard({
   onSetupPath,
 }: ProfileDashboardProps) {
   const { path, preferences } = dashboard;
+  const isSuggested = path.isSuggested;
 
   return (
     <div className="space-y-3xl">
@@ -29,8 +30,13 @@ export function ProfileDashboard({
           <div className="flex items-center gap-sm">
             <Compass className="size-5 text-primary" />
             <h2 className="font-display font-semibold text-lg text-foreground">
-              Your path
+              {isSuggested ? "Suggested path" : "Your path"}
             </h2>
+            {isSuggested && (
+              <span className="rounded-full border border-border bg-surface-sunken px-sm py-px font-body text-[10px] font-semibold uppercase tracking-wide text-foreground-muted">
+                Not personalized
+              </span>
+            )}
             {path.totalCount > 0 && (
               <span className="rounded-full bg-surface-sunken px-md py-xs font-body text-xs font-semibold text-foreground-secondary tabular-nums">
                 {path.completedCount}/{path.totalCount}

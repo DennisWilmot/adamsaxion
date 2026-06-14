@@ -11,6 +11,7 @@ interface ProfilePathTabClientProps {
 
 export function ProfilePathTabClient({ dashboard }: ProfilePathTabClientProps) {
   const { onBadge, onChangeFocus, onSetupPath } = useProfilePathActions();
+  const { preferences } = dashboard;
   const badge = `${dashboard.path.completedCount}/${dashboard.path.totalCount}`;
 
   useEffect(() => {

@@ -54,7 +54,7 @@ function generatedAvatarPathForUser(userId: string): string {
 }
 
 async function ensureProfileAvatar(user: User, existingAvatarUrl: string | null) {
-  if (existingAvatarUrl) {
+  if (existingAvatarUrl?.trim()) {
     return existingAvatarUrl;
   }
 
@@ -70,11 +70,13 @@ async function ensureProfileAvatar(user: User, existingAvatarUrl: string | null)
 export function resolveUserAvatarUrl(
   profile: { avatarUrl?: string | null } | null | undefined,
   user: User
-): string | null {
-  return resolveAvatarUrl({
-    profileAvatarUrl: profile?.avatarUrl ?? null,
-    googleAvatarUrl: googleAvatarUrlFromUserMetadata(user.user_metadata),
-  });
+): string {
+  return (
+    resolveAvatarUrl({
+      profileAvatarUrl: profile?.avatarUrl ?? null,
+      googleAvatarUrl: googleAvatarUrlFromUserMetadata(user.user_metadata),
+    }) ?? buildGeneratedAvatarPath(user.id)
+  );
 }
 
 export async function ensureProfileForUser(user: User) {

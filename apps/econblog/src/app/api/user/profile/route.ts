@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { db } from "@/db";
 import { profiles } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { resolveUserAvatarUrl } from "@/lib/user-profile";
+import { ensureProfileForUser, resolveUserAvatarUrl } from "@/lib/user-profile";
 
 export async function GET() {
   try {
@@ -14,11 +14,7 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const [profile] = await db
-      .select()
-      .from(profiles)
-      .where(eq(profiles.id, user.id))
-      .limit(1);
+    const profile = await ensureProfileForUser(user);
 
     if (!profile) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });

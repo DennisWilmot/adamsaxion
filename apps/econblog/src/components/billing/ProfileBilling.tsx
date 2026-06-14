@@ -74,7 +74,7 @@ export function ProfileBilling({ subscription }: ProfileBillingProps) {
 
         {subscription.cancelAtPeriodEnd && subscription.hasAccess && (
           <p className="mt-lg font-body text-sm text-foreground-secondary border-t border-border-subtle pt-lg">
-            Your subscription is set to cancel at the end of the current billing
+            Your subscription is set to expire at the end of the current billing
             period. You keep full access until then.
           </p>
         )}

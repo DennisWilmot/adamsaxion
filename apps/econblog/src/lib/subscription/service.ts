@@ -32,7 +32,7 @@ function buildStatusLabel(
   cancelAtPeriodEnd: boolean
 ): string {
   if (status === "active" && cancelAtPeriodEnd) {
-    return "Active — cancels at period end";
+    return "Active — expiring";
   }
   switch (status) {
     case "active":
@@ -58,7 +58,7 @@ function buildRenewalLabel(
   if (plan === "monthly" && status === "active") {
     const end = formatDate(currentPeriodEnd ?? undefined);
     if (cancelAtPeriodEnd && end) {
-      return `Access until ${end}`;
+      return `Expires ${end}`;
     }
     if (end) {
       return `Renews on ${end}`;

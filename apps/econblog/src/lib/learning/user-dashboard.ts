@@ -87,6 +87,8 @@ export interface UserDashboard {
     totalCount: number;
     /** Full curriculum slots including not-yet-published. */
     plannedCount: number;
+    /** True when showing the default suggestion before path setup. */
+    isSuggested: boolean;
   };
 }
 
@@ -220,15 +222,20 @@ export async function getUserPathDashboard(
   const primaryId = (prefs?.primaryInterestId ?? null) as InterestTagId | null;
   const secondaryIds = (prefs?.secondaryInterestIds ?? []) as InterestTagId[];
 
-  const path =
-    primaryId && getInterestTag(primaryId)
-      ? buildLearningPath({
-          primaryInterestId: primaryId,
-          secondaryInterestIds: secondaryIds,
-          completedLessonSlugs: completedSlugs,
-          publishedSlugs,
-        })
-      : getDefaultFundamentalsPath(publishedSlugs);
+  const pathSetupComplete = !!prefs?.pathSetupCompletedAt;
+  const pathSetupSkipped = !!prefs?.pathSetupSkippedAt && !pathSetupComplete;
+  const needsPathSetup = !pathSetupComplete && !pathSetupSkipped;
+  const isPersonalized =
+    pathSetupComplete && !!primaryId && !!getInterestTag(primaryId);
+
+  const path = isPersonalized
+    ? buildLearningPath({
+        primaryInterestId: primaryId,
+        secondaryInterestIds: secondaryIds,
+        completedLessonSlugs: completedSlugs,
+        publishedSlugs,
+      })
+    : getDefaultFundamentalsPath(publishedSlugs);
 
   const continueItem =
     path.lessons.find(
@@ -255,9 +262,6 @@ export async function getUserPathDashboard(
       hasLessonAccess,
     }),
   }));
-
-  const pathSetupComplete = !!prefs?.pathSetupCompletedAt;
-  const pathSetupSkipped = !!prefs?.pathSetupSkippedAt && !pathSetupComplete;
 
   const primaryLabel = primaryId
     ? (getInterestTag(primaryId)?.label ?? null)
@@ -304,12 +308,20 @@ export async function getUserPathDashboard(
       secondaryInterestIds: secondaryIds,
       pathSetupComplete,
       pathSetupSkipped,
-      needsPathSetup: !pathSetupComplete,
+      needsPathSetup,
     },
     path: {
-      title: primaryLabel ?? "Your learning path",
-      tagline: path.tagline,
-      whyDescription: buildWhyDescription(primaryId, pathLessons.length),
+      title: isPersonalized
+        ? (primaryLabel ?? "Your learning path")
+        : needsPathSetup
+          ? "Suggested path"
+          : "Your learning path",
+      tagline: needsPathSetup
+        ? "A default curriculum to get started — not personalized to you yet."
+        : path.tagline,
+      whyDescription: needsPathSetup
+        ? "This is our standard fundamentals sequence. Complete path setup (~2 min) and we'll reorder lessons around your goals."
+        : buildWhyDescription(primaryId, pathLessons.length),
       continue: continueItem,
       continueCard,
       timeline,
@@ -317,6 +329,7 @@ export async function getUserPathDashboard(
       completedCount: pathCompletedCount,
       totalCount: pathLessons.length,
       plannedCount: path.lessons.length,
+      isSuggested: needsPathSetup,
     },
   };
 }

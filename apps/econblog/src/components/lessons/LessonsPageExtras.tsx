@@ -40,7 +40,7 @@ export function LessonsPageExtras({
             >
               <div className="min-w-0 pr-md">
                 <p className="font-body text-xs font-semibold uppercase tracking-wide text-primary mb-xs">
-                  Continue on your path
+                  {path.isSuggested ? "Continue suggested path" : "Continue on your path"}
                 </p>
                 <p className="font-display font-semibold text-base text-foreground line-clamp-2">
                   {path.continue.title}

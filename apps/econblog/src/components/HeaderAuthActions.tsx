@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { LayoutDashboard } from "lucide-react";
-import { signInWithGoogle } from "@/lib/auth/client";
 import { authPageUrl } from "@/lib/auth/redirect";
 import { lessonZeroPath } from "@/lib/constants/lessons";
 import { LANDING_CTA_START_LESSON_ZERO } from "@/lib/landing/content";
@@ -40,10 +39,6 @@ function HeaderAuthActionsInner({
 
   function authNextPath() {
     return searchParams.get("next") ?? pathname ?? "/lessons";
-  }
-
-  async function handleSignIn() {
-    await signInWithGoogle(authNextPath());
   }
 
   if (loading) {
@@ -86,13 +81,12 @@ function HeaderAuthActionsInner({
       >
         {LANDING_CTA_START_LESSON_ZERO}
       </Link>
-      <button
-        type="button"
-        onClick={() => void handleSignIn()}
-        className="h-8 rounded-lg px-md text-sm font-medium text-foreground-muted transition-colors hover:text-foreground"
+      <Link
+        href={authPageUrl(authNextPath(), "signin")}
+        className="h-8 rounded-lg px-md text-sm font-medium text-foreground-muted transition-colors hover:text-foreground inline-flex items-center"
       >
         Sign in
-      </button>
+      </Link>
     </div>
   );
 }
@@ -183,12 +177,10 @@ function MobileAuthActionsInner({
     );
   }
 
-  async function handleSignIn() {
-    onClose();
-    await signInWithGoogle(
-      searchParams.get("next") ?? pathname ?? "/lessons"
-    );
-  }
+  const signInHref = authPageUrl(
+    searchParams.get("next") ?? pathname ?? "/lessons",
+    "signin"
+  );
 
   return (
     <>
@@ -199,13 +191,13 @@ function MobileAuthActionsInner({
       >
         {LANDING_CTA_START_LESSON_ZERO}
       </Link>
-      <button
-        type="button"
-        onClick={() => void handleSignIn()}
+      <Link
+        href={signInHref}
+        onClick={onClose}
         className="block w-full py-sm text-left text-sm font-medium text-foreground-secondary"
       >
         Sign in
-      </button>
+      </Link>
     </>
   );
 }

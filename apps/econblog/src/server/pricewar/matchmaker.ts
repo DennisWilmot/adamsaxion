@@ -16,6 +16,7 @@ import {
   getHumanPolishMinSec,
 } from "./margin-matchmaking";
 import { getSyntheticOpponent, pickSyntheticOpponent } from "@/lib/pricewar/synthetic-opponents";
+import { resolveProfileAvatarUrl } from "@/lib/avatars/resolve";
 
 function queuedStatus(entry: NonNullable<Awaited<ReturnType<typeof repo.getQueueEntry>>>) {
   const elapsedSec = Math.floor((Date.now() - entry.enqueuedAt.getTime()) / 1000);
@@ -209,13 +210,13 @@ async function tryPairHumanFromQueue(args: {
     playerA: {
       userId: args.userId,
       displayName: myProfile?.username ?? "Player",
-      avatarUrl: myProfile?.avatarUrl ?? null,
+      avatarUrl: resolveProfileAvatarUrl(myProfile?.avatarUrl, args.userId),
       ratingAtStart: ratingA,
     },
     playerB: {
       userId: opponent.userId,
       displayName: opponentProfile?.username ?? "Opponent",
-      avatarUrl: opponentProfile?.avatarUrl ?? null,
+      avatarUrl: resolveProfileAvatarUrl(opponentProfile?.avatarUrl, opponent.userId),
       ratingAtStart: ratingB,
     },
     scenarioId: args.scenarioId,

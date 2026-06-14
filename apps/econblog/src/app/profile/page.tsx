@@ -1,13 +1,10 @@
 import { Suspense } from "react";
-import { eq } from "drizzle-orm";
-import { db } from "@/db";
-import { profiles } from "@/db/schema";
 import { ProfilePageClient } from "@/components/profile/ProfilePageClient";
 import { ProfilePathSection } from "@/components/profile/ProfilePathSection";
 import { ProfilePathSkeleton } from "@/components/profile/ProfilePathSkeleton";
 import { getSessionUser } from "@/lib/supabase/session-user";
 import { getUserSubscriptionView } from "@/lib/subscription/service";
-import { resolveUserAvatarUrl } from "@/lib/user-profile";
+import { ensureProfileForUser, resolveUserAvatarUrl } from "@/lib/user-profile";
 
 export default async function ProfilePage() {
   const user = await getSessionUser();
@@ -28,18 +25,8 @@ export default async function ProfilePage() {
     );
   }
 
-  const [[profile], subscription] = await Promise.all([
-    db
-      .select({
-        id: profiles.id,
-        username: profiles.username,
-        avatarUrl: profiles.avatarUrl,
-        totalXp: profiles.totalXp,
-        currentLevel: profiles.currentLevel,
-      })
-      .from(profiles)
-      .where(eq(profiles.id, user.id))
-      .limit(1),
+  const [profile, subscription] = await Promise.all([
+    ensureProfileForUser(user),
     getUserSubscriptionView(user.id, user.email),
   ]);
 

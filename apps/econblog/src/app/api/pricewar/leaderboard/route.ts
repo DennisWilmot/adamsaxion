@@ -1,5 +1,6 @@
 import { getPlayMode } from "@adamsaxion/pricewar-engine";
 import { DEFAULT_MARGIN_PLAY_MODE } from "@/lib/games/margin-play-mode";
+import { resolveProfileAvatarUrl } from "@/lib/avatars/resolve";
 import { requireAuthedUser, getUserTier } from "@/server/pricewar/auth";
 import { isMarginRatedEnabled } from "@/server/pricewar/feature-flag";
 import { jsonError, jsonOk } from "@/server/pricewar/http";
@@ -46,7 +47,7 @@ export async function GET(request: Request) {
     rank: index + 1,
     userId: row.userId,
     name: row.username,
-    avatarUrl: row.avatarUrl,
+    avatarUrl: resolveProfileAvatarUrl(row.avatarUrl, row.userId),
     elo: row.rating,
     ...(canSeeOwnRank && row.userId === auth.user.id ? { isYou: true as const } : {}),
   }));

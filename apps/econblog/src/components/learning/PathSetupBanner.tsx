@@ -13,10 +13,11 @@ export function PathSetupBanner({ onSetup }: PathSetupBannerProps) {
       <Compass className="size-5 text-primary shrink-0" />
       <div className="flex-1">
         <p className="font-body text-sm font-semibold text-foreground">
-          Finish path setup (~2 min)
+          Personalize your path (~2 min)
         </p>
         <p className="font-body text-xs text-foreground-secondary mt-xs">
-          Tell us what you want to learn and we&apos;ll order your curriculum.
+          The path below is a default suggestion. Tell us what you want to learn
+          and we&apos;ll build one for you.
         </p>
       </div>
       <button
