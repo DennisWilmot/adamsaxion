@@ -1,13 +1,37 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { NextConfig } from "next";
+import { POSTHOG_PROXY_PATH } from "./src/lib/posthog/config";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+const posthogRegion = (process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "").includes("eu")
+  ? "eu"
+  : "us";
+const posthogApiHost = `https://${posthogRegion}.i.posthog.com`;
+const posthogAssetsHost = `https://${posthogRegion}-assets.i.posthog.com`;
+
 const nextConfig: NextConfig = {
+  skipTrailingSlashRedirect: true,
   transpilePackages: ["@adamsaxion/pricewar-engine", "@adamsaxion/pricewar-types"],
   turbopack: {
     root: path.resolve(__dirname, "..", ".."),
+  },
+  async rewrites() {
+    return [
+      {
+        source: `${POSTHOG_PROXY_PATH}/static/:path*`,
+        destination: `${posthogAssetsHost}/static/:path*`,
+      },
+      {
+        source: `${POSTHOG_PROXY_PATH}/array/:path*`,
+        destination: `${posthogAssetsHost}/array/:path*`,
+      },
+      {
+        source: `${POSTHOG_PROXY_PATH}/:path*`,
+        destination: `${posthogApiHost}/:path*`,
+      },
+    ];
   },
   async redirects() {
     return [

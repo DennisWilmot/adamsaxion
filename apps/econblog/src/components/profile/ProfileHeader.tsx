@@ -1,5 +1,7 @@
 "use client";
 
+import type { UserSubscriptionView } from "@/lib/subscription/types";
+
 interface ProfileHeaderProps {
   username: string;
   email: string;
@@ -7,6 +9,7 @@ interface ProfileHeaderProps {
   currentLevel: number;
   xpToNext: number;
   levelProgress: number;
+  subscription: UserSubscriptionView;
 }
 
 export function ProfileHeader({
@@ -16,15 +19,28 @@ export function ProfileHeader({
   currentLevel,
   xpToNext,
   levelProgress,
+  subscription,
 }: ProfileHeaderProps) {
   return (
     <div className="mb-2xl space-y-xl">
       <div className="flex flex-wrap items-start justify-between gap-xl">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-foreground">
-            {username}
-          </h1>
+          <div className="mb-sm flex flex-wrap items-center gap-sm">
+            <h1 className="font-display text-2xl font-semibold text-foreground">
+              {username}
+            </h1>
+            {subscription.planLabel && subscription.hasAccess && (
+              <span className="rounded-full bg-primary-subtle/40 px-md py-xs font-body text-[10px] font-bold uppercase tracking-widest text-primary">
+                {subscription.planLabel}
+              </span>
+            )}
+          </div>
           <p className="font-body text-sm text-foreground-muted">{email}</p>
+          {subscription.hasAccess && subscription.renewalLabel && (
+            <p className="mt-xs font-body text-xs text-foreground-secondary">
+              {subscription.renewalLabel}
+            </p>
+          )}
         </div>
 
         <div className="flex gap-md">

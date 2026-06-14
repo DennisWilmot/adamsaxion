@@ -53,6 +53,7 @@ export function ProfilePageClient({
   const [activeTab, setActiveTab] = useState<ProfileTabId>(initialTab);
   const [pathModalOpen, setPathModalOpen] = useState(false);
   const [pathBadge, setPathBadge] = useState("…");
+  const [billingNotice, setBillingNotice] = useState<string | null>(null);
 
   useEffect(() => {
     const tab = searchParams.get("tab") as ProfileTabId | null;
@@ -63,9 +64,12 @@ export function ProfilePageClient({
 
   useEffect(() => {
     if (searchParams.get("billing") !== "return") return;
+    setActiveTab("subscription");
+    setBillingNotice("Billing settings updated.");
     router.refresh();
     const url = new URL(window.location.href);
     url.searchParams.delete("billing");
+    url.searchParams.set("tab", "subscription");
     window.history.replaceState(null, "", url.toString());
   }, [router, searchParams]);
 
@@ -98,7 +102,14 @@ export function ProfilePageClient({
         currentLevel={currentLevel}
         xpToNext={xpToNext}
         levelProgress={levelProgress}
+        subscription={subscription}
       />
+
+      {billingNotice && (
+        <p className="mb-xl rounded-lg border border-primary/20 bg-primary-subtle/30 px-lg py-md font-body text-sm text-primary">
+          {billingNotice}
+        </p>
+      )}
 
       <ProfileTabNav
         activeTab={activeTab}

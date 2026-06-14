@@ -5,6 +5,7 @@ import "./globals.css";
 import { AuthNotice } from "@/components/AuthNotice";
 import { Header } from "@/components/Header";
 import { HeaderShell } from "@/components/HeaderShell";
+import { PostHogIdentify } from "@/components/PostHogIdentify";
 import { getAppUrl } from "@/lib/stripe/config";
 
 const sourceSerif = Source_Serif_4({
@@ -60,6 +61,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <AuthNotice />
         </Suspense>
+        <PostHogIdentify />
         <main>{children}</main>
       </body>
     </html>

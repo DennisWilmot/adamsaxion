@@ -1,20 +1,21 @@
+import "dotenv/config";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { eq } from "drizzle-orm";
 import * as schema from "../src/db/schema";
 import { LEADERBOARD_SEED_USERS } from "../src/lib/leaderboard/seed-users";
 
-async function seed() {
-  const connectionString = process.env.DIRECT_URL;
+async function seedLeaderboard() {
+  const connectionString = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
   if (!connectionString) {
-    console.error("DIRECT_URL not set in environment");
+    console.error("DIRECT_URL or DATABASE_URL required");
     process.exit(1);
   }
 
   const client = postgres(connectionString);
   const db = drizzle(client, { schema });
 
-  console.log("Seeding leaderboard with simulated users...");
+  console.log("Replacing leaderboard seeds...");
 
   await db.delete(schema.leaderboardSeeds).where(eq(schema.leaderboardSeeds.isSeeded, true));
 
@@ -28,12 +29,18 @@ async function seed() {
   }
 
   console.log(`Seeded ${LEADERBOARD_SEED_USERS.length} leaderboard users`);
+  console.log(
+    `  ${LEADERBOARD_SEED_USERS.filter((u) => u.username.includes(" ")).length} from Margin opponents`
+  );
+  console.log(
+    `  ${LEADERBOARD_SEED_USERS.filter((u) => !u.username.includes(" ")).length} realistic handles`
+  );
 
   await client.end();
   console.log("Done.");
 }
 
-seed().catch((e) => {
-  console.error("Seed failed:", e);
+seedLeaderboard().catch((error) => {
+  console.error("Leaderboard seed failed:", error);
   process.exit(1);
 });

@@ -25,7 +25,9 @@ export function ProfileSubscriptionTab({
 }: ProfileSubscriptionTabProps) {
   const [portalLoading, setPortalLoading] = useState(false);
   const [upgradeLoading, setUpgradeLoading] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
   const [billing, setBilling] = useState<BillingSummary | null>(null);
 
   const plan = subscription.plan as CheckoutPlan | null;
@@ -64,6 +66,7 @@ export function ProfileSubscriptionTab({
 
   async function openBillingPortal() {
     setError(null);
+    setInfo(null);
     setPortalLoading(true);
     try {
       const res = await fetch("/api/stripe/portal", { method: "POST" });
@@ -82,8 +85,64 @@ export function ProfileSubscriptionTab({
     }
   }
 
+  async function handleCancelSubscription() {
+    const expiry = nextCharge ?? "the end of your billing period";
+    const confirmed = window.confirm(
+      `Cancel your monthly plan? You'll keep full access until ${expiry}, then your subscription will end.`
+    );
+    if (!confirmed) return;
+
+    setError(null);
+    setInfo(null);
+    setCancelLoading(true);
+    try {
+      const res = await fetch("/api/stripe/cancel-subscription", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Could not cancel subscription");
+        return;
+      }
+      setInfo(`Subscription canceled. You keep access until ${expiry}.`);
+      window.location.reload();
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setCancelLoading(false);
+    }
+  }
+
+  async function handleReactivateSubscription() {
+    setError(null);
+    setInfo(null);
+    setCancelLoading(true);
+    try {
+      const res = await fetch("/api/stripe/reactivate-subscription", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Could not reactivate subscription");
+        return;
+      }
+      setInfo("Subscription reactivated. Your plan will renew as usual.");
+      window.location.reload();
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setCancelLoading(false);
+    }
+  }
+
   const showUpgrade =
     subscription.hasAccess && subscription.plan === "monthly";
+  const canManageBilling = Boolean(subscription.stripeCustomerId);
+  const canCancelMonthly =
+    subscription.hasAccess &&
+    subscription.hasRecurringSubscription &&
+    !subscription.cancelAtPeriodEnd;
+  const canReactivateMonthly =
+    subscription.hasAccess &&
+    subscription.hasRecurringSubscription &&
+    subscription.cancelAtPeriodEnd;
+  const actionLoading = portalLoading || upgradeLoading || cancelLoading;
 
   return (
     <div className="space-y-xl">
@@ -141,6 +200,9 @@ export function ProfileSubscriptionTab({
         {error && (
           <p className="mt-md font-body text-sm text-error">{error}</p>
         )}
+        {info && (
+          <p className="mt-md font-body text-sm text-primary">{info}</p>
+        )}
 
         <div className="mt-xl flex flex-wrap gap-md">
           {!subscription.hasAccess ? (
@@ -155,7 +217,7 @@ export function ProfileSubscriptionTab({
               {showUpgrade && (
                 <button
                   type="button"
-                  disabled={upgradeLoading}
+                  disabled={actionLoading}
                   onClick={handleUpgrade}
                   className="inline-flex items-center gap-sm rounded-full bg-primary px-xl py-md font-body text-sm font-semibold text-surface-raised hover:bg-primary-hover disabled:opacity-50"
                 >
@@ -165,33 +227,41 @@ export function ProfileSubscriptionTab({
                   Upgrade to Lifetime — {PLAN_PRICES.lifetime.amount}
                 </button>
               )}
-                  {subscription.stripeCustomerId && (
-                    <>
-                      <button
-                        type="button"
-                        disabled={portalLoading}
-                        onClick={openBillingPortal}
-                        className="inline-flex items-center gap-sm rounded-full border border-border px-xl py-md font-body text-sm font-semibold text-foreground hover:bg-surface-sunken disabled:opacity-50"
-                      >
-                        {portalLoading ? (
-                          <Loader2 className="size-4 animate-spin" />
-                        ) : (
-                          <ExternalLink className="size-4" />
-                        )}
-                        Manage
-                      </button>
-                      {!subscription.cancelAtPeriodEnd && (
-                        <button
-                          type="button"
-                          disabled={portalLoading}
-                          onClick={openBillingPortal}
-                          className="rounded-full border border-border px-xl py-md font-body text-sm font-semibold text-foreground hover:bg-surface-sunken disabled:opacity-50"
-                        >
-                          Cancel
-                        </button>
-                      )}
-                    </>
+              {canManageBilling && (
+                <button
+                  type="button"
+                  disabled={actionLoading}
+                  onClick={openBillingPortal}
+                  className="inline-flex items-center gap-sm rounded-full border border-border px-xl py-md font-body text-sm font-semibold text-foreground hover:bg-surface-sunken disabled:opacity-50"
+                >
+                  {portalLoading ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <ExternalLink className="size-4" />
                   )}
+                  {subscription.plan === "lifetime" ? "Billing history" : "Manage billing"}
+                </button>
+              )}
+              {canCancelMonthly && (
+                <button
+                  type="button"
+                  disabled={actionLoading}
+                  onClick={handleCancelSubscription}
+                  className="rounded-full border border-border px-xl py-md font-body text-sm font-semibold text-foreground hover:bg-surface-sunken disabled:opacity-50"
+                >
+                  {cancelLoading ? "Canceling…" : "Cancel plan"}
+                </button>
+              )}
+              {canReactivateMonthly && (
+                <button
+                  type="button"
+                  disabled={actionLoading}
+                  onClick={handleReactivateSubscription}
+                  className="rounded-full border border-primary/40 bg-primary-subtle/30 px-xl py-md font-body text-sm font-semibold text-primary hover:bg-primary-subtle/50 disabled:opacity-50"
+                >
+                  {cancelLoading ? "Reactivating…" : "Reactivate plan"}
+                </button>
+              )}
             </>
           )}
         </div>

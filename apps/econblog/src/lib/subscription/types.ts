@@ -10,6 +10,7 @@ export interface UserSubscriptionView {
   status: SubscriptionStatus;
   hasAccess: boolean;
   stripeCustomerId: string | null;
+  hasRecurringSubscription: boolean;
   currentPeriodEnd: string | null;
   cancelAtPeriodEnd: boolean;
   planLabel: string | null;

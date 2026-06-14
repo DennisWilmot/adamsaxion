@@ -12,6 +12,7 @@
     "db:generate": "drizzle-kit generate",
     "db:studio": "drizzle-kit studio",
     "db:backfill-avatars": "tsx scripts/backfill-profile-avatars.ts",
+    "db:seed-leaderboard": "tsx scripts/seed-leaderboard.ts",
     "margin:synthetic-avatars": "tsx scripts/generate-synthetic-opponent-avatars.ts",
     "test:e2e": "playwright test",
     "screenshots:margin": "PRICEWAR_E2E_ENABLED=1 playwright test design-review-screenshots.spec.ts",
